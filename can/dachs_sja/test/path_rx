@@ -1,0 +1,4 @@
+#!/bin/sh
+# Script to run PATH receive code (in directory with license)
+# Input argument should be 1 or 2
+/home/capath/can/test/can_rx -p $1

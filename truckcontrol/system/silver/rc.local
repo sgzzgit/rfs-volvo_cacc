@@ -1,0 +1,3 @@
+/usr/sbin/sshd
+
+/home/truckcontrol/test/truck_startup.sh -V Silvr

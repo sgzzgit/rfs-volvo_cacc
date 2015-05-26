@@ -1,0 +1,287 @@
+# File generated from list of field names and columns from file test.dat
+set grid
+set size 0.5,0.5
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "local_time"
+plot "test.dat" using 1
+set origin 0.50,0.50
+set title "maneuver_id[0]"
+plot "test.dat" using 2
+set origin 0.00,0.00
+set title "maneuver_des"
+plot "test.dat" using 3
+set origin 0.50,0.00
+set title "handshake_start"
+plot "test.dat" using 4
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "vehicle_pip"
+plot "test.dat" using 5
+set origin 0.50,0.50
+set title "vehicle_info_pt->pltn_size"
+plot "test.dat" using 6
+set origin 0.00,0.00
+set title "global_time"
+plot "test.dat" using 7
+set origin 0.50,0.00
+set title "comm_receive_pt[1].global_time"
+plot "test.dat" using 8
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "comm_receive_pt[2].global_time"
+plot "test.dat" using 9
+set origin 0.50,0.50
+set title "time_filter"
+plot "test.dat" using 10
+set origin 0.00,0.00
+set title "t_ctrl"
+plot "test.dat" using 11
+set origin 0.50,0.00
+set title "con_state_pt->vrd_range"
+plot "test.dat" using 12
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "con_state_pt->vrd_range_rate"
+plot "test.dat" using 13
+set origin 0.50,0.50
+set title "con_state_pt->mdl_rg"
+plot "test.dat" using 14
+set origin 0.00,0.00
+set title "con_state_pt->lidar_range"
+plot "test.dat" using 15
+set origin 0.50,0.00
+set title "con_state_pt->radar_rg"
+plot "test.dat" using 16
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "con_state_pt->radar_rt"
+plot "test.dat" using 17
+set origin 0.50,0.50
+set title "con_state_pt->front_range"
+plot "test.dat" using 18
+set origin 0.00,0.00
+set title "lid_hi_rg[0]"
+plot "test.dat" using 19
+set origin 0.50,0.00
+set title "lid_hi_rg[1]"
+plot "test.dat" using 20
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "lid_hi_rg[2]"
+plot "test.dat" using 21
+set origin 0.50,0.50
+set title "0"
+plot "test.dat" using 22
+set origin 0.00,0.00
+set title "f_index_pt->comm_leader"
+plot "test.dat" using 23
+set origin 0.50,0.00
+set title "f_index_pt->comm_pre"
+plot "test.dat" using 24
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "f_index_pt->comm_back"
+plot "test.dat" using 25
+set origin 0.50,0.50
+set title "f_index_pt->comm"
+plot "test.dat" using 26
+set origin 0.00,0.00
+set title "con_output_pt->y7"
+plot "test.dat" using 27
+set origin 0.50,0.00
+set title "con_output_pt->y8"
+plot "test.dat" using 28
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "con_output_pt->y9"
+plot "test.dat" using 29
+set origin 0.50,0.50
+set title "con_output_pt->y10"
+plot "test.dat" using 30
+set origin 0.00,0.00
+set title "con_output_pt->y11"
+plot "test.dat" using 31
+set origin 0.50,0.00
+set title "con_output_pt->y12"
+plot "test.dat" using 32
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "con_output_pt->y13"
+plot "test.dat" using 33
+set origin 0.50,0.50
+set title "con_output_pt->y14"
+plot "test.dat" using 34
+set origin 0.00,0.00
+set title "con_output_pt->y15"
+plot "test.dat" using 35
+set origin 0.50,0.00
+set title "con_output_pt->y16"
+plot "test.dat" using 36
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "con_state_pt->pre_v"
+plot "test.dat" using 37
+set origin 0.50,0.50
+set title "con_state_pt->pre_a"
+plot "test.dat" using 38
+set origin 0.00,0.00
+set title "con_state_pt->lead_v"
+plot "test.dat" using 39
+set origin 0.50,0.00
+set title "con_state_pt->lead_a"
+plot "test.dat" using 40
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "v"
+plot "test.dat" using 41
+set origin 0.50,0.50
+set title "vehicle_info_pt->run_dist"
+plot "test.dat" using 42
+set origin 0.00,0.00
+set title "manager_cmd_pt->stop_dist"
+plot "test.dat" using 43
+set origin 0.50,0.00
+set title "con_state_pt->temp_dist"
+plot "test.dat" using 44
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "con_state_pt->ref_v"
+plot "test.dat" using 45
+set origin 0.50,0.50
+set title "con_state_pt->ref_a"
+plot "test.dat" using 46
+set origin 0.00,0.00
+set title "con_state_pt->manu_speed"
+plot "test.dat" using 47
+set origin 0.50,0.00
+set title "con_state_pt->manu_acc"
+plot "test.dat" using 48
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "sw_pt->auto_sw"
+plot "test.dat" using 49
+set origin 0.50,0.50
+set title "sw_pt->manu_sw"
+plot "test.dat" using 50
+set origin 0.00,0.00
+set title "read_sw"
+plot "test.dat" using 51
+set origin 0.50,0.00
+set title "sens_read_pt->gshift_sw"
+plot "test.dat" using 52
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "gear"
+plot "test.dat" using 53
+set origin 0.50,0.50
+set title "pcmd->ebs_deceleration"
+plot "test.dat" using 54
+set origin 0.00,0.00
+set title "pv->fb_axle"
+plot "test.dat" using 55
+set origin 0.50,0.00
+set title "pv->mb_axle"
+plot "test.dat" using 56
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "pv->rb_axle"
+plot "test.dat" using 57
+set origin 0.50,0.50
+set title "sens_read_pt->bp"
+plot "test.dat" using 58
+set origin 0.00,0.00
+set title "sens_read_pt->we_flt"
+plot "test.dat" using 59
+set origin 0.50,0.00
+set title "vehicle_info_pt->ready"
+plot "test.dat" using 60
+set nomultiplot
+pause -1 "Press Enter to continue."
+clear
+
+set multiplot
+set xlabel "Tick # [each is 75 msec]"
+set origin 0.00,0.50
+set title "comm_receive_pt[1].user_ushort_2"
+plot "test.dat" using 61
+set origin 0.50,0.50
+set title "comm_receive_pt[2].user_ushort_2"
+plot "test.dat" using 62
+set origin 0.00,0.00
+set title "comm_receive_pt[2].user_ushort_2"
+plot "test.dat" using 62
+set nomultiplot
+pause -1 "Press Enter to continue."

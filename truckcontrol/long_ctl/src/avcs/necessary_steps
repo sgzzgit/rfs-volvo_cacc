@@ -1,0 +1,20 @@
+vi avcs/trk_wr.c 
+Go to next message to be printed and start editing the old names and adding new ones.
+
+vi common/long_ctl.h
+Add variable names to long_vehicle_state.
+
+Do a make in avcs to verify.
+
+vi jbus/src/message_parsing/mod/MESSAGE_expected.csv
+This file has the parsing I got from Stefan's dbc file. Match this parsing with that in 
+j1939pdu_extended.c.
+
+vi jbus/src/j1939pdu_extended.c
+Go to the pdu_to_message parsing function and look for similar names and match the parsing
+with that in message_parsing/mod/MESSAGE_expected.csv
+
+vi jbus_extended.h
+Change the old names to the new names.
+
+Do a make in src to verify.

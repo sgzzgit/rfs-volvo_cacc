@@ -1,0 +1,49 @@
+		
+R E A D M E  file
+
+***********************************************************
+
+DACHS(R) Software: CAN Layer2 resource manager, vers. 1.0.1
+
+Fieldbus         : CAN
+Processor        : x86
+Controller       : 2 x SJA1000
+
+Boards           : Janus-MM (PC/104)
+ 
+OS               : QNX Neutrino RTOS v.6.3
+
+last change      : 
+
+************************************************************
+
+FILES:
+/DACHS-QNX6.3/CAN-SJA1000-104-1.0.1-JAN/src:
+
+  can_dual       : can driver supporting both channels with shared interrupt,
+                   for driver option use 'use can_dual'
+					   
+  send1           : send test application, channel 1
+  recv1           : receive test application, channel 1
+  send2           : send test application, channel 2
+  recv2           : receive test application, channel 2
+
+  rest           : restart board and driver
+  Janus-MM-Jumpers_dual.JPG: jumper setting for a shared interrupt and
+                             on board bus termination
+  README_S.run     : this file
+  
+
+Attention: The priority of the driver must be higher
+          		than the priority of its clients.
+
+The resource manager needs a license file
+If you don't have it, please contact support@steinhoff-automation.com
+
+***********************************************************
+(C) STEINHOFF Automation & Fieldbus-Systems
+
+www.steinhoff-automation.com
+support@steinhoff-automation.com
+
+		

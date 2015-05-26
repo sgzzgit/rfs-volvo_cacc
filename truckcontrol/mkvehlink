@@ -1,0 +1,16 @@
+#!/bin/sh
+
+cd include
+if [ -f veh_bus.h ]
+then
+	ln -sf veh_bus.h vehicle.h
+	echo 'vehicle.h linked to veh_bus.h'
+elif [ -f veh_trk.h ]
+then
+	ln -sf veh_trk.h vehicle.h
+	echo 'vehicle.h linked to veh_trk.h'
+elif [ -f vehiotst.h ]
+then
+	ln -sf vehiotst.h
+	echo 'vehicle.h linked to vehiotst.h'
+fi

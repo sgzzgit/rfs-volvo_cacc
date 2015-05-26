@@ -1,0 +1,7 @@
+slay can_rx
+slay can_tx
+./truckinit
+sleep 1
+./can_rx -p /dev/can2 >can_rx.dbg &	
+sleep 1
+./can_tx -p /dev/can1 -i 1000 -t 2  >can_tx.dbg &

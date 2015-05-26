@@ -1,0 +1,65 @@
+# As of July 2009, JBUS_DIR is expected to be a subdirectory of 
+# CAN_DIR, and the Makefile will use the definitions from 
+# $(CAPATH_MK_DEFS) -- see the path/build directory. 
+
+include $(CAPATH_MK_DEFS)
+
+# The PATH client library is currently different for the Steinhoff and
+# PATH CAN driver; this should probably be changed to a run-time choice
+# if we continue to support both drivers.
+#
+# The Makefile in the parent directory builds the executables for both drivers.
+# In this directory, can specify 
+# make DRIVER_NAME=path_can
+# or uncomment one of the two choices.
+
+CLIENT_DIR=$(CAN_DIR)/client/
+JBUS_DIR = $(CAN_DIR)/jbus
+
+JBUS_INCLUDE_DIR = $(JBUS_DIR)/include
+
+# Flags to use when using gdb
+PATH_CFLAGS += -I$(CAN_DIR)/client
+PATH_CFLAGS += -I$(CAN_DIR)/include -I$(JBUS_INCLUDE_DIR)
+PATH_CFLAGS += -g
+
+PATH_LDFLAGS += -L$(JBUS_DIR)/lib -L$(CAN_DIR)/client/$(OBJDIR)
+
+PATH_LIBS += -ljbus -lcapath_can 
+
+JBUS_OBJS = $(OBJDIR)/j1939stb.o $(OBJDIR)/j1939pdu.o \
+		$(OBJDIR)/j1939db.o $(OBJDIR)/j1939scale.o  \
+		$(OBJDIR)/j1587scale.o \
+		$(OBJDIR)/j1939can.o $(OBJDIR)/laipdu.o $(OBJDIR)/laiscale.o
+
+PATH_OBJS += $(JBUS_OBJS)
+
+
+# Don't build $(OBJDIR)/jbussend anymore, it is really project specific
+# and depends on a particular version of clt_vars.h
+# Leave a copy of the source here for reference of the version run for Demo2003
+
+EXECS = $(OBJDIR)/canj1939 \
+	$(OBJDIR)/initj1939 \
+	$(OBJDIR)/rdj1587 \
+	$(OBJDIR)/rdj1708 \
+	$(OBJDIR)/rdj1939 \
+	$(OBJDIR)/rqstj1939\
+	$(OBJDIR)/sndpdu \
+	$(OBJDIR)/sndpdufile \
+	$(OBJDIR)/tmtj1939 \
+	$(OBJDIR)/tmtstb \
+	$(OBJDIR)/trigj1939 
+
+all:	$(OBJDIR) $(OBJDIR)/libjbus.a $(EXECS)
+
+$(OBJDIR):                                                        
+	mkdir -p $(OBJDIR)                                        
+                                    
+$(OBJDIR)/libjbus.a: $(JBUS_OBJS)	
+	$(PATH_AR) $(PATH_AR_FLAGS)  $@ $(JBUS_OBJS)   
+	cp $@ $(JBUS_DIR)/lib
+
+clean:
+	\rm -f $(OBJDIR)/*.o *.err $(EXECS)
+

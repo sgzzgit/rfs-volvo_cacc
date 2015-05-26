@@ -1,0 +1,22 @@
+This is a description of Xiao-Yun Lu's control program for truck platooning, 
+long_trk.c.  Currently (2/16/2010), long_trk is in a transition from 2-truck 
+platooning to 3-truck platooning. So the description should change somewhat.
+
+long_trk begins by reading a configuration file, default name realtime.ini.  
+Configuration parameters in this file can modify the run-time behavior of the 
+control system.  They include:
+
+DataLog: number of control loops to run before writing a line of data to a log 
+	file.
+StaticRun: if TRUE, set engine torque and speed, and ebs deceleration to zero, 
+	and the engine and brake commands to TSC_OVERRIDE_DISABLED.  This mode 
+	is used to check the control system with no load on the engine or 	
+	brakes.
+TestActuators: if TRUE, set engine torque to 400, ebs deceleration to -2.2, 
+	engine command to TSC_TORQUE_CONTROL and brake command to EXAC_ACTIVE.  
+	This mode is used to statically test engine speed control and brake 
+	control. 
+TruckPlatoon: if TRUE, get the current truck's drive mode, vehicle ID, and 
+	platoon size from realtime.ini. Also get radar and/or lidar position if 	they're available for use in determining control behavior.  
+UseComm: if TRUE, set up and check handshaking among trucks. Check synchrony 
+	and get timestamps from other trucks.  Get previous truck's acceleration	and velocity from its transmitted packet. 

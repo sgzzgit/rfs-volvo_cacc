@@ -1,0 +1,3 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+EEC3->NominalFrictionPercentTorque = (data[0] >> 0) & (0xFF >> 0);
+EEC3->EstEngPrsticLossesPercentTorque = (data[4] >> 0) & (0xFF >> 0);

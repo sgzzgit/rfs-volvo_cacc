@@ -1,0 +1,9 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+EEC2->AccelPedal1LowIdleSwitch = (data[0] >> 0) & (0xFF >> 6);
+EEC2->AccelPedalKickdownSwitch = (data[0] >> 2) & (0xFF >> 6);
+EEC2->RoadSpeedLimitStatus = (data[0] >> 4) & (0xFF >> 6);
+EEC2->AccelPedal2LowIdleSwitch = (data[0] >> 6) & (0xFF >> 6);
+EEC2->AccelPedalPos1 = (data[1] >> 0) & (0xFF >> 0);
+EEC2->EnginePercentLoadAtCurrentSpd = (data[2] >> 0) & (0xFF >> 0);
+EEC2->AccelPedalPos2 = (data[4] >> 0) & (0xFF >> 0);
+EEC2->ActMaxAvailEngPercentTorque = (data[6] >> 0) & (0xFF >> 0);

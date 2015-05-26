@@ -1,0 +1,48 @@
+#!/bin/sh /etc/rc.common
+# This must be installed in /etc/init.d on the sobu,
+# with the TRUCK_IP set correctly for the truck 
+# for communication for truck control
+START=90
+# Blue Truck 201, Gold Truck 202, Silver Truck 203
+TRUCK_IP=10.0.1.201
+start () {
+	/usr/sbin/gpsd -b /dev/ttyGPS 
+	echo gpsd started
+	sleep 5
+	/usr/local/bin/tcp_client -q r | /usr/local/bin/gpssetdate &
+	sleep 1
+	echo gpssetdate done
+	/home/gems/bin/mktmpfs.sh
+	sleep 1
+	echo /tmp/fs created
+	/usr/sbin/iwconfig ath0 channel 178
+	sleep 1
+	echo channel changed to 178
+#	/usr/local/bin/savariWMEd >/dev/null &
+#	sleep 2
+#	echo savariWMEd started
+# turn off -v to stop output from fwd_udp_wsm and fwd_wsm_udp	
+#	/usr/local/bin/fwd_udp_wsm -u 5052 -i 927 -v >/tmp/fs/udp_wsm.out &
+#	/usr/local/bin/fwd_wsm_udp -u 5051 -a $TRUCK_IP -i 927 -v >/tmp/fs/wsm_udp.out &
+	/usr/local/bin/tcp_client -q r | /usr/local/bin/gpssnd -i -a $TRUCK_IP -u 5050 >/tmp/fs/gpssnd.out &
+	
+	# forward truck message to veh_rcv on PC104, in from blue truck on 5053, 
+	# out 5051. This line is used with gold sobu to send to gold PC104: 
+	
+	/usr/local/bin/fwudp -p 5053 -b 5051 -u -o 10.0.1.201 & 
+	
+	# forward veh_comm_packet_t as broadcast to SOBUs on DSRC, in port 5052 out 5053
+	/usr/local/bin/fwudp -p 5052 -b 5053 -o 192.168.255.255 &
+
+	echo local commands started
+}
+
+stop () {
+	killall fwudp
+	killall fwudp
+	killall gpssnd
+	killall tcp_client
+	killall gpsd
+}
+
+

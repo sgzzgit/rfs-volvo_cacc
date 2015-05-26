@@ -1,0 +1,20 @@
+#! /bin/sh
+
+mkdir -p dist
+cd src
+for projects in common olbus template cmdtest 
+do
+	cd $projects
+	make distclean
+	cd ..
+done
+cd ..
+tar cf - src plot test mkdist | (cd dist; tar xf -)
+\rm -rf `find dist -name CVS`
+(cd dist; tar cf - src plot test mkdist | gzip >longdist.tgz) 
+\cp ins_long dist
+\cp readme.long dist 
+\rm -rf dist/src dist/plot dist/test
+
+# to create distribution floppy:
+# (cd dist; \cp longdist.tgz ins_long readme.long mkdist /dos/a)

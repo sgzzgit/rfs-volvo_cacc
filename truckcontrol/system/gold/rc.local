@@ -1,0 +1,27 @@
+echo Starting syslogd
+/usr/sbin/syslogd
+sleep 2
+
+#Initialize the Xtreme 104 card as /dev/ser3 - /dev/ser10
+devc-bluestorm -u 3 >/home/truckcontrol/test/bluestorm.log 2>/home/truckcontrol/test/bluestorm.err
+
+echo Starting can_man and jbussend
+echo Must start before engine to avoid EBS fault
+/home/can/drv_i82527/qnx/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 >/dev/null &
+sleep 1
+/home/can/drv_i82527/qnx/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 >/dev/null &
+sleep 1
+/home/truckcontrol/test/jbussend -c -e /dev/can1 -b /dev/can2 -d >/home/truckcontrol/test/jbussend.dbg.startup &
+sleep 1
+
+echo Starting sshd, do last to avoid PRNG error
+/usr/sbin/sshd -f /usr/etc/sshd_config
+
+#Initialize EVT300 serial port
+/bin/stty baud=19200 < /dev/ser1
+
+#Initialize MDL lidar serial port
+/bin/stty raw baud=115200 < /dev/ser2
+
+#Initialize Denso lidar serial port
+/bin/stty raw baud=19200 < /dev/ser4

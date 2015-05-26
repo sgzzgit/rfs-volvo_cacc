@@ -1,0 +1,16 @@
+255,16 LAT_CTRL_IN input to lateral control 20ms
+255,17 LAT_STEER_IN input from steering servo to tdriver (for debugging) 50ms
+255,18 LAT_STEER_OUT output from tdriver to steerctl (debug) 50 ms
+255,19 LAT_OUT output from  steerctl to hardware (debug) 50 ms
+255,20 SIG_PROC_STAT input to lateral control
+255,21 SIG_PROC_OUT input to lateral control
+255,22 GYRO 50 ms
+255,23 DVI_MONITOR from DVIcomputer 50 ms
+255,24 LAT_IN_SENS sensor input 20 ms
+255,25 LONG_INPUT1 20 ms
+255,26 LONG_INPUT2 20 ms
+255,32 LAT_DVI_STAT lateral control status for DVI display 20 ms
+255,33 LAT_DVI_POS lateral position info for DVI display 20 ms
+255,34 LAT_CTRL_OUT output to tdriver 20 ms
+255,35 LAT_HEARTBEAT is_active 100 ms
+255,36 LONG_OUTPUT 20 ms

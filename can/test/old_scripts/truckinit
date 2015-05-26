@@ -1,0 +1,11 @@
+# note that the CAN driver can_man must run as root, so set up as setuid root
+# or start from system config file
+
+slay -f can_man
+slay -f db_slv
+sleep 1
+/home/capath/path/db/qnx/db_slv -Q -S `hostname` -v&
+sleep 2
+/home/capath/can/test/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 >/dev/null &
+sleep 1
+/home/capath/can/test/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 >/dev/null &

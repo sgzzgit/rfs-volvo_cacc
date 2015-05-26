@@ -1,0 +1,65 @@
+long_trk.c
+162c162
+< static vehicle_info_typ* vehicle_info_pt = &vehicle_info;
+---
+> static vehicle_info_typ* vehicle_info_pt;
+164c164
+< static f_mode_comm_typ* f_mode_comm_pt = &f_mode_comm;
+---
+> static f_mode_comm_typ* f_mode_comm_pt;
+166c166
+< static comm_info_typ* comm_info_pt = &comm_info;
+---
+> static comm_info_typ* comm_info_pt;
+168c168
+< static manager_cmd_typ* manager_cmd_pt = &manager_cmd;
+---
+> static manager_cmd_typ* manager_cmd_pt;
+442c442
+<         if (pparams->vehicle_type == VEH_TYPE_TRUCK_VOLVO_1)
+---
+>         if (pparams->vehicle_type == VEH_TYPE_VOLVO_1)
+646d645
+< 
+756c755
+< //          est_dist(dt, con_state_pt, maneuver_id, pre_maneuver_id, f_index_pt, radar_sw);  // SW added on 07_25_03                                
+---
+>           est_dist(dt, con_state_pt, maneuver_id, pre_maneuver_id, f_index_pt, radar_sw);  // SW added on 07_25_03                                
+1136c1135
+<   return 0;     
+---
+>   return 1;     
+
+long_trk_func.c
+347a348
+> 	 jbus_rd_pt->  bp= (pv_can-> fb_applied + pv_can-> rb_applied)*0.5;
+467,468c468,469
+< //     if (tq_we(jbus_rd_pt-> we, &max_tq_we) != 1)
+< //		 fprintf(stderr, "Call tq_we err!");
+---
+>      if (tq_we(jbus_rd_pt-> we, &max_tq_we) != 1)
+> 		 fprintf(stderr, "Call tq_we err!");
+546c547
+< 	         if (pparams->vehicle_type == VEH_TYPE_TRUCK_VOLVO_1)
+---
+> 	         if (pparams->vehicle_type == VEH_TYPE_VOLVO_1)
+551c552
+< 			 if (pparams->vehicle_type == VEH_TYPE_TRUCK_VOLVO_2)
+---
+> 			 if (pparams->vehicle_type == VEH_TYPE_VOLVO_2)
+562c563
+< 			 if (pparams->vehicle_type == VEH_TYPE_TRUCK_VOLVO_3)  
+---
+> 			 if (pparams->vehicle_type == VEH_TYPE_VOLVO_3)  
+630c631
+< 	           if (pparams->vehicle_type == VEH_TYPE_TRUCK_VOLVO_1)
+---
+> 	           if (pparams->vehicle_type == VEH_TYPE_VOLVO_1)
+803d803
+< 	return 0;     //TAKE THIS OUT LATER IF AND WHEN WE GET LEDS!!!
+
+realtime.ini
+183c183
+< UseComm=FALSE
+---
+> UseComm=TRUE

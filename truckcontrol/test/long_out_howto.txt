@@ -1,0 +1,20 @@
+Samples of running long_out in order to make sure that J1939 actuation
+is working.
+
+To set engine speed:
+$ ./long_out -m 1 -v 700     
+jbus database variables already created
+mode is 1
+speed requested 700.000 RPM
+
+To turn on brakes:
+$ ./long_out -b -5.0         
+jbus database variables already created
+deceleration requested -5.0000
+
+To give torque request:
+$ ./long_out -m 2 -t 400 
+jbus database variables already created
+mode is 2
+torque requested 400.000 N-m
+

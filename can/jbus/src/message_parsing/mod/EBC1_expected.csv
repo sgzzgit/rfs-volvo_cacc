@@ -1,0 +1,13 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+EBC1->ASREngineControlActive = (data[0] >> 0) & (0xFF >> 6);
+EBC1->ASRBrakeControlActive = (data[0] >> 2) & (0xFF >> 6);
+EBC1->AntiLockBrakingActive = (data[0] >> 4) & (0xFF >> 6);
+EBC1->EBSBrakeSwitch = (data[0] >> 6) & (0xFF >> 6);
+EBC1->BrakePedalPosition = (data[1] >> 0) & (0xFF >> 0);
+EBC1->AccelInterlockSwitch = (data[3] >> 0) & (0xFF >> 6);
+EBC1->RemoteAccelEnableSwitch = (data[3] >> 6) & (0xFF >> 6);
+EBC1->EngRetarderSelection = (data[4] >> 0) & (0xFF >> 0);
+EBC1->ABSFullyOperational = (data[5] >> 0) & (0xFF >> 6);
+EBC1->EBSRedWarningSignal = (data[5] >> 2) & (0xFF >> 6);
+EBC1->ABSEBSAmberWarningSignal = (data[5] >> 4) & (0xFF >> 6);
+EBC1->SrcAddrssOfCtrllngDvcFrBrkCntrl = (data[6] >> 0) & (0xFF >> 0);

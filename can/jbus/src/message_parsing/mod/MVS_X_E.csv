@@ -1,0 +1,2 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+MVS_X_E->AppliedVehicleSpeedLimit_BB1_X_E = (data[7] >> 0) & (0xFF >> 0);

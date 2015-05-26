@@ -1,0 +1,1 @@
+Copy all the variables listed in long_ctl.h into the cases in long_utils.c and compile

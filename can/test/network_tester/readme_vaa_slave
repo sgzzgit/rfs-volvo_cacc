@@ -1,0 +1,26 @@
+This file contains basic usage information for vaa_slave and the low-level network test scripts that it calls. Information here is primarily applicable to the two vaa machines, running the Steinhoff drivers. 
+
+direct usage refers to execution of a script on a VAA machine. 
+remote usage refers to transmission of a TCP message to vaa_slave.sh. 
+
+TRANSMIT - can_tx - transmit data across the CAN network
+direct usage: can_tx -p [port] -e 1 -t [time] -n [number] -i [identifier]
+remote usage: SEND [port] [time] [number] [identifier]
+[port] - 1 or 2
+[time] - transmission interval (seconds)
+[number] - how many messages to send
+[identifier] - message identifier, not critical for testing purposes
+
+RECEIVE - can_rx - receive data from the CAN network and retransmit using nc
+direct usage: can_rx -p [port]
+remote usage: SEND [port] [ip] [TCP]
+[port] - 1 or 2 (CAN port #)
+[ip] - data will be sent back to this ip
+[TCP] - data will be sent back to this TCP port
+
+START - slay -f -Q can_dual , start_can_dual - restarts the drivers
+direct usage: start_can_dual [bits]
+remote usage: START [baud]
+[bits] - timing bits to implement the baud rate
+[baud] - baud rate
+

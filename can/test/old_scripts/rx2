@@ -1,0 +1,6 @@
+slay can_rx
+slay can_man
+sleep 1
+niceinit
+sleep 1
+/home/can/test/can_rx /dev/can2 >can_rx2.dbg &	

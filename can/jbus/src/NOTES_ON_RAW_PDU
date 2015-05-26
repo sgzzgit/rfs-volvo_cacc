@@ -1,0 +1,25 @@
+rdj1939 doesn't read from the database, it writes to the database in normal
+operation, after figuring out what kind of J1939 message it is, so that other
+processes can get the formatted data.  If you give the -g and the -v flags,
+this code in rdj1939.c
+                if (generic) {
+                        write_pgn_to_database(stdout, pgn, &pdu, pclt,
+                                j1939_debug);
+                        continue;
+                }
+will cause write_pgn_to_database (in j1939db.c) to call print_pdu through 
+the function pointer in db_ref[0]  that is referenced in the code
+        if (debug)
+        // print variable information
+                info->print_dbv((void *) buf, fp, 1);
+
+if print_pdu (in j1939pdu.c) doesn't have exactly the format you need, either
+filter it using awk/sed/grep to get the same format as the truck files (that
+may have been  what was done before, John may remember, the data gathering
+from the truck was done by a student from China who is no longer at PATH),
+change print_pdu, or change sndpdu, whatever seems most convenient. Check
+with John to see if it matters to him, but the truck work is well past
+the early data gathering and simulation phase where gathering raw CAN bus
+data is important.
+
+

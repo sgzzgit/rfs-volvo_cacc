@@ -1,0 +1,14 @@
+This driver for the SSV CAN board was extensively rewritten for QNX6 based
+on the QNX4 driver PATH contracted out Jorge M. Estrela da Silva and his
+group at ISEP, Porto, Portugal in 2002.
+
+It has been rewritten to use the QNX6 built-in resource manager facilities
+for device control and open context blocks, to use pulses instead of proxies,
+and to eliminate any C++ syntax.
+
+Sue Dickey October 2004
+
+It has also been modified to use native QNX6 message passing instead of the 
+Cogent database.
+
+John Spring August 2008

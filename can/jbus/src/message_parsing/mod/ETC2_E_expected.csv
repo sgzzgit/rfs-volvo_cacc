@@ -1,0 +1,6 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+ETC2_E->ETC2E_TransSelectedGear = (data[0] >> 0) & (0xFF >> 0);
+ETC2_E->ETC2E_TransActualGearRatio = (data[1] >> 0) & (0xFF >> -8);
+ETC2_E->ETC2E_TransCurrentGear = (data[3] >> 0) & (0xFF >> 0);
+ETC2_E->ETC2E_TransRqedRange = (data[4] >> 0) & (0xFF >> -8);
+ETC2_E->ETC2E_TransCurrentRange = (data[6] >> 0) & (0xFF >> -8);

@@ -1,0 +1,10 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+ETC1->TransmissionDrivelineEngaged = (data[0] >> 0) & (0xFF >> 6);
+ETC1->TorqueConverterLockupEngaged = (data[0] >> 2) & (0xFF >> 6);
+ETC1->TransmissionShiftInProcess = (data[0] >> 4) & (0xFF >> 6);
+ETC1->TransmissionOutputShaftSpeed = (data[1] >> 0) & (0xFF >> -8);
+ETC1->PercentClutchSlip = (data[3] >> 0) & (0xFF >> 0);
+ETC1->MomentaryEngineOverspeedEnable = (data[4] >> 0) & (0xFF >> 6);
+ETC1->ProgressiveShiftDisable = (data[4] >> 2) & (0xFF >> 6);
+ETC1->TransInputShaftSpeed = (data[5] >> 0) & (0xFF >> -8);
+ETC1->SrcAddrssOfCtrllngDvcFrTrnsCtrl = (data[7] >> 0) & (0xFF >> 0);

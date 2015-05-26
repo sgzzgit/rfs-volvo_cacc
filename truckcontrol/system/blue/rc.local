@@ -1,0 +1,12 @@
+#ntpdate 128.32.234.183
+setconf CS_LIBPATH $(getconf CS_LIBPATH):/usr/pkg/lib
+sleep 1
+/usr/sbin/sshd
+/bin/stty icrnl -igncr baud=38400 < /dev/ser1
+echo Starting can_man and jbussend
+/home/can/drv_common/qnx/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 >/big/data/can1.dbg &
+sleep 1
+/home/can/drv_common/qnx/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 >/big/data/can2.dbg &
+sleep 2
+/home/truckcontrol/j1939/src/qnx/jbussend -c -e /dev/can1 -b /dev/can2 -v Blue >/home/truckcontrol/test/jbussend.dbg &
+sleep 1

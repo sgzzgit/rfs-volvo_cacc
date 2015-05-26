@@ -1,0 +1,6 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+VDC2->SteeringWheelAngle = (data[0] >> 0) & (0xFF >> -8);
+VDC2->SteeringWheelTurnCounter = (data[2] >> 0) & (0xFF >> 2);
+VDC2->YawRate = (data[3] >> 0) & (0xFF >> -8);
+VDC2->LateralAcceleration = (data[5] >> 0) & (0xFF >> -8);
+VDC2->LongitudinalAcceleration = (data[7] >> 0) & (0xFF >> 0);

@@ -1,0 +1,5 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+EBC5->HaltBrakeMode = (data[0] >> 2) & (0xFF >> 5);
+EBC5->FoundationBrakeUse = (data[1] >> 0) & (0xFF >> 6);
+EBC5->XBRActiveControlMode = (data[1] >> 4) & (0xFF >> 4);
+EBC5->XBRAccelerationLimit = (data[2] >> 0) & (0xFF >> 0);

@@ -1,0 +1,7 @@
+slay can_rx
+slay can_tx
+caninit
+sleep 1
+can_rx /dev/can2 >can_rx.dbg &	
+sleep 1
+can_tx /dev/can1 1000 2 e >can_tx.dbg &

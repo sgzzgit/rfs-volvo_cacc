@@ -1,0 +1,6 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+EEC1->EngineTorqueMode = (data[0] >> 0) & (0xFF >> 4);
+EEC1->DrvrDemandEngPercentTorque = (data[1] >> 0) & (0xFF >> 0);
+EEC1->ActualEnginePercentTorque = (data[2] >> 0) & (0xFF >> 0);
+EEC1->EngineSpeed = (data[3] >> 0) & (0xFF >> -8);
+EEC1->EngDemandPercentTorque = (data[7] >> 0) & (0xFF >> 0);

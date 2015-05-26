@@ -1,0 +1,17 @@
+#!/bin/sh
+# must start can_dual in directory that has license file
+# default is 250 Kbs
+case $1 in 
+"250")
+	echo bit speed 250
+	(cd /DACHS-QNX6.3/CAN-SJA1000-104-1.0.1-JAND/src; ./can_dual -B 0x01 -b 0x1c -C 0x01 -c 0x1c &)
+	;;
+"500")
+	echo bit speed 500
+	(cd /DACHS-QNX6.3/CAN-SJA1000-104-1.0.1-JAND/src; ./can_dual -B 0x00 -b 0x1c -C 0x00 -c 0x1c &)
+	;;
+*)
+	echo bit speed 250
+	(cd /DACHS-QNX6.3/CAN-SJA1000-104-1.0.1-JAND/src; ./can_dual -B 0x01 -b 0x1c -C 0x01 -c 0x1c &)
+	;;
+esac

@@ -1,0 +1,201 @@
+# "$Log: Makefile,v $
+# "Revision 1.2  2003/01/24 01:06:13  dickey
+# "Cleaning up distribution, removing -v from tars.
+# "Makefiles changed to do cp and rm without prompting.
+# "
+# "Revision 1.1  2003/01/23 17:16:51  dickey
+# "Changed install script and make distribution script.
+# "Changed jbussend.c, renamed Makefile.qnx to Makefile.
+# "
+# "Revision 1.1.1.1  2003/01/22 18:31:46  dickey
+# "SAE J1939 and J1587 code
+# "
+# "Revision 2.6  2002/12/21 00:06:32  dickey
+# "Added make install.
+# "
+# "Revision 2.5  2002/11/21 22:30:49  dickey
+# "Make jbus.lib, remove higher level programs to long_ctl.
+# "
+# "Revision 2.4  2002/11/12 23:51:23  dickey
+# "before removing higher-level control and test files to 'long' directory.
+# "
+# "Revision 2.3  2002/10/02 18:22:44  dickey
+# "Added CAN routines, control program, rdj1708.
+# "
+# "Revision 2.2  2002/08/24 00:14:51  dickey
+# "Added targets for J1587 and CAN driver routines.
+# "Added avcs/src directory to include file list.
+# "
+# "Revision 2.1  2002/07/24 21:37:16  dickey
+# "Makefile for QNX systems.
+# "
+# "Revision 1.3  2002/04/08 16:33:39  dickey
+# "Added rdtrg
+# "
+# "Revision 1.2  2002/03/20 19:35:21  dickey
+# "Adding log messages.
+# ""
+# J1939_DIR is assumed to be a subdirectory of the main vehicle directory
+# avcs/src is assumed to also be a subtree of this main vehicle directory 
+
+J1939_DIR = ..
+
+INCLUDE_DIR = $(J1939_DIR)/../include
+LOCAL_DIR = $(J1939_DIR)/../local
+CAN_DRIVER_DIR = $(J1939_DIR)/ssv_can
+
+CC = cc
+#CCFLAGS = -ms -c -g -I$(INCLUDE_DIR) -I$(CAN_DRIVER_DIR) -DPROTOTYPE  -Wc,-w3
+#LINKFLAGS = -g -ms -N16000 -L$(LOCAL_DIR)/qnx -L$(DB_HEADER_DIR)/qnx
+CCFLAGS = -ms -c -I$(INCLUDE_DIR) -I$(CAN_DRIVER_DIR) -DPROTOTYPE  -Wc,-w3
+LINKFLAGS = -ms -N16000 -L$(LOCAL_DIR)/qnx 
+ARFLAGS = 
+
+LIBS = -llocals -ldb_clts -lavcs_tmg -ljbus
+LINK = cc
+AR = cc
+OBJ_DIR = qnx
+JHEADERS = j1939.h jbus.h jbus_vars.h j1939pdu.h j1587.h j1939db.h j1939scale.h
+CANHEADERS = $(CAN_DRIVER_DIR)/can_clt.h $(CAN_DRIVER_DIR)/can_defs.h
+
+JEXECS = $(OBJ_DIR)/canj1939 \
+	$(OBJ_DIR)/initj1939 \
+	$(OBJ_DIR)/jbussend \
+	$(OBJ_DIR)/rdj1587 \
+	$(OBJ_DIR)/rdj1708 \
+	$(OBJ_DIR)/rdj1939 \
+	$(OBJ_DIR)/rqstj1939\
+	$(OBJ_DIR)/tmtj1939 \
+	$(OBJ_DIR)/tmtstb \
+	$(OBJ_DIR)/trigj1939 
+
+all:	$(OBJ_DIR)/jbus.lib $(JEXECS)
+
+J_OBJS = $(OBJ_DIR)/j1939stb.o $(OBJ_DIR)/j1939pdu.o \
+		$(OBJ_DIR)/j1939db.o $(OBJ_DIR)/j1939scale.o  \
+		$(OBJ_DIR)/j1587scale.o $(OBJ_DIR)/can_clt.o \
+		$(OBJ_DIR)/j1939can.o
+
+# default rule used only for temporary utilities, not stored in OBJ_DIR
+.c.o:
+	$(CC) $(CCFLAGS) -o $@ $<
+	
+$(OBJ_DIR)/jbus.lib: $(J_OBJS)	
+	$(AR) $(ARFLAGS) -A $@ $(J_OBJS) 
+	cp $@ $(LOCAL_DIR)/qnx
+
+$(OBJ_DIR)/brkj1939:	$(OBJ_DIR)/brkj1939.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/brkj1939.o  $(LIBS)
+
+$(OBJ_DIR)/canj1939:	$(OBJ_DIR)/canj1939.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/canj1939.o  $(LIBS)
+
+$(OBJ_DIR)/initj1939:	$(OBJ_DIR)/initj1939.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/initj1939.o  $(LIBS)
+
+$(OBJ_DIR)/jbussend:	$(OBJ_DIR)/jbussend.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/jbussend.o  $(LIBS)
+
+$(OBJ_DIR)/rdj1587: $(OBJ_DIR)/rdj1587.o  
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/rdj1587.o  $(LIBS)
+
+$(OBJ_DIR)/rdj1708: $(OBJ_DIR)/rdj1708.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/rdj1708.o $(LIBS)
+
+$(OBJ_DIR)/rdj1939: $(OBJ_DIR)/rdj1939.o  
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/rdj1939.o  $(LIBS)
+
+$(OBJ_DIR)/rqstj1939:	$(OBJ_DIR)/rqstj1939.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/rqstj1939.o  $(LIBS)
+
+$(OBJ_DIR)/sndj1939:	$(OBJ_DIR)/sndj1939.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/sndj1939.o  $(LIBS)
+
+$(OBJ_DIR)/tmtj1939:	$(OBJ_DIR)/tmtj1939.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/tmtj1939.o  $(LIBS)
+
+$(OBJ_DIR)/tmtstb:	$(OBJ_DIR)/tmtstb.o 
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/tmtstb.o  $(LIBS)
+
+$(OBJ_DIR)/trigj1939: $(OBJ_DIR)/trigj1939.o   
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/trigj1939.o  \
+		  $(LIBS)
+
+$(OBJ_DIR)/wrj1939: $(OBJ_DIR)/wrj1939.o  
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJ_DIR)/wrj1939.o  $(LIBS)
+
+#
+# Object file targets.
+#
+
+$(OBJ_DIR)/brkj1939.o:	brkj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ brkj1939.c
+
+$(OBJ_DIR)/can_clt.o:	can_clt.c 
+	$(CC) $(CCFLAGS) -o $@ can_clt.c
+
+$(OBJ_DIR)/canj1939.o:	canj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ canj1939.c
+
+$(OBJ_DIR)/initj1939.o:	initj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ initj1939.c
+
+$(OBJ_DIR)/jbussend.o:	jbussend.c jbussend.h $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ jbussend.c
+
+$(OBJ_DIR)/j1939stb.o:	j1939stb.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ j1939stb.c
+
+$(OBJ_DIR)/j1939can.o:	j1939can.c $(JHEADERS) $(CANHEADERS) 
+	$(CC) $(CCFLAGS) -o $@ j1939can.c
+
+$(OBJ_DIR)/j1939pdu.o:	j1939pdu.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ j1939pdu.c
+
+$(OBJ_DIR)/j1939scale.o:	j1939scale.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ j1939scale.c
+
+$(OBJ_DIR)/j1939db.o:	j1939db.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ j1939db.c
+
+$(OBJ_DIR)/j1587scale.o:	j1587scale.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ j1587scale.c
+
+$(OBJ_DIR)/rdj1587.o:	rdj1587.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ rdj1587.c
+
+$(OBJ_DIR)/rdj1708.o:	rdj1708.c j1708.h
+	$(CC) $(CCFLAGS) -o $@ rdj1708.c
+
+$(OBJ_DIR)/rdj1939.o:	rdj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ rdj1939.c
+
+$(OBJ_DIR)/rqstj1939.o:	rqstj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ rqstj1939.c
+
+$(OBJ_DIR)/sndj1939.o:	sndj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ sndj1939.c
+
+$(OBJ_DIR)/tmtj1939.o:	tmtj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ tmtj1939.c
+
+$(OBJ_DIR)/tmtstb.o:	tmtstb.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ tmtstb.c
+
+$(OBJ_DIR)/trigj1939.o:	trigj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ trigj1939.c
+
+$(OBJ_DIR)/wrj1939.o:	wrj1939.c $(JHEADERS)
+	$(CC) $(CCFLAGS) -o $@ wrj1939.c
+
+includes:
+	\cp $(JHEADERS) $(INCLUDE_DIR)	
+
+install:
+	\cp $(JEXECS) ../test
+
+clean:
+	\rm -f $(OBJ_DIR)/*.o \
+	*.err \
+	$(JEXECS)
+

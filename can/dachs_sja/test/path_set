@@ -1,0 +1,4 @@
+#!/bin/sh
+# Script to run PATH receive code (in directory with license)
+# Usage: $1 should be 1 or 2, $2 bit speed
+/home/capath/can/test/can_set_config -p $1 -b $2

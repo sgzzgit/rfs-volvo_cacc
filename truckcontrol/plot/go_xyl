@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cp $1 test.dat
+gnuplot /home/truckcontrol/plot/long_trk.gpl

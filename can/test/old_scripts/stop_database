@@ -1,0 +1,3 @@
+#!/bin/sh
+
+slay -f -Q -s TERM db_slv

@@ -1,0 +1,11 @@
+#!/bin/sh
+# slay any kind of CAN receive out there
+slay -f -Q can_rx
+slay -f -Q can_rx2
+slay -f -Q can_rx3
+slay -f -Q can_rx4
+slay -f -Q can_rx5
+slay -f -Q vaa_sim_sens_rx
+slay -f -Q vaa_raw_sens_rx
+slay -f -Q can_tx
+

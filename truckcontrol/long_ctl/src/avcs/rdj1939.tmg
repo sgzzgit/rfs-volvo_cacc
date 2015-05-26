@@ -1,0 +1,10 @@
+Clock resolution: 999847 ns
+Real time 55336.532215 ms
+Total clock ticks: 5534
+User time 136 ms
+System time 27 ms
+Child user time 0 ms
+Child system time 0 ms
+Number of executions 45614
+Average user time/loop execution 0.002982 ms
+Worst case execution time 0.000000 ms

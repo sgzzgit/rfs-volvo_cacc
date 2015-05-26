@@ -1,0 +1,11 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+ERC1_ER->ERC1ERRetarderTorqueMode = (data[0] >> 0) & (0xFF >> 4);
+ERC1_ER->ERC1ERRtdrEnablBrakeAssistSwitch = (data[0] >> 4) & (0xFF >> 6);
+ERC1_ER->ERC1ERRetarderEnableShiftAssistSw = (data[0] >> 6) & (0xFF >> 6);
+ERC1_ER->ERC1ERActualEngineRetPercentTrq = (data[1] >> 0) & (0xFF >> 0);
+ERC1_ER->ERC1ERIntendedRtdrPercentTorque = (data[2] >> 0) & (0xFF >> 0);
+ERC1_ER->ERC1ERRetarderRqingBrakeLight = (data[3] >> 2) & (0xFF >> 6);
+ERC1_ER->ERC1ERSrcAddrOfCtrlDvcFrRtdrCtrl = (data[4] >> 0) & (0xFF >> 0);
+ERC1_ER->ERC1ERDrvrsDmandRtdrPerctTorque = (data[5] >> 0) & (0xFF >> 0);
+ERC1_ER->ERC1ERRetarderSelectionNonEng = (data[6] >> 0) & (0xFF >> 0);
+ERC1_ER->ERC1ERActlMxAvlbRtdrtPerctTorque = (data[7] >> 0) & (0xFF >> 0);

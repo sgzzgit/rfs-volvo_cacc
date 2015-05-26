@@ -1,0 +1,5 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+LFE->EngineFuelRate = (data[0] >> 0) & (0xFF >> -8);
+LFE->EngineInstantaneousFuelEconomy = (data[2] >> 0) & (0xFF >> -8);
+LFE->EngineAverageFuelEconomy = (data[4] >> 0) & (0xFF >> -8);
+LFE->EngineThrottleValve1Position = (data[6] >> 0) & (0xFF >> 0);

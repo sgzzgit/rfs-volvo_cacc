@@ -1,0 +1,4 @@
+slay -f can_tx
+slay -f can_rx
+slay -f can_man
+

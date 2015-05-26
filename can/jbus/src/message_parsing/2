@@ -1,0 +1,1 @@
+CCVS->CruiseControlAccelerateSwitch = data[4.75]>>6 & 0

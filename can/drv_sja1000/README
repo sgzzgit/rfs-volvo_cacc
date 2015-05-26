@@ -1,0 +1,25 @@
+This directory contains device level programming for the Phillips SJA1000
+CAN controller..
+
+Usage:
+read_can_mm 0xd0000 0
+will read the mode register (offset 0) of a board at memory address 0xD0000
+(default for Janus board, CAN port A; use 0xD0200)for CAN port B) 
+
+read_can_mm 0xd0000 6   reads Bus Timing Register 0 (BTR0)
+read_can_mm 0xd0000 7   reads Bus Timing Register 1 (BTR0)
+
+To set CAN bus timing to 500Kb/s on CAN port A:
+write_can_mm 0xd0000 6 0x01
+write_can_mm 0xd0000 7 0x1C
+
+To set CAN bus timing to 250Kb/s on CAN port B:
+write_can_mm 0xd0000 6 0x41
+write_can_mm 0xd0000 7 0x1C
+
+Note that the CAN channel must be in the "bus off" state before
+setting BTR0 and BTR1.
+
+The sja1000funcs.c file came from can4linux3.5.4 (see the doc directory
+for a copy of the distribution). Do a diff to see what changes were made.
+Our driver relies primarily on the CANin facility from sja1000funcs.c 

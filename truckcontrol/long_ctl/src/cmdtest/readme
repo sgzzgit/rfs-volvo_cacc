@@ -1,0 +1,6 @@
+Code in this directory executes simple control methods in order to test
+actuation by the hardware drivers and to gather data to characterize
+vehicle behavior. 
+
+Task and parameter specification in long_ctl.ini determine which tests
+will be done on a given run.

@@ -1,0 +1,10 @@
+
+INCL = ../include/
+OPT  =  -g  -Wall
+#OPT  = -O2  
+
+LIB  =  CAN.a
+RUSER:	recv_user2.c  $(INCL)candef.h $(INCL)canglob.h
+	qcc $(OPT) -o recv2  recv_user2.c $(LIB)
+
+

@@ -1,0 +1,10 @@
+
+INCL = ../include/
+OPT  =  -g  -Wall
+#OPT  = -O 
+
+LIB  =  CAN.a
+SUSER:	send_user2.c  $(INCL)candef.h $(INCL)canglob.h
+	qcc $(OPT) -o send2  send_user2.c $(LIB)
+
+

@@ -1,0 +1,62 @@
+		
+R E A D M E  file
+
+******************************************************
+
+DACHS(R) Software: CAN Layer2 C-API, vers. 1.0.1
+
+Fieldbus         : CAN
+Processor        : x86
+Controller       : 2 x SJA1000
+
+Boards           : Janus-MM (PC/104)
+		                
+ 
+OS               : QNX Neutrino RTOS v.6.3.2
+
+last change      : README file corrected
+				   
+******************************************************
+
+FILES:
+/DACHS-QNX6.3/CAN-SJA1000-104-1.0.1-JAND/src:
+
+  CAN.a          : library with CAN service calls
+
+  send_user1.c    : example for a send application
+  send_user2.c    : example for a send application
+  recv_user1.c    : example for a receive application
+  recv_user2.c    : example for a receive application  
+  restart.c       : restart board and driver
+
+  mSend1          : make file for the send1 task 
+  mSend2          : make file for the send2 task   
+  mRecv1          : make file for the recv1 task 
+  mRecv2          : make file for the recv2 task 
+  
+  mRest           : make file for the rest task
+
+  AN97076.pdf    : APPLICATION NOTE for AN97076
+                            SJA1000 Stand-alone CAN controller
+
+  README.api     : this file
+
+
+/DACHS-QNX6.3/CAN-SJA1000-104-1.0.1-JAND/include:
+	
+  SAJ1000.h      : definitions of the CAN controller  
+  candef.h       : definitions of macros
+  canstr.h       : definitions of CAN related structures
+                                  and prototypes
+  canglob.h      : declarations of global variables
+  canext.h       : declarations of external variables
+
+
+*********************************************************
+(C) STEINHOFF Automation & Fieldbus-Systems
+
+www.steinhoff-automation.com
+support@steinhoff-automation.com
+
+
+		

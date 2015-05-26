@@ -1,0 +1,1 @@
+#define SJA1000_MAP_SIZE 128

@@ -1,0 +1,137 @@
+#!/usr/local/bin/simple_menu
+#
+# Script for in-office testing of dmm32
+# Typically run just db_slv, trk_cr, dmm32 and rddmm32
+# CAN programs and communication programs may be run for interference
+# Longitudinal control is not run
+
+global "TEST_DIR" = '/home/truckcontrol/test' ;
+global "CAN_CLIENT_DIR" = '/home/can/client/path_can/qnx' ;
+# make sure can_man in CAN_DRIVER_DIR is setuid root
+global "CAN_DRIVER_DIR" = '/home/can/drv_i82527/qnx' ;
+global "CONFIG_FILE" = '$TEST_DIR/realtime.ini' ;
+global "DATAFILE" = '/big/data/trk_cr.dat' ;
+global "USER" = 'dickey' ;
+global "LAPTOP_IP" = '192.168.1.104' ;
+# not real SOBU, just another address on the network 
+global "DSRC_IP" = '192.168.1.102' ;
+global "PLOT_DIR" = '/home/dickey/plot' ;
+global "LOG_DIR" = '/big/data' ;
+
+menu "MAIN_MENU"
+
+title 'Diamond 32-AT test'
+
+clear bold always-show
+
+skip ;
+
+shell 'Show configurations'
+%(
+	echo
+	echo Configuration file is $CONFIG_FILE.
+	echo Data file is $DATAFILE.
+	echo LAPTOP_IP  $LAPTOP_IP
+	echo DSRC_IP  $DSRC_IP
+	echo CAN_CLIENT_DIR  $CAN_CLIENT_DIR
+	echo CAN_DRIVER_DIR  $CAN_DRIVER_DIR
+	echo DATAFILE  $DATAFILE
+	echo USER $USER
+	echo PLOT_DIR  $PLOT_DIR
+	echo LOG_DIR  $LOG_DIR
+	echo
+%)
+;
+
+skip ;
+
+
+shell 'Start db_slv and trk_cr'
+%(
+	$TEST_DIR/db_slv -Q -S `hostname` &
+	sleep 1
+	$TEST_DIR/trk_cr -t 50 -v 1>$DATAFILE &
+	sleep 1
+%)
+;
+
+shell 'Stop db_slv and trk_cr'
+%(
+	slay  -f -Q -s TERM trk_cr
+	sleep 1
+	slay  -f -Q -s TERM db_slv
+%)
+;
+
+skip ;
+
+shell 'Start Ethernet communications'
+%(
+	$TEST_DIR/gpsrcv -n 202 -u 5050 >$LOG_DIR/gpsrcv.dbg &
+	$TEST_DIR/veh_rcv -v -f $HOME/$CONFIG_FILE -u 5051 >$LOG_DIR/veh_rcv.dbg & 
+	$TEST_DIR/veh_snd -v -i 50 -a $DSRC_IP -u 5052  >$LOG_DIR/veh_snd.dbg &
+	sleep 1
+%)
+;
+
+shell 'Stop Ethernet Communications '
+%(
+	slay  -f -Q -s TERM gpsrcv
+	slay  -f -Q -s TERM veh_rcv
+	slay  -f -Q -s TERM veh_snd
+%)
+;
+
+skip ;
+
+shell 'Start CAN processes'
+%(
+	$CAN_DRIVER_DIR/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 >$LOG_DIR/can1.dbg &
+	sleep 1
+	$CAN_DRIVER_DIR/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 >$LOG_DIR/can2.dbg & 
+	sleep 1
+	$TEST_DIR/jbussend -d -c -e /dev/can1 -b /dev/can2 -v Blue >$LOG_DIR/jbussend.dbg &
+	sleep 2
+	$CAN_CLIENT_DIR/rdj1939 -c -f /dev/can1 >$LOG_DIR/j1939_eng.dbg &
+	sleep 2
+	$CAN_CLIENT_DIR/rdj1939 -c -f /dev/can2 >$LOG_DIR/j1939_brake.dbg &
+	sleep 2
+%)
+;
+
+shell 'Stop CAN processes'
+%(
+	slay  -f -Q -s TERM rdj1939
+	slay  -f -Q -s TERM jbussend
+	sleep 1
+	slay  -f -Q -s TERM can_man
+%)
+;
+
+skip ;
+
+# make sure dmm32 is setuid root
+shell 'Start Diamond-DM32-AT driver dmm32 and client process trk_io'
+%(
+	$TEST_DIR/dmm32 >$LOG_DIR/dmm32.log &
+	sleep 2
+	$TEST_DIR/trk_io -o2 -s >trk_io.log &
+%)
+;
+
+shell 'Stop Diamond-DM32-AT processes'
+%(
+	slay  -f -Q -s TERM trk_io
+	sleep 5
+	slay  -f -Q -s TERM dmm32
+%)
+;
+skip ;
+
+shell 'Copy files to laptop'
+%(
+	scp $LOG_DIR/*.dat $USER@$LAPTOP_IP:$PLOT_DIR
+%)
+;
+skip ;
+

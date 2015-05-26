@@ -1,0 +1,6 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+TSC1_ER_T->TSC1EMSrTECU_EnOvrdCtrlM = (data[0] >> 0) & (0xFF >> 6);
+TSC1_ER_T->TSC1EMSrTECU_EnRSpdCtrlC = (data[0] >> 2) & (0xFF >> 6);
+TSC1_ER_T->TSC1EMSrTECU_OvrdCtrlMPr = (data[0] >> 4) & (0xFF >> 6);
+TSC1_ER_T->TSC1EMSrTECU_EnRSpdSpdLm = (data[1] >> 0) & (0xFF >> -8);
+TSC1_ER_T->TSC1EMSrTECU_EnRTrqTrqLm = (data[3] >> 0) & (0xFF >> 0);

@@ -1,0 +1,31 @@
+ 
+ cc -c acc_flt.c brk_flt.c cntract.c control.c coording.c dvi.c eng_map.c filt_1.c filt_2.c filt_4.c\
+        fuel_flt.c gear_tbl.c gen_ref.c ldr_flt.c ldr_flt1.c mag_dist.c maneuver.c pich_flt.c pm_filt.c rad_dist.c ref_ini.c ref_dist.c\
+        sinsat.c svg3.c svg3a.c svg3b.c  svg5.c svg13.c svg25.c svg31.c svg73.c smooth.c spd_flt.c tran_ref.c\
+        usyn_flt.c v_flt.c vrd_flt.c  vrd_flt1.c -A long_con.lib
+                        
+\cp long_con.lib /dos/a/
+\cp long_con.lib /home/t2003/local/qnx/
+\rm *.o                 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

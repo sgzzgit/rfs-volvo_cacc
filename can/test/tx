@@ -1,0 +1,17 @@
+#!/bin/sh
+# Run for 1 minute on CHANNEL at input HZ with CAN id CAN_ID.
+
+CLIENT_DIR=/home/capath/can/client/path_can/qnx
+CHANNEL=$1
+HZ=$2 
+CAN_ID=$3
+
+# If EXTENDED is set to 1, use extended CAN headers (as for J1939)
+# instead of standard CAN headers (11 bits)
+EXTENDED=0
+
+INTERVAL=`echo $HZ | awk '{printf("%.4f", 1.0/$1)}'`
+COUNT=`echo $HZ | awk '{printf("%d", 60*$1)}'`
+echo $HZ $INTERVAL $COUNT
+
+$CLIENT_DIR/can_tx -p /dev/can$CHANNEL -i $CAN_ID -e $EXTENDED -t $INTERVAL -n $COUNT $4 & 

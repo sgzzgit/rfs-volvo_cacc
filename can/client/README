@@ -1,0 +1,45 @@
+October 2009
+
+The client code test programs in this directory can be built to interact
+with either of two different drivers: the Steinhoff DACHS_SJA can_dual
+driver and the California PATH can_man drvier. The client API is the
+same for both drivers, and application source code that uses it can
+be identical for both drivers. However, different binaries must be
+built to run with the different drivers.
+
+The Steinhoff DACHS_SJA can_dual was purchased for the VAA project, 
+and supports only the two-port Janus-MM card, which has a Phillips
+SJA 1000 chip set. The driver must be started in a directory where
+the license resides. Client code is linked against an API library
+that connects to the driver.
+
+The California PATH can_man driver was originally written for
+the Intel 82527 chipset on QNX4. It was ported to QNX6 and has
+been used at PATH with the SSV_CAN and RTD ECAN boards. It is
+currently being ported to the Phillips SJA 1000, using device
+level code taken from can4linux. 
+
+Makefiles in the steinhoff and path_can sub-directories, 
+build the resepctive binaries, using the common source from this
+directory and any driver-specific source in the subdirectory. 
+Typing "make install" will copy the executables to can/test for the
+Califonia PATH driver, and can/dachs_sja/test for the Steinhoff
+driver.
+
+April 2010
+ 
+Family of simple test programs for receiving on a CAN port:
+
+can_rx	Prints a line whenever CAN messages is received:
+	timestamp, ID, # bytes, each byte in hex
+can_rx2 Listens and computes reception statisics, based on querying
+	the system for current time at each message and expecting the
+	message to contain the sequence numbers sent by can_tx
+can_rx3 Counts arrivals and checks for dropped messages, assuming
+	the messages contains the sequence numbers sent by can_tx,
+	but does not query the system for current time
+can_rx4 Counts messages, prints only if verbose, no query for timestamp..
+can_rx5 Save messages in array to print at end, timestamp only
+	at beginning and end of run.
+
+can_tx is a test program for sending sequence numbers out a CAN port.

@@ -1,0 +1,8 @@
+# note that the CAN driver can_man must run as root, so set up as setuid root
+# or start from system config file
+
+slay can_man
+sleep 1
+can_man -n /dev/can1 -s 250 -i 10 -p 0x210 -e 1 >can1.log &
+can_man -n /dev/can2 -s 250 -i 15 -p 0x212 -e 1 >can2.log &
+sleep 1

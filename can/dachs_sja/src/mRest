@@ -1,0 +1,10 @@
+
+INCL = ../include/
+OPT  =  -g  
+#OPT  = -O  
+
+LIB  =  CAN.a
+SUSER:	restart.c  $(INCL)candef.h $(INCL)canglob.h
+	qcc $(OPT) -o rest  restart.c $(LIB)
+
+

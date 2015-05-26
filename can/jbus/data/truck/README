@@ -1,0 +1,13 @@
+This directory contains files of data collected on the Blue and/or Gold Truck
+by Duan-feng Chu in 2009 that can be used as input to sndpdu.c or sndpdufile.c
+(see can/jbus/src).
+
+The format of data in this file is:
+Column 		Description
+1		timestamp (millisecs, double)
+2		priority (unsigned int)
+3		PDU format (unsigned int)
+4		PDU specific (unsigned int)
+5		Source address (unsigned int)
+6-13		Bytes 0-7 in data payload (unsigned char)
+

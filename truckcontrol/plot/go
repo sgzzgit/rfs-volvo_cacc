@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [[ -e test.dat ]]
+then
+        mv test.dat zzxxccvv
+fi
+
+cp $1 test.dat
+/home/path/plot/fixtime.sh test.dat
+mv test.plt test.dat
+gnuplot /home/truckcontrol/plot/trk.gpl
+
+if [[ -e zzxxccvv ]]
+then
+        mv zzxxccvv test.dat
+fi

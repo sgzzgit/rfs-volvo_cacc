@@ -1,0 +1,7 @@
+clt_vars.h and vehicle.h have been removed from std_jbus.h, since
+they are project specific, and were needed only by jbussend.c.
+
+jbussend.h and previous versions of vehicle.h (veh_bus.h, veh_iost.h)
+and clt_vars.h remain as documentation as what was done for Demo 2003.
+veh_bus.h is still used by laipdu.c.
+

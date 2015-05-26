@@ -1,0 +1,8 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+EBC2WSI->FrontAxleSpeed = (data[0] >> 0) & (0xFF >> -8);
+EBC2WSI->RelativeSpeedFrontAxleLeftWheel = (data[2] >> 0) & (0xFF >> 0);
+EBC2WSI->RlativeSpeedFrontAxleRightWheel = (data[3] >> 0) & (0xFF >> 0);
+EBC2WSI->RelativeSpeedRearAxle1LeftWheel = (data[4] >> 0) & (0xFF >> 0);
+EBC2WSI->RlativeSpeedRearAxle1RightWheel = (data[5] >> 0) & (0xFF >> 0);
+EBC2WSI->RelativeSpeedRearAxle2LeftWheel = (data[6] >> 0) & (0xFF >> 0);
+EBC2WSI->RlativeSpeedRearAxle2RightWheel = (data[7] >> 0) & (0xFF >> 0);

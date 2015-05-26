@@ -1,0 +1,68 @@
+/*	FILE
+ *	clt_vars.h  This version is intended for use with Samtrans project
+ *
+ * Copyright (c) 2000  Regents of the University of California
+ *
+ *
+ *	static char rcsid[] = "$Id$";
+ *
+ *	$Log$
+ *
+ *
+ *
+ *	As a convention, the variable name/type space is partitioned as
+ *	follows:
+ *
+ *	0	to	99		Used by the system.
+ *	100	to	199		Reserved.
+ *	200	to	299		Permanent longitudinal variables.
+ *	300	to	399		Permanent lateral variables.
+ *	400	to	499		Permanent communications variables.
+ *	1000 to	1099	Temporary variables.
+ */
+
+/*	Longitudinal variables
+ */
+
+#define DB_LONG_INPUT_TYPE          200  /* long_input_typ */
+#define DB_LONG_RADAR1_TYPE         201  /* long_radar_typ */
+#define DB_LONG_RADAR2_TYPE         202  /* long_radar_typ */
+#define DB_DDU1_DISPLAY_TYPE        203  /* ddu_display_typ */
+#define DB_DDU2_DISPLAY_TYPE        204  /* ddu_display_typ */
+#define DB_GPS_GGA_TYPE             205  /* gps_gga_typ */
+#define DB_GPS_VTG_TYPE             206  /* gps_vtg_typ */
+#define DB_LONG_LIDAR1A_TYPE        207  /* long_lidarA_typ */
+#define DB_LONG_LIDAR1B_TYPE        208  /* long_lidarB_typ */
+#define DB_LONG_LIDAR2A_TYPE        209  /* long_lidarA_typ */
+#define DB_LONG_LIDAR2B_TYPE        210  /* long_lidarB_typ */
+#define DB_LONG_LIDAR3A_TYPE        211  /* long_lidarA_typ */
+#define DB_LONG_LIDAR3B_TYPE        212  /* long_lidarB_typ */
+#define DB_WARNING_TYPE             213  /* warning_typ */
+
+#define DB_LONG_INPUT_VAR           200
+#define DB_LONG_RADAR1_VAR          201
+#define DB_LONG_RADAR2_VAR          202
+#define DB_DDU1_DISPLAY_VAR         203
+#define DB_DDU2_DISPLAY_VAR         204
+#define DB_GPS_GGA_VAR              205
+#define DB_GPS_VTG_VAR              206
+#define DB_LONG_LIDAR1A_VAR         207
+#define DB_LONG_LIDAR1B_VAR         208
+#define DB_LONG_LIDAR2A_VAR         209
+#define DB_LONG_LIDAR2B_VAR         210
+#define DB_LONG_LIDAR3A_VAR         211
+#define DB_LONG_LIDAR3B_VAR         212
+#define DB_WARNING_VAR              213
+
+/*	Lateral variables.
+ */
+#define DB_GYRO_TYPE                300  /* gyro_typ */
+
+#define DB_GYRO_VAR                 300
+
+
+/* Communication variables.
+ */
+#define DB_VIDEO_TYPE               400  /* video_typ */
+
+#define DB_VIDEO_VAR                 400

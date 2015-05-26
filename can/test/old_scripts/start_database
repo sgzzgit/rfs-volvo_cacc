@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/home/path/db/qnx/db_slv -Q -S `hostname`

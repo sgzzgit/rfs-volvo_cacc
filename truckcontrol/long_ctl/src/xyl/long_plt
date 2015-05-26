@@ -1,0 +1,77 @@
+
+# File to plot cng bus data from test.dat.
+
+set grid
+set multiplot
+set size 0.5,0.5
+set xlabel "Time [sec]"
+
+set orgin 0,0.5
+set title "Pre_spd; vehicle speed [m/s]"
+plot "test.dat" using 1:27 title "pre_v" , \
+     "test.dat" using 1:28 title "v"
+
+set orgin 0.5,0.5
+set title "Distance tracking error [m]"
+plot "test.dat" using 1:16 title "j1939 [rpm]"
+    
+
+set orgin 0.5,0
+set title "Speed tracking error [m/s]"
+plot "test.dat" using 1:17 title "spd_err" 
+  
+
+set orgin 0,0
+set title "Torque control command [N.m]"
+plot "test.dat" using 1:9 title "tq_cmd"
+     
+
+set nomultiplot
+pause -1 "Press Enter to continue."
+
+clear
+set multiplot
+set xlabel "Time [sec]"
+
+set orgin 0,0
+set title "Engine speed"
+plot "test.dat" using 1:29
+
+set orgin 0,0.5
+set title "Current Gear"
+plot "test.dat" using 1:30
+
+set orgin 0.5,0.5
+set title "Fuel rate (measured voltage)"
+plot "test.dat" using 1:32
+
+set orgin 0.5,0
+set title "EBS deceleration command (measured)"
+plot "test.dat" using 1:36
+      
+
+set nomultiplot
+pause -1 "Press Enter to continue."
+
+clear
+set multiplot
+set xlabel "Time [sec]"
+
+set orgin 0,0
+set title "Transmission retarder command [N.m]"
+plot "test.dat" using 1:18 
+    
+set orgin 0,0.5
+set title "Jake Brake"
+plot "test.dat" using 1:25
+
+set orgin 0.5,0.5
+set title "Maneuver des"
+plot "test.dat" using 1:3
+
+set orgin 0.5,0
+set title "Maneuver ID"
+plot "test.dat" using 1:2
+
+set nomultiplot
+pause -1 "Press Enter to continue."

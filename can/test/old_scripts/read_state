@@ -1,0 +1,18 @@
+#!/bin/sh
+BASE=$1
+echo CONTROL_REG
+read_can $BASE 0
+echo STATUS_REG 
+read_can $BASE 1
+echo CPU_IF_REG 
+read_can $BASE 2
+echo BUS_CON_REG
+read_can $BASE 0x2f
+echo INT_REG
+read_can $BASE 0x5f
+echo MSG_1
+read_can $BASE 0x10
+read_can $BASE 0x11
+echo MSG_15
+read_can $BASE 0xf0
+read_can $BASE 0xf1

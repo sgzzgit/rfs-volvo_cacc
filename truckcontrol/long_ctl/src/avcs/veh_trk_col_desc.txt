@@ -1,0 +1,98 @@
+1 print_timestamp(fp, &ts
+2 process_time
+                ///EEC1
+3  engine_speed
+4  engine_torque
+5  engine_mode
+
+                ///EEC2
+6  accelerator_pedal_position
+7  percent_load_current_speed
+
+                ///EEC3
+8  nominal_friction_torque
+
+                ///ERC1
+9  retarder_torque
+10 retarder_mode
+
+                ///EBC1
+11 brake_pedal_position
+12 ebs_brake_switch_status
+13 abs_ebs_amber_warning_state
+14 brake_demand
+
+                ///EBC2
+15 front_axle_speed
+16 front_left_wheel_relative
+17 front_right_wheel_relative
+18 rear1_left_wheel_relative
+19 rear1_right_wheel_relative
+
+                ///CCVS
+20 vehicle_speed
+
+                ///ETC1
+21 shift_in_progress
+22 input_shaft_speed
+23 output_shaft_speed
+24 lockup_engaged
+25 driveline_engaged
+
+                ///ETC2
+26 current_gear
+27 selected_gear
+28 actual_gear_ratio
+
+                ///LFE
+29 fuel_rate
+
+                ///FD
+30 fan_drive_state
+31 estimated_percent_fan_speed
+
+                ///ERC1 (TRANS)
+32 trans_retarder_value
+33 trans_retarder_mode
+34 trans_retarder_source
+35 coolant_load_increase
+
+
+                /// long_output_typ
+36 engine_speed
+37 engine_torque
+38 engine_command_mode
+39 engine_retarder_torque
+40 engine_retarder_command_mode
+41 ebs_deceleration
+42 brake_command_mode
+43 trans_retarder_value
+44 trans_retarder_command_mode
+
+                /// GPS and COMM
+45 self_gps.latitude
+46 self_gps.longitude
+47 self_gps.speed
+48 lead_comm.global_time   
+49 lead_comm.gps.latitude
+50 lead_comm.gps.longitude
+51 lead_comm.gps.speed
+52 lead_comm.velocity
+53 prec_comm.global_time   
+54 prec_comm.gps.latitude
+55 prec_comm.gps.longitude
+56 prec_comm.gps.speed
+57 prec_comm.velocity
+
+		/// EVT300 radar
+58,64,70,76,82,88,94 radar1.target[j].id
+59,65,71,77,83,89,95 radar1.target[j].range
+60,66,72,78,84,90,96 radar1.target[j].rate
+61,67,73,79,85,91,97 radar1.target[j].azimuth
+62,68,74,80,86,92,98 radar1.target[j].mag
+63,69,75,81,87,93,99 radar1.target[j].lock
+
+		/// MDL lidar
+100 lidar.data_range
+101 lidar.data_pulse_cnt
+

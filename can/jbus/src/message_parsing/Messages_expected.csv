@@ -1,0 +1,23 @@
+Name;ID;ID-Format;DLC [Byte];Tx Method;Cycle Time;Transmitter;Comment;GenMsgStartDelayTime;GenMsgDelayTime;GenMsgNrOfRepetition;GenMsgCycleTimeFast;GenMsgCycleTime;GenMsgSendType;VFrameFormat;TpJ1939VarDlc;SingleFrame;NmAsrMessage;GenMsgRequestable;GenMsgILSupport;DiagUUDTResponse;DiagState;DiagResponse;DiagRequest;DiagConnection;CanTpSTmin;CanTpFcFrameId;CanTpBs
+CCVS;0x18FEF111;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Cruise Control/Vehicle Speed;33;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+EBC1;0x18F0010B;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Electronic Brake Controller 1;35;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+EBC2WSI;0x18FEBF0B;J1939 PG (ext. ID);8;Cyclic;50;-- No Transmitter --;Wheel Speed Information;11;0;0;0;50;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+EBC5;0x18FDC40B;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Electronic Brake Controller 5;35;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+EEC1;0xCF00400;J1939 PG (ext. ID);8;Cyclic;20;-- No Transmitter --;Electronic Engine Controller 1;5;0;0;0;20;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+EEC2;0xCF00300;J1939 PG (ext. ID);8;Cyclic;50;-- No Transmitter --;Electronic Engine Controller 2;13;0;0;0;50;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+EEC3;0x18FEDF00;CAN Extended;8;Cyclic;250;-- No Transmitter --;Electronic Engine Controller 3 ...;123;0;0;0;250;Cyclic;ExtendedCAN;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+ERC1_ER;0x18F0000F;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Electronic Retarder Controller 1;35;0;0;20;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+ERC2;0x1CFEC210;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Recieved by Vecu.;37;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+ETC1;0xCF00203;J1939 PG (ext. ID);8;Cyclic;10;-- No Transmitter --;Electronic Transmission Controller 1;3;0;0;0;10;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+ETC2;0x18F00503;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Electronic Transmission Controller 2;37;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+IC1;0x18FEF600;J1939 PG (ext. ID);8;Cyclic;500;-- No Transmitter --;Intake/Exhaust Conditions 1;233;0;0;0;500;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+LFE;0x18FEF200;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;PGN 65266 Fuel Economy (Liquid);39;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+MVS_X_E;0x18FDE500;J1939 PG (ext. ID);8;Cyclic;1000;-- No Transmitter --;Maximum Vehicle Speed Limit Status - Reports the possible maximum vehicle speed limits, one through seven, and the applied maximum vehicle speed limit.;0;0;0;0;1000;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+TSC1_E_T;0xC000003;J1939 PG (ext. ID);8;IfActive;0;-- No Transmitter --;PGN 0 Torque/Speed Control 1;0;0;3;10;0;IfActive;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+TSC1_ER_T;0xC000F03;J1939 PG (ext. ID);8;IfActive;0;-- No Transmitter --;PGN 0 Torque/Speed Control 1;0;0;3;50;0;IfActive;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+TSC1_ER_V;0xC000F11;J1939 PG (ext. ID);8;IfActive;0;-- No Transmitter --;PGN 0 Torque/Speed Control 1;0;0;3;50;0;IfActive;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+VDC2;0x18F0090B;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Contains information which relates to the vehicle's movement....;43;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+VP39;0xCFF2717;J1939 PG (ext. ID);8;Cyclic;100;-- No Transmitter --;Status of the buttons in the steering wheel. With key in 'Radio'-position: sent on state changes. With key in 'Ignition'-position: sent periodically and on state changes....;45;0;0;0;100;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+VP_X_TGW;0x18FEF341;J1939 PG (ext. ID);8;Cyclic;5000;-- No Transmitter --;PGN 65267 Vehicle Position;603;0;0;0;5000;Cyclic;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+TSC1_E_ACC;0xC00002A;J1939 PG (ext. ID);8;IfActive;0;-- No Transmitter --;PGN 0 Torque/Speed Control 1;0;0;3;10;0;IfActive;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255
+TSC1_ER_ACC;0xC000F2A;J1939 PG (ext. ID);8;IfActive;0;-- No Transmitter --;PGN 0 Torque/Speed Control 1;0;0;3;10;0;IfActive;J1939PG;No;1;No;1;Yes;No;No;No;No;0x0;0;0x7FFFFFFF;255

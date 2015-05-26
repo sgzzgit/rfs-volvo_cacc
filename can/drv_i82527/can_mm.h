@@ -1,0 +1,1 @@
+#define I82527_MAP_SIZE 256

@@ -1,0 +1,6 @@
+Message->Name = (data[0] >> 0) & (0xFF >> 8);
+ETC2->TransmissionSelectedGear = (data[0] >> 0) & (0xFF >> 0);
+ETC2->TransmissionActualGearRatio = (data[1] >> 0) & (0xFF >> -8);
+ETC2->TransmissionCurrentGear = (data[3] >> 0) & (0xFF >> 0);
+ETC2->TransmissionRangeSelected = (data[4] >> 0) & (0xFF >> -8);
+ETC2->TransmissionRangeAttained = (data[6] >> 0) & (0xFF >> -8);

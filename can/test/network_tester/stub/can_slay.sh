@@ -1,0 +1,1 @@
+echo port drivers stopped

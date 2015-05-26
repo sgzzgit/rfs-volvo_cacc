@@ -1,0 +1,287 @@
+#!/home/jspring/simple_menu/tty_src/simple_menu
+#!/usr/local/bin/simple_menu
+#
+# Variable definitions
+
+from-env "AVCS_POSITION" = '1' ;
+from-env "AVCS_VEHICLE" = 'Blue' ;
+
+global "CONFIG_FILE" = '/home/truckcontrol/test/realtime.ini' ;
+global "PLATOON_SIZE" = '1' ;
+global "STEERING" = 'trk_lat' ;
+#global "LONGITUDINAL" = 'cmdtest' ;
+global "LONGITUDINAL" = 'long_trk' ;
+global "LONG_DIR" = '/home/truckcontrol/test/' ;
+global "LONG_CFG_FILE" = 'airbrk1sin' ;
+global "LONG_PLOT" = '/home/truckcontrol/plot/trkplot' ;
+global "COMMAND_TEST" = '1' ;
+
+#This is the beginning of the main menu
+
+menu "MAIN_MENU"
+
+title 'Truck Jbus Command Test'
+
+clear bold always-show
+
+skip ;
+
+shell 'Show configurations'
+%(
+	print
+	print Vehicle is $AVCS_VEHICLE.
+	print Vehicle is in position $AVCS_POSITION of platoon size $PLATOON_SIZE.
+	print Configuration file is $CONFIG_FILE.
+	print Lateral controller is $STEERING.
+	print Longitudinal controller is $LONGITUDINAL.
+	print Longitudinal directory is $LONG_DIR.
+	print Longitudinal configuration file is $LONG_DIR$LONG_CFG_FILE.ini
+	print Command test number is $COMMAND_TEST 
+	print Longitudinal output file name is /big/data/$LONG_CFG_FILE
+	print
+	print
+%)
+;
+
+skip ;
+
+shell 'Run device drivers & lateral control'
+%(
+#	slay  -f -Q -s TERM $STEERING
+#	slay  -f -Q -s TERM t_driver
+	slay  -f -Q -s TERM evt300
+#	slay  -f -Q -s TERM wrlidar
+#	slay  -f -Q -s TERM rdlidar
+##	slay  -f -Q -s TERM gyroread
+#	slay  -f -Q -s TERM gpsread
+#	slay  -f -Q -s TERM steerctl
+	slay  -f -Q -s TERM veh_trk
+#	slay  -f -Q -s TERM msip412_int
+#	slay  -f -Q -s TERM dmm32
+#	slay  -f -Q -s TERM qmm10xt
+#	slay  -f -Q -s TERM msip400
+#	slay  -f -Q -s TERM ruby1612
+	slay  -f -Q -s TERM rdj1939
+#	slay  -f -Q -s TERM rdj1587
+	slay  -f -Q -s TERM jbussend
+	slay  -f -Q -s TERM can_man
+	slay  -f -Q -s TERM db_slv
+	#
+#	/home/truckcontrol/test/qmm10xt -p /dev/qmm10xt &
+#	/home/truckcontrol/test/dmm32 -p /dev/dmm32 &
+#	/home/truckcontrol/test/msip412_int -p /dev/msip412_int &
+#	/home/truckcontrol/test/msip400 -p /dev/msip400 &
+#	/home/truckcontrol/test/ruby1612 -p /dev/ruby1612 &
+	/home/path/db/qnx/db_slv -Q -S `hostname` &
+	sleep 1
+	/home/path/sens/can/test/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 >/dev/null &
+	sleep 1
+	/home/path/sens/can/test/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 >/dev/null &
+	sleep 1
+	/home/truckcontrol/test/jbussend -c -e /dev/can1 -b /dev/can2 -f jparam.ini -v Blue >jbussend.dbg &
+	sleep 1
+	/home/truckcontrol/j1939/test/rdj1939 -c -f /dev/can1 >j1939_eng.dbg &
+	/home/truckcontrol/j1939/test/rdj1939 -c -f /dev/can2 >j1939_trans.dbg &
+	sleep 2
+#	/home/truckcontrol/j1939/test/rdj1587 -f /dev/ser6 >j1587.dbg &
+	/home/truckcontrol/long_ctl/src/avcs/qnx/veh_trk &
+#	/home/truckcontrol/test/veh_trk -$AVCS_POSITION -f $CONFIG_FILE -c $AVCS_VEHICLE &
+#	/home/truckcontrol/test/steerctl &
+#	sleep 1
+#	/home/truckcontrol/test/gpsread &
+##	/home/truckcontrol/test/gyroread &
+#	/home/truckcontrol/test/rdlidar &
+#	/home/truckcontrol/test/wrlidar &
+        /home/path/sens/radar/qnx/evt300 -s "/dev/ser1" -r a -o 2 >evt300a.log &
+#	sleep 6
+#	/home/truckcontrol/test/t_driver &
+#	sleep 3
+#	/home/truckcontrol/test/$STEERING &
+%)
+;
+
+shell 'Stop device drivers'
+%(
+	slay  -f -Q -s TERM $STEERING
+	sleep 1
+#	slay  -f -Q -s TERM t_driver
+	slay  -f -Q -s TERM evt300
+#	slay  -f -Q -s TERM wrlidar
+#	slay  -f -Q -s TERM rdlidar
+#	slay  -f -Q -s TERM gyroread
+#	slay  -f -Q -s TERM gpsread
+#	slay  -f -Q -s TERM steerctl
+	slay  -f -Q -s TERM rdj1939
+	slay  -f -Q -s TERM rdj1587
+	slay  -f -Q -s TERM veh_trk
+	slay  -f -Q -s TERM jbussend
+	slay  -f -Q -s TERM can_man
+	sleep 1
+	slay  -f -Q -s TERM db_slv
+#	slay  -f -Q -s TERM dmm32
+#	slay  -f -Q -s TERM msip412_int
+#	slay  -f -Q -s TERM qmm10xt
+#	slay  -f -Q -s TERM msip400
+#	slay  -f -Q -s TERM ruby1612
+%)
+;
+skip ;
+
+shell 'Run longitudinal control'
+%(
+	slay  -f -Q -s TERM $LONGITUDINAL
+	/home/truckcontrol/test/$LONGITUDINAL -v Blue -f $LONG_DIR$LONG_CFG_FILE.ini -o /big/data/$LONG_CFG_FILE -r $COMMAND_TEST >$LONG_CFG_FILE$COMMAND_TEST.log &
+#	print
+#	print Any key to quit.
+#	print
+#	kbwait
+#	slay  -Q -s TERM $LONGITUDINAL
+%)
+;
+shell 'Stop longitudinal control'
+%(
+	slay  -f -Q -s TERM $LONGITUDINAL
+%)
+;
+
+skip ;
+
+do-menu "VEHICLE_MENU" 'Vehicle -->MENU'
+;
+
+do-menu "CONTROL_MENU" 'Controller & Site -->MENU'
+;
+
+skip ;
+
+shell 'Plot lateral data'
+%(
+        gnuplot gnufile
+%)
+;
+
+shell 'Plot longitudinal data'
+%(
+	$LONG_PLOT 	
+%)
+;
+
+
+skip ;
+
+reset-global 'Set longitudinal test number'
+from-user "COMMAND_TEST" 'Longitudinal command test number?'
+;
+
+skip ;
+
+reset-global 'Set longitudinal config file name'
+from-user "LONG_CFG_FILE" 'Longitudinal config file name?'
+;
+
+skip ;
+
+menu "VEHICLE_MENU"
+
+title 'Vehicle Configuration'
+
+clear bold always-show
+
+skip ;
+
+reset-global 'Set vehicle'
+from-user "AVCS_VEHICLE" 'Vehicle (Blue, Gold, or Silver)'
+;
+
+skip ;
+
+reset-global 'Set following position, OR'
+from-user "AVCS_POSITION" 'Following position [2-3]'
+;
+
+reset-global 'Set leader and platoon size'
+from-user "PLATOON_SIZE" 'Platoon size'
+global "AVCS_POSITION" = '1'
+;
+
+skip ;
+
+shell 'Show vehicle configuration'
+%(
+	awk -f ini_show.awk $CONFIG_FILE $AVCS_VEHICLE | more
+%)
+;
+
+shell 'Change vehicle configuration'
+%(
+	if awk -f ini_edit.awk $CONFIG_FILE $AVCS_VEHICLE $VARIABLE $VALUE >temp.ini
+	then
+		\cp temp.ini $CONFIG_FILE
+	else
+		print No change made!
+	fi
+%)
+parm "VARIABLE" = '' 'What variable ?'
+parm "VALUE" = '' 'What value ?'
+;
+
+skip ;
+
+menu "CONTROL_MENU"
+
+title 'Controllers Configuration'
+
+clear bold always-show
+
+skip ;
+
+reset-global 'Set lateral controller'
+from-user "STEERING" 'Program ?'
+;
+
+reset-global 'Set longitudinal controller'
+from-user "LONGITUDINAL" 'Program ?'
+;
+
+skip ;
+
+shell 'Show longitudinal controller configuration'
+%(
+	awk -f ini_show.awk $CONFIG_FILE $CONTROLLER | more
+%)
+;
+
+shell 'Change longitudinal controller configuration'
+%(
+	if awk -f ini_edit.awk $CONFIG_FILE $CONTROLLER $VARIABLE $VALUE >temp.ini
+	then
+		\cp temp.ini $CONFIG_FILE
+	else
+		print No change made!
+	fi
+%)
+parm "VARIABLE" = '' 'What variable ?'
+parm "VALUE" = '' 'What value ?'
+;
+
+skip ;
+
+shell 'Show site location'
+%(
+	awk -f ini_show.awk $CONFIG_FILE site_section
+%)
+;
+
+shell 'Change site location'
+%(
+	if awk -f ini_edit.awk $CONFIG_FILE site_section 'TestSite' $VALUE > temp.ini
+	then
+		\cp temp.ini $CONFIG_FILE
+	else
+		print No change made!
+	fi
+%)
+parm "VALUE" =  '' 'Value ?'
+;
+
+skip ;

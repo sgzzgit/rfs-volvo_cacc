@@ -1,0 +1,20 @@
+These files describe the Intel 82527 CAN controller.
+	82527ArchitecturalOverview.pdf
+	i82527.pdf
+We have used this controller at PATH in the SSV CAN and ECAN527 boards.
+
+These files describe the Phillips SJA 1000.
+	SJA1000_3.pdf
+	AN97076.pdf
+This controller is the one used in the Janus MM in the VAA project's
+prototype from IMI.
+
+This file describes how to compute bit timing parameters for the SJA 1000.
+AN97046.pdf
+There is also a CAN Bus Timing Calculator at www.kvaser.com
+
+The can4linux directory contains the code base used in the can/drv_sja1000
+directory to port the Linux driver for this chipset to QNX6. Unpack
+the .tgz file and diff the sja1000.[ch] files in the can4linux-3.5.4
+directory with those in the can/drv_sja1000 directory to see what changes
+were made to the Linux Phillips SJA1000 specific code.
