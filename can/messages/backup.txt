@@ -1,0 +1,56 @@
+/*
+void bit_pack2(unsigned numargs, signed char* pfield_size, char* data, uint32_t* out)
+{
+    unsigned i = 0;
+    unsigned bit_position = 0;
+
+    out[0] = out[1] = 0;
+    
+    for (; i < numargs; i++)
+    {
+	signed char bitsize = pfield_size[i];
+	uint32_t item;
+
+	if (bitsize < 0)
+	     bitsize = -bitsize;
+
+	if (bitsize <= 8)
+	{
+	    uint8_t* pdata = (uint8_t*)data;
+	    item = *pdata;
+	    data += 1;
+	}
+	else if (bitsize <= 16)
+	{
+	    uint16_t* pdata;
+	    if ((unsigned)data & 1)
+		data += 1;
+	    pdata = (uint16_t*)data;
+	    item = *pdata;
+	    data += 2;
+	}
+	else
+	{
+	    uint32_t* pdata;
+	    if ((unsigned)data & 3)
+		data += 4 - ((unsigned)data & 3);
+	    pdata = (uint32_t*)data;
+	    item = *pdata;
+	    data += 4;
+	}
+
+ 	item &= (1 << bitsize) - 1;
+
+	if (bit_position < 32)
+	{
+	    out[0] |= (item << bit_position);
+	    if (bit_position + bitsize > 32 && bitsize <= 32)
+		out[1] = (item >> (32 - bit_position));
+	}
+	else
+	    out[1] |= (item << (bit_position - 32));
+
+	bit_position += bitsize;
+    }
+}
+*/

@@ -1,0 +1,80 @@
+This directory includes a variety of EXAMPLE programs for using the
+path_gps library routines, with a few other GPS-related sample programs.
+Since they are for the most part designed to be interchangeable parts
+in the Unix way, reading from stdin and writing to stdout, you may be
+able to use them "as is" for your project, and especially for debugging.
+
+Feel free to add new features and create new examples. However, DO NOT
+put any dependencies on code or data structures outside of the "path"
+shared tree into the examples. Do not put any absolute path names into
+the code, since different people may check it out into different 
+directories, and it should work with just a change to the DISTRIB_DIR
+in the appropriate file in path/build. If you want to reference data
+variables or structures particular to your project, copy the example
+there and compile your version in your project tree. (Sue Dickey, March 2009)
+
+For more information about GPS messages, see path/sens/gps/doc 
+in the California PATH subversion repository to get started.
+
+Source code for the library used by these example programs is in ../src.
+
+The function path_gps_print_point is used in these examples, and prints
+the following columns:
+
+Column	Description
+1	Object ID, used when to identify specific target with, e.g. sender
+	MAC address
+	All 0's when used just for a local trace.
+2	Local time (from system clock)
+3	UTC time (from GPS messages)	
+4	Latitude, degrees, decimal number to 7 places
+5	Longitude, degrees, decimal number to 7 places
+6	Speed, in meters/second
+7	Heading, in degrees from true north
+8	Fix quality, 0 invalid, 1 GPS, 2 DGPS
+9	Number of satellites
+10	Horizontal diulution of position
+11	Used for sequence number (useful when from remote GPS) 
+
+See source code of examples for flag usage. Most will print usage when
+given an illegal flag (e.g. -?).
+
+Most of the programs that read a local GPS read from stdin, and
+can be used either as, for example, 
+
+gpsget </dev/ttyS7 >gps_aug25_08.txt
+
+or (if gpsd is running)
+tcp_client -q r | gpsget >gps_oct9_08.txt
+
+Synopsis of files:
+bcnrcv.c	Receives a VIICA-style beacon, for range testing
+garmenable.c	Sample code for enable messages on a Garmen GPS18-5Hz
+gps2xy.c	Tests path_gps_latlong2xy, see function in path_gps_lib.c
+gpsdb.c		Read local GPS from stdin, writes to DB server
+gpsdemo.c	Vehicle to vehicle demo code, assumes only 2 vehicles
+gpsdistance.c	Converts a series of (timestamp, lat, long) on stdin,
+		to (timestamp, distance) on stdout; tests path_gps_get_distance
+gpsget.c	Deprecated; replaced by gpspoint.c
+gpslatlong.c	Deprecated; simple conversion on RMC, GGA, does not use library
+gpspoint.c	Reads local GPS on stdin, uses path_gps_print_point on stdout
+gpsrcv.c	Reads UDP message from remote GPS, writes to specified
+		DB server number; can also do trace with -v option
+gpssetdate.c	Sets system clock to match GPS UTC time on first RMC message
+gpssnd.c	Sends UDP message with local GPS; needs a rewrite to use
+		path_gps_get_point; complicated flags allows direct
+		fetch from gpsd, not stdin
+macget.c	Actually has nothing to do with GPS, except as subprocessing
+		of MAC addresses from vehicles that also sent GPS
+rdgpsdb.c	Read GPS point from DB shared variable at specified interval,
+		prints trace in path_gps_print_point format to stdout.	
+settime2gps.c	Deprecated; uses raw RMC processing, not library, to set time
+tcp_client.c	General TCP client, but by default connects to the gpsd GPS
+		daemon, and with the -q option can send queries and 
+		commands to it; also useful sometimes on systems where
+		netcat (nc) is broken or has hard to understand flags. 
+tcp_echo.c	Minimal TCP server; useful for debugging (e.g. SMS).	
+tsprcv.c	Sample of the kind of program that really ought not to be
+		here, but in the TSP project tree, where there would
+		be no problem with consistency of definition for
+		DB_BUS01_INPUT_TYPE

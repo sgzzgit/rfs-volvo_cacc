@@ -1,0 +1,16 @@
+wrtime	1
+dbtime	2
+t1id	3
+t2id	9
+t1range	4
+t2range	10
+t1rate	5
+t2rate	11
+t1mag	7
+t2mag	13
+t1az	12
+t2az	12
+t1lock	8
+t2lock	14
+t3lock	14
+t4lock	14

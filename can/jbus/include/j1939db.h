@@ -80,6 +80,7 @@ typedef struct{
 
 
 extern j1939_pgn_index pdu1_index[];
+extern j1939_pgn_index pdu2_239[];
 extern j1939_pgn_index pdu2_240[];
 extern j1939_pgn_index pdu2_254[];
 extern j1939_pgn_index pdu2_255[];

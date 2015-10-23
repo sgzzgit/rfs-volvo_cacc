@@ -1,0 +1,34 @@
+DISTRIB_DIR = ..
+
+LOCAL_DIR = /home/path/local
+JBUS_DIR = /home/path/jbus/
+CAN_DIR = /home/path/jbus/ssv_can
+AVCS_DIR = /home/path/avcs/src
+
+CC = cc
+CFLAGS = -c -ms -DPROTOTYPE  -Wc,-w3 -I$(LOCAL_DIR) -I$(CAN_DIR) \
+		-I$(JBUS_DIR) -I$(AVCS_DIR) 
+
+LINK = cc
+LINKFLAGS = -ms -N16000 -L$(LOCAL_DIR)/qnx 
+LIBS = -llocals -ldb_clts 
+
+HDRS = ibeo.h 
+EXEC = ibeo_rx
+OBJS = $(JBUS_DIR)/src/qnx/can_clt.o ibeo_qnx4.o ibeo_utils.o 
+
+all: 	$(EXEC)	
+
+.c.o: $(HDRS) 
+	$(CC) $(CFLAGS) -c $*.c -o $*.o
+
+.o: $(OBJS) $@.o
+	$(LINK) $(LINKFLAGS) $(OBJS) $@.o $(CPPLIBS) $(LIBS) -o $@
+
+test_int64: $(OBJS) test_int64.o
+test_mask: $(OBJS) test_mask.o
+get_field: $(OBJS) get_field.o
+ibeo_rx: $(OBJS) ibeo_rx.o
+
+clean:
+	\rm -f *.o $(EXEC) 

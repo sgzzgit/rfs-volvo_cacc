@@ -1,0 +1,3 @@
+Name;ID;ID-Format;DLC [Byte];Tx Method;Cycle Time;Transmitter;Comment;PGN;Source;Destination;Priority;GenMsgDelayTime;GenMsgILSupport;GenMsgStartDelayTime;GenMsgSendType;GenMsgRequestable;GenMsgCycleTime
+EgoData;0x300;CAN Extended;4;noMsgSendType;0;-- No Transmitter --;;;;;;0;Yes;0;noMsgSendType;1;0
+TargetData;0x200;CAN Extended;7;noMsgSendType;0;-- No Transmitter --;;;;;;0;Yes;0;noMsgSendType;1;0

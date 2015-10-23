@@ -1,0 +1,45 @@
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g data_log.c -o lnx/data_log.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g matrix.c -o lnx/matrix.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g pack.c -o lnx/pack.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g st.c -o lnx/st.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_arg.c -o lnx/sys_arg.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_arma.c -o lnx/sys_arma.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_buff.c -o lnx/sys_buff.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_das.c -o lnx/sys_das.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_fifo.c -o lnx/sys_fifo.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_ini.c -o lnx/sys_ini.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_lib.c -o lnx/sys_lib.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_list.c -o lnx/sys_list.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_rt.c -o lnx/sys_rt.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_str.c -o lnx/sys_str.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_tok.c -o lnx/sys_tok.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_time.c -o lnx/sys_time.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g sys_trk.c -o lnx/sys_trk.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g timing.c -o lnx/timing.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g timestamp.c -o lnx/timestamp.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g util.c -o lnx/util.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g udp_utils.c -o lnx/udp_utils.o 
+gcc  -c -D_GNU_SOURCE -Wall -I. -I/home/capath/path/local -I/home/capath/path/db -I/home/capath/path/sens/include  -I/usr/local/include -g xytransform.c -o lnx/xytransform.o 
+ar -rv lnx/liblocals.a lnx/data_log.o lnx/matrix.o lnx/pack.o lnx/st.o lnx/sys_arg.o lnx/sys_arma.o lnx/sys_buff.o lnx/sys_das.o lnx/sys_fifo.o lnx/sys_ini.o lnx/sys_lib.o lnx/sys_list.o lnx/sys_rt.o lnx/sys_str.o lnx/sys_tok.o lnx/sys_time.o lnx/sys_trk.o lnx/timing.o lnx/timestamp.o lnx/util.o lnx/udp_utils.o lnx/xytransform.o 
+a - lnx/data_log.o
+a - lnx/matrix.o
+a - lnx/pack.o
+a - lnx/st.o
+a - lnx/sys_arg.o
+a - lnx/sys_arma.o
+a - lnx/sys_buff.o
+a - lnx/sys_das.o
+a - lnx/sys_fifo.o
+a - lnx/sys_ini.o
+a - lnx/sys_lib.o
+a - lnx/sys_list.o
+a - lnx/sys_rt.o
+a - lnx/sys_str.o
+a - lnx/sys_tok.o
+a - lnx/sys_time.o
+a - lnx/sys_trk.o
+a - lnx/timing.o
+a - lnx/timestamp.o
+a - lnx/util.o
+a - lnx/udp_utils.o
+a - lnx/xytransform.o

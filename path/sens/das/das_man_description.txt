@@ -1,0 +1,111 @@
+##############################################################################
+			das_man.c
+			 using
+			dmm32.c
+##############################################################################
+
+man_init
+	read realtime.ini: configure das_info (irq, port,num_ai,ad_ticks,etc.)
+	init function tables 
+		resmgr_io_funcs_t.devctl = io_devctl
+		resmgr_io_funcs_t.msg = io_msg
+		resmgr_io_funcs_t.close_ocb = io_close_ocb
+	das_func_init (defined in dmm32.c): list of function pointers, e.g. 
+		pfunc->ad_pulse = das_default_ad_pulse
+		pfunc->tmr_pulse = dmm32_tmr_pulse
+io_func_init
+	must replace at least one of the resmgr_io_funcs_t defaults with our
+	own, in order for the resource manager to work, so the ones in man_init
+	are replaced (devctl=io_devctl, msg=io_msg, close_ocb=io_close_ocb)
+resmgr_attach
+	attach pathname (/dev/dmm32) to resource manager functions:
+		io_devctl(io_func.c) handles DCMD_DAS_ signals:
+			DCMD_DAS_QUERY:  &msg->o
+			DCMD_DAS_AD_ENQ: dmm32_ad_enqueue(dmm32.c)
+			DCMD_DAS_AD_TERM: dmm32_ad_term(dmm32.c)
+			DCMD_DAS_AD_SET_SMP: dmm32_ad_set_sample(dmm32.c)
+			DCMD_DAS_DA_SYNC: das_default_da_sync(das_default.c)
+			DCMD_DAS_DIG_DIR: das_default_digital_dir(das_default.c)
+			DCMD_DAS_DIG_IN: das_default_digital_in(das_default.c)
+			DCMD_DAS_DIG_OUT: das_default_digital_out(das_default.c)
+			DCMD_DAS_TMR_MODE: das_default_tmr_mode(das_default.c)
+			DCMD_DAS_TEST_PULSE: ad_pulse(ctp, 0, 0, &ocb)
+		io_msg(io_func.c) handles IO_MSG_ messages; two-part messages
+			of different sizes. switch msg->i.subtype.
+			IOMSG_DAS_AD_READ: das_default_ad_read(das_default.c)
+			IOMSG_DAS_AD_SET_SCAN: dmm32_ad_set_scan(dmm32.c)
+			IOMSG_DAS_TMR_SCAN: das_default_tmr_scan(das_default.c)
+			IOMSG_DAS_TMR_READ: das_default_tmr_read(das_default.c)
+pulse_init
+	attach ad_pulse_event to pfunc->dmm32_tmr_pulse
+		(dmm32_tmr_pulse resets interrupts and starts the A/D conversion
+		on the A/D board)
+	attach tmr_pulse_event to pfunc->das_default_tmr_pulse
+ctp=dispatch_context_alloc(dpp)
+	Fails if you haven't attached any events to dispatch yet (e.g. you 
+	didn't call message_attach(), resmgr_attach(), or select_attach()). The 
+	dispatch library can't allocate a proper context until it knows what 
+	kind of events you want to block.
+das_open_dev(&attr)
+	Calls dmm32_init (get board pointer)
+	Calls timer_sw_init (attaches clock interrupt to pattr->tmr_pulse_event)
+	and timer_sw_set (sets timer to 20 msec)
+while(1)
+dispatch_block(ctp)
+	Waits for signals, one of which is IOMSG_DAS_AD_SET_SCAN, which 
+	initializes the A/D board with user-supplied configuration parameters.
+dispatch_handler(ctp)
+	The following describes the manner in which messages are handled via the	dispatch layer (or more precisely, through dispatch_handler()). 
+
+	Depending on the blocking type, the handler may call the message_*() 
+	subsystem. A search is made, based on the message type or pulse code, 
+	for a matching function that was attached using message_attach() or 
+	pulse_attach(). If a match is found, the attached function is called.
+
+	If the message type is in the range handled by the resource manager 
+	(I/O messages) and pathnames were attached using resmgr_attach(), the 
+	resource manager subsystem is called and handles the resource manager 
+	message.
+
+	If a pulse is received, it may be dispatched to the resource manager 
+	subsystem if it's one of the codes handled by a resource manager 
+	(UNBLOCK and DISCONNECT pulses). If a select_attach() is done and the 
+	pulse matches the one used by select, then the select subsystem is 
+	called and dispatches that event.
+
+	If a message is received and no matching handler is found for that 
+	message type, MsgError(ENOSYS) is returned to unblock the sender. 
+
+##############################################################################
+                        dmm32 initialization and operation
+##############################################################################
+
+	A user-space pointer to the Diamond DMM32-DX-AT board is created at
+	das_man startup, but its initialization and operation is done at client
+	startup in order to set the data acquisition characteristics to those
+	requested by the user.  The following description pertains to a DAS
+	client written using functions defined in /home/path/local/sys_das.c
+
+das_init
+	pdas->fd = das_open(ppath, O_RDWR)
+		Get connection id (fd) for future use.
+	das_get_info(pdas->fd, &info)
+		Sends DCMD_DAS_QUERY, which 
+	das_ad_set_scan(pdas->fd, pscan, pdas->num_scan)
+		Sends IOMSG_DAS_AD_SET_SCAN, which triggers dmm32_ad_set_scan in
+		the resource manager (das_man).
+	
+		dmm32_ad_set_scan
+			das_ad_read_scan_msg
+
+			dmm32_scan
+				Sets the A/D board to send out interrupts and
+				_not_ interrupt on the hw clock (i.e. via sw
+				trigger=write to base + 0)
+				This setting is: base + 9 = 0x80)
+			das_ad_interrupt_attach
+				das_ad_interrupt_attach
+					attaches irq5 to pattr->pinfo->irq
+			MsgReply(ctp->rcvid, EOK, NULL, 0)
+				Returns EOK to caller (das_ad_set_scan)
+	das_ad_set_sample(pdas->fd, 0, pdas->ticks)

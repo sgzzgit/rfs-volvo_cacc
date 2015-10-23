@@ -1,0 +1,1728 @@
+Index: common/long_utils.c
+===================================================================
+--- common/long_utils.c	(revision 9125)
++++ common/long_utils.c	(working copy)
+@@ -673,7 +673,10 @@
+ 
+ 	if( dig_in.brakeswerr == TRUE )
+ 		return -1;
+-	return dig_in.brakesw;
++	if( dig_in.brakesw == 0)
++		return 1;
++	if( dig_in.brakesw == 1)
++		return 0;
+ }
+ 
+ int long_setled( db_clt_typ *pclt, int faultcode) {
+Index: common/long_ctl.h
+===================================================================
+--- common/long_ctl.h	(revision 9125)
++++ common/long_ctl.h	(working copy)
+@@ -193,6 +193,7 @@
+ extern int long_read_vehicle_state(db_clt_typ *pclt, long_ctrl *pctrl);
+ extern int long_setled(db_clt_typ *pclt, int faultcode);
+ extern int long_rdswitch(long_dig_in_typ dig_in);
++extern int long_rdbrake(long_dig_in_typ dig_in);
+ 
+ /* prototypes for functions that must be provided by individual controller */
+ extern int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd);
+Index: avcs/trk_io.c
+===================================================================
+--- avcs/trk_io.c	(revision 9125)
++++ avcs/trk_io.c	(working copy)
+@@ -153,7 +153,7 @@
+ 	unsigned char brake1;
+ 	unsigned char brake2;
+ 	int brakectr = 0;
+-	unsigned char last_manual1 = 0;
++	unsigned char last_manual2 = 0;
+ 	unsigned char last_auto1 = 0;
+ 	unsigned char last_brake1 = 0;
+ 	unsigned char ncerr;
+@@ -369,21 +369,22 @@
+ 			brake1 = (port_A_data & BRAKE1) >> B1BIT;
+ 			brake2 = (port_A_data & BRAKE2) >> B2BIT;
+ 			ncerr = port_A_data & NCIN;
+-									     
+-			if(ncerr)
++
++			if(0)
++//			if(ncerr)
+ 				printf("NC input read error: ncerr %d\n",ncerr);
+ 			// Check for a broken wire
+-			if ( (manual1 != manual2) || (auto1 != auto2) ) {
+-				print_timestamp(stderr, &dig_in.ts);
+-				dig_in.man_autoswerr = TRUE;
+-				fprintf(stderr,"Auto/Manual switch error: manual1 %d",
+-					manual1);
+-				fprintf(stderr," manual2 %d ",
+-					manual2);
+-				fprintf(stderr,"auto1 %d auto2 %d port A input %#x\n",
+-					auto1, auto2, 
+-					(unsigned char)port_A_data);
+-			}
++//			if ( (manual1 != manual2) || (auto1 != auto2) ) {
++//				print_timestamp(stderr, &dig_in.ts);
++//				dig_in.man_autoswerr = TRUE;
++//				fprintf(stderr,"Auto/Manual switch error: manual1 %d",
++//					manual1);
++//				fprintf(stderr," manual2 %d ",
++//					manual2);
++//				fprintf(stderr,"auto1 %d auto2 %d port A input %#x\n",
++//					auto1, auto2, 
++//					(unsigned char)port_A_data);
++//			}
+ 			else
+ 				dig_in.man_autoswerr = FALSE;
+ 			if (brake1 != brake2) {
+@@ -401,11 +402,11 @@
+ 			brakectr++;
+ 
+ 			// Check for a transition
+-			if (manual1 != last_manual1) {
++			if (manual2 != last_manual2) {
+ 				print_timestamp(stderr, &dig_in.ts);
+ 				fprintf(stderr, 
+-				    "last_manual1 %d -> manual1 %d manctr %d\n",
+-					last_manual1, manual1, manctr);
++				    "last_manual2 %d -> manual2 %d manctr %d\n",
++					last_manual2, manual2, manctr);
+ 				manctr = 0;
+ 			}
+ 			if (auto1 != last_auto1) {
+@@ -423,11 +424,11 @@
+ 				brakectr = 0;
+ 			}
+ 
+-			last_manual1 = manual1;
++			last_manual2 = manual2;
+ 			last_auto1 = auto1;
+ 			last_brake1 = brake1;
+ 
+-			dig_in.manualctl = manual1;        
++			dig_in.manualctl = manual2;        
+ 			dig_in.autoctl = auto1;              
+ 			dig_in.brakesw = brake1 & brake2;              
+ 
+Index: xyl/long_trk_func.h
+===================================================================
+--- xyl/long_trk_func.h	(revision 9125)
++++ xyl/long_trk_func.h	(working copy)
+@@ -57,7 +57,7 @@
+ extern int config_sw(int *pread_sw, int *pmanu_auto_sw,
+         unsigned short *phandshake_start, int *pread_sw_old, switch_typ *sw_pt,
+         long_vehicle_state *pv, vehicle_info_typ* vehicle_info_pt,
+-        veh_comm_packet_t *comm_receive_pt, unsigned short *pprt1_sw);
++        veh_comm_packet_t *comm_receive_pt, unsigned short *pprt1_sw, fault_index_typ* f_ind_pt);
+ extern int process_sigs(float *pdt, float *prun_dist, float *pv, float *pacl,
+         float *pacl_old, float *lid_hi_rg, float *lid_hi_rt, int *maneuver_id,
+         int *pre_maneuver_id, const int *pradar_sw,
+@@ -65,13 +65,15 @@
+         control_state_typ* con_state_pt, evrd_out_typ* evrd_out_pt,
+         ldr_out_typ* ldr_out_pt, evt300_radar_typ *pvor_radar,
+         fault_index_typ* f_index_pt, mdl_lidar_typ *pmdl_lidar, 
+-	long_params *pparams);
++	long_params *pparams, float global_time);
+ 
+ extern int set_init_leds(db_clt_typ *pclt, unsigned short *pprt1_sw,
+         unsigned short *pprt_buff, unsigned short *phandshake_start,
+         switch_typ *sw_pt, vehicle_info_typ* vehicle_info_pt,
+-        veh_comm_packet_t *comm_receive_pt);
+-extern int set_time_sync(float *pt_ctrl, float *pt_ctrl_1, float *pdt,
++        veh_comm_packet_t *comm_receive_pt, control_state_typ *con_state_pt,
++	manager_cmd_typ *manager_pt);
++
++extern int set_time_sync(float *pt_ctrl, float *pdt,
+         float *ptime_filter, int *pvehicle_pip,
+         vehicle_info_typ* vehicle_info_pt);
+ extern int actuate(long_output_typ *pcmd, float *pengine_reference_torque,
+@@ -79,7 +81,12 @@
+         con_output_typ* con_output_pt, control_state_typ* con_state_pt,
+         control_config_typ* config, control_config_typ* config_pt,
+         long_params *pparams, float *pminimum_torque,
+-        long_output_typ *inactive_ctrl);
++        long_output_typ *inactive_ctrl, manager_cmd_typ * manager_cmd_pt, switch_typ *sw_pt);
++extern int max_i(int , int);
++extern int min_i(int , int);
++extern float max_f(float , float);
++extern float min_f(float , float);
+ 
+ 
++
+ #endif
+Index: xyl/veh_long.h
+===================================================================
+--- xyl/veh_long.h	(revision 9125)
++++ xyl/veh_long.h	(working copy)
+@@ -14,6 +14,7 @@
+               updated on 10/21/03    added ref_v, ref_a to con_state_typ
+               updated on 11/25/09    removed delco and occuner radar
+ 			  updated on 05/05/10
++			  //updated on 08/16/10
+ 			  
+ 			  
+                                    XY_Lu
+@@ -58,7 +59,7 @@
+ #define ACC_OFF_VOLTAGE                  0.0
+ #define t_ctrl_1                         (0.14) 
+ #define t_ctrl_2                         (-5.05)
+-#define comm_err_bound                   20
++//#define comm_err_bound                   20
+ 
+ #include "track.h" 
+ 
+@@ -119,6 +120,7 @@
+           unsigned auto_sw  :1;
+           unsigned manu_sw  :1;
+           unsigned HMI_sw  :1;
++          unsigned brake_sw  :1;
+ } switch_typ;
+ 
+ 
+@@ -161,26 +163,28 @@
+         float para3;
+         float para4;
+         int data_log;               // Data log interval                
+-        int pltn_size;               // Platoon size
++        int pltn_size;              // Platoon size
+         bool_typ static_run;        // Static (1) or dynamic (0) run            
+         bool_typ test_actuators;    // Test throttle and brake actuators (1) or not (0).    
+         bool_typ truck_platoon;     // Truck platooning is on (1) or off (0)   
+-        bool_typ use_comm;     // Truck platooning is on (1) or off (0)   
+-        bool_typ eaton_radar;       // Eaton radar (1) ON or (0) OFF.           
+-        bool_typ save_data;       // Save data to log file (1) ON or (0) OFF    
+-        bool_typ run_data;       // Save data to log file using data log interval (1) ON or (0) OFF    
+-        bool_typ read_data;       // Save different data to log file (1) ON or (0) OFF    
+-        bool_typ trans_sw;         // Write auto/manual switch to db (1) ON or (0) OFF
+-        bool_typ use_gps;         // Read self_gps from db (1) ON or (0) OFF
+-        bool_typ use_mag;         // Call mag_dist
+-        bool_typ handle_faults;         // Fault detection and management 
++        bool_typ use_comm;          // Truck platooning is on (1) or off (0)   
++        bool_typ eaton_radar;       // Eaton radar (1) ON or (0) OFF. 
++        //bool_typ denso_lidar;       // added on 08/16/10; do we need them
++        //bool_typ mdl_lidar;         // added on 08/16/10
++        bool_typ save_data;         // Save data to log file (1) ON or (0) OFF    
++        bool_typ run_data;          // Save data to log file using data log interval (1) ON or (0) OFF    
++        bool_typ read_data;         // Save different data to log file (1) ON or (0) OFF    
++        bool_typ trans_sw;          // Write auto/manual switch to db (1) ON or (0) OFF
++        bool_typ use_gps;           // Read self_gps from db (1) ON or (0) OFF
++        bool_typ use_mag;           // Call mag_dist
++        bool_typ handle_faults;     // Fault detection and management 
+         bool_typ end_scenario;      // Change lane back and rejoin (1) or not (0).  
+         float step_start_time;      // Time to begin the step. [sec]                
+-        float step_end_time;       // Time to end the step. [sec]                  
+-        float tq_cmd_coeff;        //   
+-        float spd_cmd_coeff;       //    
+-        float jk_cmd_coeff;        //        
+-        float trtd_cmd_coeff;      //           
++        float step_end_time;        // Time to end the step. [sec]                  
++        float tq_cmd_coeff;         //   
++        float spd_cmd_coeff;        //    
++        float jk_cmd_coeff;         //        
++        float trtd_cmd_coeff;       //           
+ } control_config_typ;
+ 
+ 
+Index: xyl/coording.h
+===================================================================
+--- xyl/coording.h	(revision 9125)
++++ xyl/coording.h	(working copy)
+@@ -1,111 +1,112 @@
+-/*********************************************************************************
+-
+-    coording.h
+-
+-    Collection of info for coordination manager
+-
+-    Started                      04/03/03
+-    Updated on                   11/25/09
+-
+-                                 XY_LU
+-
+-*********************************************************************************/
+-
+-#ifndef COORDING_H
+-#define COORDING_H
+-
+-#define PLATOON_SIZE                     1
+-#define RFS                              0
+-#define CRO                              3
+-#define N11                              6
+-#define I15                              2
+-#define t_wait                           20.0
+-
+-/* Struct for vehicle info */   // Used for coordination
+-
+-typedef struct      // To be sent from each vehicle to coordination manager
+-{
+-    unsigned int ready;
+-    unsigned int fault_mode;  // Define the level of fault of a vehicle
+-    unsigned short veh_id;
+-    unsigned short veh_type;
+-    unsigned short pltn_id;
+-    unsigned short pltn_size;          
+-    unsigned short pre_fault_mode;
+-    unsigned short lead_fault_mode;
+-    unsigned short pltn_fault_mode;
+-    float run_dist;
+-    float spd;
+-    int man_id1;
+-    int man_id2;
+-    float man_t_limit;         
+-}vehicle_info_typ;
+-
+-
+-/* Struct of fault mode for communication only */
+-
+-typedef struct   // From each vehicle to coordination manager
+-{
+-    unsigned   pltn_id  :6;
+-    unsigned   veh_id  :8;
+-    unsigned   comm_coord   :1;
+-    unsigned   comm  :1;
+-    unsigned   CAN_bus  :1;
+-    unsigned   J_bus  :1;
+-    unsigned   radar   :1;
+-    unsigned   mag_meter  :1; // Determined in mag_dist
+-    unsigned   gps  :1;
+-    unsigned   throt  :1;
+-    unsigned   air_brk  :1;
+-    unsigned   jake_brk  :1;
+-    unsigned   trans_rtdr  :1;
+-    unsigned   wh_spd  :1;
+-    unsigned   we  :1;
+-    unsigned   HMI  :1;         
+-} f_mode_comm_typ;
+-
+-typedef struct      // Between vehicles
+-{
+-    int comm_counter;   
+-    float acc_traj;   
+-    float vel_traj;   
+-    float temp_dist;  
+-    float acl;    
+-    float v;      
+-    float distance;   
+-    float run_dist;   
+-    float fuel_rate;   
+-    float brk_prs;  
+-    float jk_tq;  
+-    float trtd_tq;  
+-    float pitch;    
+-    float user_float;       
+-    int marker_number;  
+-    int marker_counter; 
+-    short unsigned user_ushort_1;   
+-    short unsigned user_ushort_2;      
+-    short unsigned lane_id;    
+-    short unsigned platoon_id; 
+-    short unsigned maneuver_id; 
+-    short unsigned fault_mode;     
+-    short unsigned comm_reply;   // added on 03/06/09
+-}comm_info_typ;
+-
+-
+-typedef struct    // From coordination manager to each vehicle
+-{  
+-    float global_t;     // For synchronization      
+-    float stop_dist;       
+-    float user_def_1;   
+-    float user_def_2;
+-    float user_def_3;   
+-    float user_def_4;         
+-    int user_def_5;   
+-    int user_def_6;
+-    int user_def_7;   
+-    int user_def_8;        
+-    int man_des;    
+-    int f_manage_index;   // For platoon fault mode
+-}manager_cmd_typ;
+-
+-#endif  /* COORDING_H */
++/*********************************************************************************
++
++    coording.h
++
++    Collection of info for coordination manager
++
++    Started                      04/03/03
++    Updated on                   11/25/09
++
++                                 XY_LU
++
++*********************************************************************************/
++
++#ifndef COORDING_H
++#define COORDING_H
++
++#define PLATOON_SIZE                     1
++#define RFS                              0
++#define CRO                              3
++#define N11                              6
++#define I15                              2
++#define NVD                              7  // to be activated
++#define t_wait                           20.0
++
++/* Struct for vehicle info */   // Used for coordination
++
++typedef struct      // To be sent from each vehicle to coordination manager
++{
++    unsigned int ready;
++    unsigned int fault_mode;  // Define the level of fault of a vehicle
++    unsigned short veh_id;
++    unsigned short veh_type;
++    unsigned short pltn_id;
++    unsigned short pltn_size;          
++    unsigned short pre_fault_mode;
++    unsigned short lead_fault_mode;
++    unsigned short pltn_fault_mode;
++    float run_dist;
++    float spd;
++    int man_id1;
++    int man_id2;
++    float man_t_limit;         
++}vehicle_info_typ;
++
++
++/* Struct of fault mode for communication only */
++
++typedef struct   // From each vehicle to coordination manager
++{
++    unsigned   pltn_id  :6;
++    unsigned   veh_id  :8;
++    unsigned   comm_coord   :1;
++    unsigned   comm  :1;
++    unsigned   CAN_bus  :1;
++    unsigned   J_bus  :1;
++    unsigned   radar   :1;
++    unsigned   mag_meter  :1; // Determined in mag_dist
++    unsigned   gps  :1;
++    unsigned   throt  :1;
++    unsigned   air_brk  :1;
++    unsigned   jake_brk  :1;
++    unsigned   trans_rtdr  :1;
++    unsigned   wh_spd  :1;
++    unsigned   we  :1;
++    unsigned   HMI  :1;         
++} f_mode_comm_typ;
++
++typedef struct      // Between vehicles
++{
++    int comm_counter;   
++    float acc_traj;   
++    float vel_traj;   
++    float temp_dist;  
++    float acl;    
++    float v;      
++    float distance;   
++    float run_dist;   
++    float fuel_rate;   
++    float brk_prs;  
++    float jk_tq;  
++    float trtd_tq;  
++    float pitch;    
++    float user_float;       
++    int marker_number;  
++    int marker_counter; 
++    short unsigned user_ushort_1;   
++    short unsigned user_ushort_2;      
++    short unsigned lane_id;    
++    short unsigned platoon_id; 
++    short unsigned maneuver_id; 
++    short unsigned fault_mode;     
++    short unsigned comm_reply;   // added on 03/06/09
++}comm_info_typ;
++
++
++typedef struct    // From coordination manager to each vehicle
++{  
++    float global_t;     // For synchronization      
++    float stop_dist;       
++    float user_def_1;   
++    float user_def_2;
++    float user_def_3;   
++    float user_def_4;         
++    int user_def_5;   
++    int user_def_6;
++    int user_def_7;   
++    int user_def_8;        
++    int man_des;    
++    int f_manage_index;   // For platoon fault mode
++}manager_cmd_typ;
++
++#endif  /* COORDING_H */
+Index: xyl/long_trk.c
+===================================================================
+--- xyl/long_trk.c	(revision 9125)
++++ xyl/long_trk.c	(working copy)
+@@ -103,7 +103,7 @@
+ //#define USE_GPS
+ //#define LAT_INPUT
+ 
+-static int test_site = RFS; 
++static int test_site = CRO; 
+ static float track_length=260.0;
+ static float minimum_torque = 320.0;
+ static float stop_period=0.0;
+@@ -341,12 +341,11 @@
+        }
+     else if( test_site == CRO )
+        { 
+-         if (config.max_spd > 20.0)
+-             config.max_spd=20.0;
++         if (config.max_spd > 55.0)
++             config.max_spd=55.0;
+           config.max_spd=(config.max_spd)*1609.0/3600.0;
+           con_state. mag_space = 1.2;
+-          track_length = 250.0;                        // 2350m, Tested on 04_29_03
+-          //track_length = 1000.0;                        
++          track_length = 5.0*1609.0;                        // 2350m, Tested on 04_29_03
+   
+           config.max_dcc=MAX_DCC;
+        }
+@@ -391,7 +390,7 @@
+      switching. radar1_sw=1;
+      switching. radar2_sw=1;
+      switching. auto_sw=0;        
+-     switching. manu_sw=0;
++     switching. manu_sw=1;
+      switching. HMI_sw=1;                    
+ 
+      
+@@ -573,13 +572,11 @@
+ 
+ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
+ {
+-    const int radar_sw = 5;
++    const int radar_sw = 8;
+ /*--- All the time related variables ---*/
+ 
+-    static float global_time=0.0, local_time=0.0;
+-    //static double t_ctrl=0.0, dt=0.0;       /* Set in spd_ctrl. [sec] */
+-    static float t_ctrl=0.0, t_ctrl_1=0.04, dt=0.0, time_filter=0.0;
+-    //static unsigned long tick;           // Set in spd_ctrl. [sample ticks]
++    static float global_time=0.0, local_time=0.0;    
++    static float t_ctrl=0.0, dt=0.0, time_filter=0.0;    
+     static unsigned short handshake_start = OFF, prt_buff=0, comm_prt1_sw = ON;
+     static unsigned short synchrn_sw = 1, comm_prt_sw=ON, prt1_sw =ON, global_t_sw=OFF;                     // Only used once
+  	static int read_sw=0, read_sw_old=0, manu_auto_sw=0;
+@@ -768,9 +765,11 @@
+            vehicle_info_pt-> veh_id = 1;           
+         }
+         
++        
++        
+ if(config.truck_platoon == TRUE) {
+      con_state_pt-> drive_mode = 1;
+-     vehicle_info_pt-> pltn_size = config.pltn_size; // For testing one veh only, 12_17_08
++     vehicle_info_pt-> pltn_size = config.pltn_size; 
+      vehicle_pip = pparams->vehicle_position;
+      vehicle_info_pt-> veh_id = vehicle_pip;
+ }
+@@ -844,7 +843,7 @@
+ 	/*                                    */
+ 	/**************************************/
+ 
+-    dt = ctrl_interval * 0.001; // in seconds   ?? 11/15/08
++    dt = ctrl_interval * 0.001; // in seconds 
+     local_time += dt;                                                                        
+ 	/***************************************************/
+ 	/*                                                 */
+@@ -883,7 +882,7 @@
+         /*******************************************/
+ if( config.trans_sw == TRUE ) 
+ 	config_sw(&read_sw, &manu_auto_sw, &handshake_start, &read_sw_old, 
+-	sw_pt, pv, vehicle_info_pt, comm_receive_pt, &prt1_sw);
++	sw_pt, pv, vehicle_info_pt, comm_receive_pt, &prt1_sw, f_index_pt);
+ 
+ 	/****************************************/
+ 	/*                                   	*/
+@@ -895,9 +894,8 @@
+ 	/****************************************/
+ 
+ set_init_leds(pclt, &prt1_sw, &prt_buff, &handshake_start, sw_pt, 
+-	vehicle_info_pt, comm_receive_pt); 
+-set_time_sync(&t_ctrl, &t_ctrl_1, &dt, &time_filter, 
+-	&vehicle_pip, vehicle_info_pt);
++	vehicle_info_pt, comm_receive_pt, con_state_pt, manager_cmd_pt); 
++set_time_sync(&t_ctrl, &dt, &time_filter, &vehicle_pip, vehicle_info_pt);
+ 
+         
+ 	/***************************************/
+@@ -911,7 +909,7 @@
+ process_sigs(&dt, &run_dist, &v, &acl, &acl_old, lid_hi_rg, lid_hi_rt, 
+ 	maneuver_id, pre_maneuver_id, &radar_sw, vehicle_info_pt, &config,
+ 	con_state_pt, evrd_out_pt, ldr_out_pt, pvor_radar, f_index_pt, 
+-	pmdl_lidar, pparams);
++	pmdl_lidar, pparams, global_time);
+ 
+ if( config.use_mag == TRUE) {                                     
+      mag_dist(dt, time_filter, con_state_pt, &pre_move_dist, &move_dist, &mag_dist_est);                                                         
+@@ -1019,76 +1017,56 @@
+ 	/*       Setting LED                       */
+ 	/*                                         */
+ 	/*******************************************/
+-if(config.handle_faults == TRUE) { 
+-   // individual veh detection
+-   if( f_index_pt-> spd == 1 )   /// Add other critical faults here         
+-           vehicle_info_pt-> fault_mode = 3; 
+-    
+-   if (vehicle_info_pt-> pltn_size == 1)  
+-     {                   
++	
++if( (config.handle_faults == TRUE) && (maneuver_des > 1) )
++{ 
+    
+-        
+-        if (vehicle_info_pt-> fault_mode == 3) 
+-           {  
+-              manager_cmd_pt-> f_manage_index = 3;             	        
+-              if (long_setled(pclt, FLT_HI) != 0)
+-                fprintf(stderr, " Setting FLT_HI fail 3! \n");
+-           }
+-     }
+-   else
++   if (vehicle_info_pt-> pltn_size >= 1)       
+      {
+ 	    if (vehicle_info_pt-> veh_id == 1)
+ 	       {
+-
+-		      if( (f_index_pt-> comm == 1) || (vehicle_info_pt-> fault_mode == 3) || (f_index_pt-> comm_coord == 1) ) 
+-		         {	
+-			        sw_pt-> auto_sw = 0;
+-			        sw_pt-> manu_sw = 1;		        
+-	                if (long_setled(pclt, FLT_HI) != 0)
+-                       fprintf(stderr, " Setting FLT_HI fail 4! \n");                     
+-                    manager_cmd_pt-> f_manage_index = 3;	              
+-		         }
++		      if(f_index_pt-> comm == 1) 		         
++			     vehicle_info_pt-> fault_mode = 3;
+ 	       }
+ 	    else
+ 	       {
+-		       if (((f_index_pt-> e_vrd==1)&&(f_index_pt-> lidar==0)) || ((f_index_pt-> e_vrd==0)&&(f_index_pt-> lidar==1)) )
+-                  vehicle_info_pt-> fault_mode = 2;
+-               if ((f_index_pt-> e_vrd==1)&&(f_index_pt-> lidar==1)) 
+-                  {
+-                     vehicle_info_pt-> fault_mode = 3;
+-                     sw_pt-> auto_sw = 0;
+-			         sw_pt-> manu_sw = 1;	
+-		          }
+-		       
+-		       if( (f_index_pt-> comm == 1) || (vehicle_info_pt-> fault_mode == 3) || (f_index_pt-> comm_coord == 1) )
+-                 {
+-	                sw_pt-> auto_sw = 0;
+-			        sw_pt-> manu_sw = 1;	
+-	                if (long_setled(pclt, FLT_HI) != 0)
+-                       fprintf(stderr, " Setting FLT_HI fail 5! \n");                    
+-                    manager_cmd_pt-> f_manage_index = 3;	     
+-                 }	       
+-	    	    
+-               if( (f_index_pt-> comm == 0) || (vehicle_info_pt-> fault_mode == 2) || (f_index_pt-> comm_coord == 0) )
+-                  {
+-                        fprintf(stderr, " Setting FLT_MED f_index_pt->comm %d vehicle_info_pt->fault_mode %d f_index_pt->comm_coord %d\n",
+-				f_index_pt->comm, vehicle_info_pt->fault_mode, f_index_pt->comm_coord );
+-	                 if (long_setled(pclt, FLT_MED) != 0)
+-                        fprintf(stderr, " Setting FTL_MED fail! \n");
+-             
+-                     manager_cmd_pt-> f_manage_index = 2;
+-	     
+-                  }
+-               if( (f_index_pt-> comm == 0) || (vehicle_info_pt-> fault_mode == 1) || (f_index_pt-> comm_coord == 0) )        
+-                  {
+-                        fprintf(stderr, " Setting FLT_LOW f_index_pt->comm %d vehicle_info_pt->fault_mode %d f_index_pt->comm_coord %d\n",
+-				f_index_pt->comm, vehicle_info_pt->fault_mode, f_index_pt->comm_coord );
+-	                 if (long_setled(pclt, FLT_LOW) != 0)
+-                        fprintf(stderr, " Setting FLT_LOW fail! \n");             
+-                      manager_cmd_pt-> f_manage_index = 1;
+-                  }
+-           }
+-     }
++		       if (f_index_pt-> comm == 1)
++		          vehicle_info_pt-> fault_mode = 1;
++		       if (((f_index_pt-> e_vrd==1)&&(f_index_pt-> lidar==0)) || ((f_index_pt-> e_vrd==0)&&(f_index_pt-> lidar==1)) )		                    		       	  
++                  vehicle_info_pt-> fault_mode = 2;                                                      
++               if ( (f_index_pt-> comm == 1) || ((f_index_pt-> e_vrd==1)&&(f_index_pt-> lidar==1)) )                                            
++                  vehicle_info_pt-> fault_mode = 3;                     		          
++           }       
++     } 
++     
++     if ( (f_index_pt-> spd == 1) || (f_index_pt-> J_bus_1 == 1) )         
++           vehicle_info_pt-> fault_mode = 3; 
++           
++     if (f_index_pt-> comm == 0)
++        manager_cmd_pt-> f_manage_index = max_i(vehicle_info_pt-> fault_mode, vehicle_info_pt-> pltn_fault_mode);    	    
++               
++     if (manager_cmd_pt-> f_manage_index == 1)        
++        {
++            fprintf(stderr, " Setting FLT_LOW f_index_pt->comm %d vehicle_info_pt->fault_mode %d f_index_pt->comm_coord %d\n",
++				              f_index_pt->comm, vehicle_info_pt->fault_mode, f_index_pt->comm_coord );
++	        if (long_setled(pclt, FLT_LOW) != 0)
++               fprintf(stderr, " Setting FLT_LOW fail! \n");             
++        }
++        
++     if (manager_cmd_pt-> f_manage_index == 2)
++        {
++            fprintf(stderr, " Setting FLT_MED f_index_pt->comm %d vehicle_info_pt->fault_mode %d\n",
++				                          f_index_pt->comm, vehicle_info_pt->fault_mode );
++	        if (long_setled(pclt, FLT_MED) != 0)
++                fprintf(stderr, " Setting FTL_MED fail! \n");            
++        }
++     if (manager_cmd_pt-> f_manage_index  == 3)
++        {
++	        //sw_pt-> auto_sw = 0;
++			//sw_pt-> manu_sw = 1;	
++	        if (long_setled(pclt, FLT_HI) != 0)
++               fprintf(stderr, " Setting FLT_HI fail! \n");                   
++        }	  
+ }      
+      
+ 	/*******************************************/
+@@ -1108,29 +1086,31 @@
+     // printf("In Run Tasks: test site: %i; vehicle id: %i\n", 
+     //		test_site, vehicle_info_pt-> veh_id);
+     
+-     if ( ((vehicle_pip == 0) || (vehicle_pip == 1)) && (vehicle_info_pt-> ready == 1))   // 11_25_09     
+-     //if (handshake_start == ON)                                              
++    //if (vehicle_info_pt-> ready == 1)
++    if (t_ctrl > 0.001)                                //05/05/10                  
++    {
++     	if ((vehicle_pip == 0) || (vehicle_pip == 1))  //05_05_10                                                     
+          {
+-            if (coording(dt, test_site, track_length, con_state_pt, config_pt, 
+-		  f_mode_comm_pt, vehicle_info_pt, manager_cmd_pt) != 1)
++            if (coording(dt, test_site, track_length, con_state_pt, config_pt, f_mode_comm_pt, vehicle_info_pt, manager_cmd_pt) != 1)
+                   fprintf(stderr, "\n Calling Coordination fail! \n");         
+-            maneuver_des = manager_cmd_pt-> man_des;
++            else
++            	maneuver_des = manager_cmd_pt-> man_des;
+          }
+-     else           // vehicle_pip > 1     
++     	else           // vehicle_pip > 1     
+          {
+-            //if ( (handshake_start == ON) && (sw_pt-> auto_sw == 1) && (comm_receive_pt[2]. user_ushort_2 == 1) ) 
+-            if (vehicle_info_pt-> ready == 1)                                        // 11_25_09
+-               {
++            
++            //if (vehicle_info_pt-> ready == 1)                                        //05/05/10
++               //{
+                  // maneuver_des = comm_receive_pt[1]. maneuver_id;
+                   // maneuver_id[0] = maneuver_des;                        // Should be moved into maneuver()
+-                  if (coording(dt, test_site, track_length, con_state_pt, config_pt, f_mode_comm_pt, vehicle_info_pt, manager_cmd_pt) != 1)
+-                          fprintf(stderr, "\n Calling Coordination fail! \n");         
+-                     maneuver_des = manager_cmd_pt-> man_des;                 // For temporary test at CRO
+-                  if ( (comm_receive_pt[1]. maneuver_id == 29) || (comm_receive_pt[1]. maneuver_id == 30) )  // Over write the local coording wgen braing to stop
+-                     maneuver_des = comm_receive_pt[1]. maneuver_id;
+-               }
+-                 
+-        }           
++            if (coording(dt, test_site, track_length, con_state_pt, config_pt, f_mode_comm_pt, vehicle_info_pt, manager_cmd_pt) != 1)
++                 fprintf(stderr, "\n Calling Coordination fail! \n");  
++            else       
++                 maneuver_des = manager_cmd_pt-> man_des;                 // For temporary test at CRO
++            if ( (comm_receive_pt[1]. maneuver_id == 29) || (comm_receive_pt[1]. maneuver_id == 30) )  // Over write the local coording when bring to stop
++                     maneuver_des = comm_receive_pt[1]. maneuver_id;                               
++         }    
++    }       
+   
+         // To determine maneuver_id       
+      if ( maneuver(dt, t_ctrl, time_filter, v_p, c, d, pitch_flt, config_pt, con_state_pt, vehicle_info_pt,  // time filter added on Dec. 1, 03
+@@ -1182,7 +1162,7 @@
+ 
+ actuate(pcmd, &engine_reference_torque, &vehicle_pip, &t_ctrl, &maneuver_des, 
+ 	maneuver_id, con_output_pt, con_state_pt, &config, config_pt, pparams, 
+-	&minimum_torque, &inactive_ctrl);
++	&minimum_torque, &inactive_ctrl, manager_cmd_pt, sw_pt);
+ 
+ 
+ 	/************************************/
+@@ -1200,11 +1180,12 @@
+ 
+       comm_send_pt.my_pip = vehicle_pip;       // Determined in the beginning in handshaking.
+       comm_send_pt.maneuver_id = maneuver_des;
+-      comm_send_pt.fault_mode = manager_cmd_pt-> f_manage_index;
++      //comm_send_pt.fault_mode = manager_cmd_pt-> f_manage_index;
++      comm_send_pt.fault_mode = vehicle_info_pt-> fault_mode;
+       comm_send_pt.maneuver_des_1 = maneuver_id[0];
+       comm_send_pt.maneuver_des_2 = maneuver_id[1];
+ //      memcpy(&comm_send_pt.gps, &self_gps_point, sizeof(path_gps_point_t);
+-      comm_send_pt.user_ushort_1 = comm_info_pt-> comm_reply;   // acknowledge receiving; 03_09_09      
++      comm_send_pt.user_ushort_1 = comm_info_pt-> comm_reply;         // acknowledge receiving; 03_09_09      
+       comm_send_pt.user_ushort_2 = (unsigned short) sw_pt-> auto_sw;  // acknowledge the vehicle is in automade; 11_20_09
+       comm_send_pt.user_float=sens_read_pt-> bp; // Added on 11_25_09
+       comm_send_pt.pltn_size = vehicle_info_pt->pltn_size;
+@@ -1245,12 +1226,12 @@
+              vehicle_pip,                        //5              
+              vehicle_info_pt->pltn_size,         //6
+              global_time,                        //7
+-             comm_receive_pt[1]. global_time,      //8     
+-             comm_receive_pt[2]. global_time,      //9       
++             comm_receive_pt[1]. global_time,    //8     
++             comm_receive_pt[2]. global_time,    //9       
+              time_filter,                        //10 
+              t_ctrl                              //11
+         );
+-        fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",
++        fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %3i %3i %3i ",
+              con_state_pt-> vrd_range,           //12
+              con_state_pt-> vrd_range_rate,      //13                        
+              con_state_pt-> mdl_rg,              //14                 
+@@ -1258,13 +1239,13 @@
+              con_state_pt-> radar_rg,            //16  
+              con_state_pt-> radar_rt,            //17  
+              con_state_pt-> front_range,         //18                             
+-             lid_hi_rg[0],                       //19
+-             lid_hi_rg[1],                       //20
+-             lid_hi_rg[2]                        //21       
++             vehicle_info_pt-> fault_mode,       //19
++             vehicle_info_pt-> pltn_fault_mode,  //20
++             manager_cmd_pt-> f_manage_index     //21       
+         );
+         fprintf(pout, "%3i %3i %3i %3i %3i ",
+-             0,					 //22
+-             f_index_pt-> comm_leader,           //23
++             f_index_pt-> J_bus_1,	             //22
++             comm_info_pt-> comm_reply,          //23
+              f_index_pt-> comm_pre,              //24
+              f_index_pt-> comm_back,             //25
+              f_index_pt-> comm                   //26
+@@ -1302,12 +1283,12 @@
+              sens_read_pt-> gshift_sw,           //52 
+              gear,                               //53 
+              pcmd->ebs_deceleration,             //54  
+-             pv-> fb_axle,                   //55
+-             pv-> mb_axle,                   //56 
+-             pv-> rb_axle,                   //57 
++             pv-> fb_axle,                       //55
++             pv-> mb_axle,                       //56 
++             pv-> rb_axle,                       //57 
+              sens_read_pt-> bp,                  //58  
+              sens_read_pt-> we_flt,              //59       
+-             vehicle_info_pt->ready,           //60
++             vehicle_info_pt->ready,             //60
+              comm_receive_pt[1].user_ushort_2,   //61
+              comm_receive_pt[2].user_ushort_2    //62
+  
+@@ -1315,7 +1296,21 @@
+ 	fprintf(pout, "\n");
+ }
+ if( config.read_data == TRUE ) {
+-        fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",
++	
++	fprintf(pout, "%6.4f %4.3f %4.3f %d %d %d %4.3f %4.3f %d %d %d %4.3f %4.3f %d %d %d %4.3f %4.3f %d %d %d",
++	               local_time,
++	               lid_hi_rg[0], lid_hi_rt[0], plidar_A-> l_dist_1, plidar_A-> h_latpos_1, plidar_A-> l_latpos_1,
++	               lid_hi_rg[1], lid_hi_rt[1], plidar_A-> l_dist_2, plidar_A-> h_latpos_2, plidar_A-> l_latpos_2,
++	               lid_hi_rg[2], lid_hi_rt[2], plidar_A-> l_dist_3, plidar_A-> h_latpos_3, plidar_A-> l_latpos_3,
++	               lid_hi_rg[3], lid_hi_rt[3], plidar_A-> l_dist_4, plidar_A-> h_latpos_4, plidar_A-> l_latpos_4);
++	fprintf(pout, "%4.3f %4.3f %d %d %d %4.3f %4.3f %d %d %d %4.3f %4.3f %d %d %d %4.3f %4.3f %d %d %d\n",
++	               lid_hi_rg[4], lid_hi_rt[4], plidar_B-> l_dist_5, plidar_B-> h_latpos_5, plidar_B-> l_latpos_5,
++	               lid_hi_rg[5], lid_hi_rt[5], plidar_B-> l_dist_6, plidar_B-> h_latpos_6, plidar_B-> l_latpos_6,
++	               lid_hi_rg[6], lid_hi_rt[6], plidar_B-> l_dist_7, plidar_B-> h_latpos_7, plidar_B-> l_latpos_7,
++	               lid_hi_rg[7], lid_hi_rt[7], plidar_B-> l_dist_8, plidar_B-> h_latpos_8, plidar_B-> l_latpos_8);               
++        
++	               
++        /*fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",
+              fl_axle_diff,               //1
+              fr_axle_diff,               //2
+              rl_axle_diff,               //3
+@@ -1361,7 +1356,7 @@
+              pv-> mb_axle,               //40
+              pv-> rb_axle,               //41
+              local_time                  //42
+-   		);   
++   		);   */
+ }
+    		                              
+     } 
+Index: xyl/libtrack.a
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+Index: xyl/long_trk_func.c
+===================================================================
+--- xyl/long_trk_func.c	(revision 9125)
++++ xyl/long_trk_func.c	(working copy)
+@@ -1,6 +1,13 @@
+-/* long_trk_func.c - functions for long_trk.c
+-*/
++/*********************************************************************************
+ 
++     long_trk_func.c - functions for long_trk.c
++
++     comm() has been changed a lot;                           05_09_10
++     
++     
++     
++*********************************************************************************/
++
+ #include <sys_os.h>
+ #include <timestamp.h>
+ #include <coording.h>
+@@ -30,19 +37,19 @@
+ 	comm_info_typ *comm_info_pt, fault_index_typ *f_index_pt,
+ 	unsigned short *pcomm_err_bound,
+ 	veh_comm_packet_t *comm_receive_pt,
+-	veh_comm_packet_t *comm_send_pt
+-	) {
++	veh_comm_packet_t *comm_send_pt) 
++{
+ 
+ 	static int comm_counter[MAX_TRUCK]={0,0,0,0,0};
+-	static int comm_counter_old[MAX_TRUCK]={0,0,0,0,0};
++	static int comm_counter_old[MAX_TRUCK]={0,0,0,0,0}; 
+ 	static int comm_f_counter[MAX_TRUCK]={0,0,0,0,0};
+ 	static float comm_time_old[MAX_TRUCK]={0,0,0,0,0};
+-	unsigned short handshake_start = *phandshake_start;
+-	static unsigned short handshake_start_arr[MAX_TRUCK] = {0,0,0,0,0};
+-	static unsigned short comm_reply_arr[MAX_TRUCK] = {0,0,0,0,0};
+-	int vehicle_pip = *pvehicle_pip;
+-	float local_time = *plocal_time;
+-	float global_time = *pglobal_time;
++	unsigned short handshake_start = *phandshake_start;                    // for passing out info
++	static unsigned short handshake_start_arr[MAX_TRUCK] = {0,0,0,0,0};    // local only; indicating link with one in the platoon with ID=pip
++	//static unsigned short comm_reply_arr[MAX_TRUCK] = {0,0,0,0,0};         // for no use
++	int vehicle_pip = *pvehicle_pip;                                       // subject veh ID
++	float local_time = *plocal_time;                                       // local time of subject veh
++	float global_time = *pglobal_time;                                     // globl time of the latoon
+ 	unsigned short comm_prt_sw = *pcomm_prt_sw;
+ 	unsigned short comm_prt1_sw = *pcomm_prt1_sw;
+ 	unsigned short synchrn_sw = *psynchrn_sw;
+@@ -52,7 +59,8 @@
+ 	unsigned short comm_err_bound = *pcomm_err_bound;
+ 	int error = 0;
+ 	int pip;
+-	static int first_time = 1;
++	static int first_time=1;
++    static unsigned short g_t_init_count=0, N_veh_comm=0;
+ //	static int tmp_ctr = 0;
+ 
+ /******************************************************************************
+@@ -60,9 +68,11 @@
+         Here begins Xiao-Yun's code
+ *******************************************************************************
+ ******************************************************************************/
+-    con_state_pt-> comm_coord=OFF;
++
++    con_state_pt-> comm_coord=OFF;   // Not used since coodination communication is not independent
++    
+     if (vehicle_info_pt-> pltn_size == 1)
+-        {
++    {
+              con_state_pt-> comm_leader=ON;
+              con_state_pt-> comm_pre=ON;
+              con_state_pt-> comm_back=ON;
+@@ -71,161 +81,170 @@
+              f_index_pt-> comm_back=0;
+              handshake_start=ON;
+              handshake_start_arr[1]=ON;
+-             comm_reply_arr[1]=ON;
++             //comm_reply_arr[1]=ON;
+              f_index_pt-> comm=0;                                                                                                                       
+-        } 
++    } 
+     else                                   // Platoon size >= 2
+-        {  
+-
++    {  
+ 	     // Cycling through all possible positions-in-platoon using the
+ 	     // pip as an index, and ignoring this vehicle's pip, check to 
+ 	     // see whether a received message's global time has changed.
+-	    for(pip = 1; pip <= vehicle_info_pt->pltn_size; pip++) {
+-		if(pip != vehicle_pip) {
+-             		if (comm_counter[pip] > 100) 
+-                		comm_counter[pip] = 0;
+-                	if (comm_receive_pt[pip]. global_time != 
+-				comm_time_old[pip])
+-                	        	comm_counter[pip]++;
+-                	comm_time_old[pip] = comm_receive_pt[pip].global_time;
+-             		handshake_start_arr[vehicle_pip]=ON;
+-
+-			// If a received message's global time has changed, we've
+-			// gotten a message from that truck (i.e. the comm_counter
+-			// has been incremented, above). Now check its my_pip and
+-			// user_ushort_1 fields to see whether they've been initted.
+-                	if (comm_counter[pip] != comm_counter_old[pip]) {
+-				if(first_time) {
+-//             				comm_info_pt-> comm_reply = 1;
++	     
++	    N_veh_comm=0;
++	    for(pip = 1; pip <= vehicle_info_pt->pltn_size; pip++) // Logic deal with subject vehicle with each individual veh in platoon
++	    {
++		   if (local_time <0.03)      // Initialization
++              handshake_start_arr[pip] = OFF;
++		   if(pip != vehicle_pip)                                        // IF LOOP 1
++		   {              
++              if (comm_receive_pt[pip]. global_time != comm_time_old[pip])
++              {
++                 comm_counter[pip]++; 
++                 if (comm_counter[pip] > 100) 
++                    comm_counter[pip] = 0;                                                               
++                 comm_time_old[pip] = comm_receive_pt[pip].global_time;   
++                 N_veh_comm++;          
++              }
++              else   // IF LOOP 2
++              {
++                 comm_f_counter[pip]++;
++                 if ((comm_f_counter[pip] > comm_err_bound) && (comm_prt1_sw == ON) && (handshake_start_arr[pip] == ON))
++                 {
++                    handshake_start_arr[pip] = OFF;
++                    comm_prt1_sw = OFF;
++                    comm_prt_sw = ON;
++					//vehicle_info_pt->fault_mode = 3;
++                    fprintf(stderr, "Communication Error with truck no. %d!\n", pip ); 
++                    //f_index_pt-> comm_back=1;  //assigned later
++                    //f_index_pt-> comm=1;       //assigned later
++				 	error |= 0x01 << pip;
++                 }
++              }
++                            
++              
++			
++              if (comm_counter[pip] != comm_counter_old[pip])               // IF LOOP 2; Problem 1  05_09_10, XYL              
++              {
++				   if(first_time)
++				   {
+ 					first_time = 0;
+ 					fprintf(stderr,"Initializing comm_reply to 1\n");
+-				}
+-//fprintf(stderr, "\n\n1: For vehicle_pip %d index pip %d loop ctr %d comm_prt_sw %d\n", vehicle_pip, pip, tmp_ctr, comm_prt_sw );
+-//fprintf(stderr, "Vehicle 1 my_pip %d global_time %f user_ushort_1 %d\n",
+-//		comm_receive_pt[1].my_pip, comm_receive_pt[1].global_time, comm_receive_pt[1].user_ushort_1);
+-//fprintf(stderr, "Vehicle 2 my_pip %d global_time %f user_ushort_1 %d\n",
+-//		comm_receive_pt[2].my_pip, comm_receive_pt[2].global_time, comm_receive_pt[2].user_ushort_1);
+-//fprintf(stderr, "Vehicle 3 my_pip %d global_time %f user_ushort_1 %d\n",
+-//		comm_receive_pt[3].my_pip, comm_receive_pt[3].global_time, comm_receive_pt[3].user_ushort_1);
+-                        	con_state_pt-> comm_leader=ON;
+-                        	con_state_pt-> comm_pre=ON;
+-                           	con_state_pt-> comm_back=ON;
+-                           	f_index_pt-> comm_leader=0;
+-                           	f_index_pt-> comm_pre=0;
+-                           	f_index_pt-> comm_back=0;
++				   }			   		                                
++                   handshake_start_arr[pip] = ON;     // It is on only when it communicates with the veh pip;                                 
++                   comm_f_counter[pip] = 0;	
++                   comm_counter_old[pip] = comm_counter[pip];       // Update buffer 	
++			  }	   
++			  else 
++			  {
++				   handshake_start_arr[pip]  = OFF;
++				        
++				   //comm_reply_arr[pip] = 0;
++                   //comm_receive_pt[pip].user_ushort_1 = 0;
++				   //fprintf(stderr, "\ncomm_reply_arr[%d] not set because either:\n    1. (comm_receive_pt[%d].my_pip = %d) != (pip = %d), or\n    2. (comm_receive_pt[%d].pltn_size = %d) != (vehicle_info_pt->pltn_size = %d)\n",
++				   //     pip, pip, 
++				//		comm_receive_pt[pip].my_pip, 
++					//	pip,
++					//	pip, 
++					//	comm_receive_pt[pip].pltn_size,
++					//	vehicle_info_pt->pltn_size);
++				    //fprintf(stderr, "Also setting comm_receive_pt[%d].user_ushort_1 to 0 so handshaking is not\nenabled.  Something is wrong with truck %d's configuration, and we should not\nindicate successful handshaking\n", pip, pip);
++		      }	
++		      	                                 
++              //}  // IF LOOP 2
++           }  // IF LOOP 1               
++	    }     // for loop end
++	    
++	    
++	    if (handshake_start_arr[1] == ON)  
++           {                      	
++               con_state_pt-> comm_leader=ON;
++               f_index_pt-> comm_leader=0;
++           }
++        else
++           {	                             
++               con_state_pt-> comm_leader=OFF;
++               if ((comm_f_counter[1] > comm_err_bound) && (handshake_start == 1) )
++               {
++               	  f_index_pt-> comm_leader=1;
++               	  f_index_pt-> comm=1;
++           	   }           
++           }
++           
++        if (handshake_start_arr[2] == ON)
++           {  
++               con_state_pt-> comm_pre=ON;               
++               f_index_pt-> comm_pre=0;
++           }
++        else
++           {
++           	   con_state_pt-> comm_pre=OFF;
++           	   if ( (comm_f_counter[2] > comm_err_bound) && (handshake_start == 1) )
++           	   {
++                  f_index_pt-> comm_pre=1;
++                  f_index_pt-> comm=1;
++           	   }   
++           }
++        if (handshake_start_arr[3] == ON)
++           {  
++               con_state_pt-> comm_back=ON;
++               f_index_pt-> comm_back=0;
++           }
++        else
++           {  
++               con_state_pt-> comm_back=OFF;
++               if ( (comm_f_counter[3] > comm_err_bound) && (handshake_start == 1) )
++               {
++                  f_index_pt-> comm_back=1;
++                  f_index_pt-> comm=1;
++           	   }   
++           }
++    }  // end of pltn size > 1
+ 
+-				// Check for all other trucks' position-in-platoon
+-				// and pltn_size fields before setting comm_reply to 1. (The pip
+-			   	// field is set from "PositionInPlatoon" and pltn_size
+-				// from "PlatoonSize" in 
+-			   	// realtime.ini during a truck's initialization.)
+-                           	if( (comm_receive_pt[pip].my_pip == pip) &&
+-                           	    (comm_receive_pt[pip].pltn_size == vehicle_info_pt->pltn_size) ) 
+-                           		// Only send out vehicle_pip if receiving 
+-			   		// all the other trucks' pips and their
+-					// versions of platoon size
+-                           	   	//{
+-                           	   	   //comm_send_pt. my_pip = vehicle_pip;
+-					//comm_info_pt->comm_reply &= 1;
+-					comm_reply_arr[pip] = 1;
+-			   	else {
+-					comm_reply_arr[pip] = 0;
+-                           		comm_receive_pt[pip].user_ushort_1 = 0;
+-					fprintf(stderr, "\ncomm_reply_arr[%d] not set because either:\n    1. (comm_receive_pt[%d].my_pip = %d) != (pip = %d), or\n    2. (comm_receive_pt[%d].pltn_size = %d) != (vehicle_info_pt->pltn_size = %d)\n",
+-						pip, pip, 
+-						comm_receive_pt[pip].my_pip, 
+-						pip,
+-						pip, 
+-						comm_receive_pt[pip].pltn_size,
+-						vehicle_info_pt->pltn_size);
+-					fprintf(stderr, "Also setting comm_receive_pt[%d].user_ushort_1 to 0 so handshaking is not\nenabled.  Something is wrong with truck %d's configuration, and we should not\nindicate successful handshaking\n", pip, pip);
+-				}
+-
+-			   	// Check for all other trucks' user_ushort_1 field
+-			   	// before setting handshake_start to ON. (The 
+-			   	// user_ushort_1 field in the send message is set 
+-			   	// to the comm_reply value, calculated above. So
+-			   	// for handshake_start to be set to ON, all trucks
+-			  	// must receive all other trucks' 
+-			   	// position-in-platoon, set their comm_replys, 
+-				// and send those out.)
+-                           	if (comm_receive_pt[pip].user_ushort_1 == 1)
+-                          		handshake_start_arr[pip] = ON;
+-			   	else
+-                          		handshake_start_arr[pip]  = OFF;
+-                           		   //}
+-                           		//else
+-                           		//   comm_send_pt. my_pip = 0;
+-                           	comm_f_counter[pip] = 0;
+-                           	if (local_time <0.03)      // Initialization
+-                              		handshake_start_arr[pip] = OFF;
+-             		   	comm_counter_old[pip] = comm_counter[pip]; // Update buffer
+-//if( (tmp_ctr % 100 ) == 0){
+-//fprintf(stderr, "\n\n2: For vehicle_pip %d index pip %d loop ctr %d\n", vehicle_pip, pip, tmp_ctr);
+-//fprintf(stderr, "Vehicle 1 my_pip %d global_time %f user_ushort_1 %d\n",
+-//		comm_receive_pt[1].my_pip, comm_receive_pt[1].global_time, comm_receive_pt[1].user_ushort_1);
+-//fprintf(stderr, "Vehicle 2 my_pip %d global_time %f user_ushort_1 %d\n",
+-//		comm_receive_pt[2].my_pip, comm_receive_pt[2].global_time, comm_receive_pt[2].user_ushort_1);
+-//fprintf(stderr, "Vehicle 3 my_pip %d global_time %f user_ushort_1 %d\n",
+-//		comm_receive_pt[3].my_pip, comm_receive_pt[3].global_time, comm_receive_pt[3].user_ushort_1);
+-//}
+-//tmp_ctr++;
+-                        	}
+-                     	else
+-                        	{
+-                            	comm_f_counter[pip]++;
+-                            	if ((comm_f_counter[pip] > comm_err_bound) && 
+-					(comm_prt1_sw == ON) && 
+-					(handshake_start_arr[pip] == ON))
+-                              	{
+-                                 	if (comm_reply_arr[pip] == 1)
+-                                     		comm_reply_arr[pip] = 0;
+-                                 	handshake_start_arr[pip] = OFF;
+-                                 	comm_prt1_sw = OFF;
+-                                 	comm_prt_sw = ON;
+-					vehicle_info_pt->fault_mode = 3;
+-                                 	fprintf(stderr, "Communication Error with truck no. %d!\n", pip );
+-                                 	//f_index_pt-> comm_leader=1;
+-                                 	//f_index_pt-> comm_pre=1;
+-                                 	f_index_pt-> comm_back=1;
+-                                 	f_index_pt-> comm=1;
+-				 	error |= 0x01 << pip;
+-                              	}
+-
+-                        }
+-                 }
+-	    }
+-
+-
+-        }  // end of pltn size > 1
+-
+-	handshake_start = ON;
+-	comm_info_pt->comm_reply = ON;
+-	for(pip = 1; pip <= vehicle_info_pt->pltn_size; pip++) {
+-		if(pip != vehicle_pip) {
+-			handshake_start &= handshake_start_arr[pip];
+-			comm_info_pt->comm_reply &= comm_reply_arr[pip];
+-//			fprintf(stderr, "handshake_start %d handshake_start_arr[%d] %d\n",
+-//				handshake_start, pip,  handshake_start_arr[pip]);
+-		}
++    
++	//for(pip = 1; pip <= vehicle_info_pt->pltn_size; pip++)    
++	//{
++	//	if(pip != vehicle_pip) 		 
++	//	{
++	//		handshake_start &= handshake_start_arr[pip];           // assign only when all the others are true
++	//		comm_info_pt->comm_reply &= handshake_start_arr[pip];  // changed 05_19_10	
++	//	}
++	//}
++	
++	if (N_veh_comm == (vehicle_info_pt->pltn_size - 1) )
++	{
++		handshake_start = 1;
++		comm_info_pt->comm_reply = 1;
+ 	}
++//	fprintf(stderr, "Number of vehicles connected is: %i\n", N_veh_comm);
++	
++//	if (N_veh_comm == (vehicle_info_pt->pltn_size - 1) )   //removed on 08_02_10
++	
+ 		
+ 	if ((comm_prt_sw == ON) && (handshake_start == ON))
+ 		{
+ 			comm_prt_sw = OFF;
+ //			comm_prt1_sw = ON;
+-			fprintf(stderr, "Handshaking ON!\n");
++			fprintf(stderr, "Handshaking with all ON!\n");
+ 		}
+ 
+     if (vehicle_pip == 1)
+        global_time = local_time;                  // It is the same as t_ctrl
+     else                            // When vehicle_pip >1, use leader vehicle timing as global time
+        {
+-         if ( (synchrn_sw == 1) && (con_state_pt-> comm_leader == ON))
++         //if ( (synchrn_sw == 1) && (con_state_pt-> comm_leader == ON))
++         if ( (synchrn_sw == 1) && (handshake_start == ON))                   // changed 05/20/10
+             {
++               //global_time = comm_receive_pt[1].global_time;
++               //synchrn_sw = 0;
++               //global_t_sw = ON;
++               
++               g_t_init_count++;
+                global_time = comm_receive_pt[1].global_time;
+-               synchrn_sw = 0;
+-               global_t_sw = ON;
++               if (g_t_init_count >=3) 
++               {
++               		synchrn_sw = 0;
++               		global_t_sw = ON;
++               }
+             }
+          if (global_t_sw == ON)
+             global_time += dt;
+@@ -235,8 +254,9 @@
+         {
+ 
+              if (vehicle_pip == 1)
+-//                 con_state_pt-> pre_mag_counter = pmarker_pos->marker_counter;
+-                        ;
++			    {
++				                        
++			    }
+              else
+                 {
+                    if ( time_filter<=0.001 )  // To avoid comm remainder problem
+@@ -256,6 +276,8 @@
+ //                     con_state_pt-> pre_mag_counter = comm_receive_pt1-> marker_counter;    // Should come from communication.
+                      }
+                 }
++             for (pip=1; pip<= (vehicle_info_pt->pltn_size); pip++)      	
++                vehicle_info_pt-> pltn_fault_mode=max_i(vehicle_info_pt-> pltn_fault_mode, comm_receive_pt[pip]. fault_mode);
+         }
+ 
+ 
+@@ -295,8 +317,8 @@
+         float *pjk_tq, float *pjk_percent_tq, int *pebs_brake_switch,
+         int *pabs_ebs_amber_warning_state, float *pinst_brk_power,
+         float *pbrk_pedal_pos, float *pbrk_demand, float *ptrans_rtd_mode,
+-        float *ptrans_rtd_value, float *ptrans_rtd_volt, float *ptime_filter,
+-        float *pwe_old, long_vehicle_state *pv,
++        float *ptrans_rtd_value, float *ptrans_rtd_volt,
++        float *ptime_filter, float *pwe_old, long_vehicle_state *pv,
+ 	long_params *pparams, sens_read_typ* sens_read_pt) {
+ 
+         float gear = *pgear;
+@@ -332,8 +354,8 @@
+         float brk_demand = *pbrk_demand;
+         float trans_rtd_mode = *ptrans_rtd_mode;                  
+         float trans_rtd_value = *ptrans_rtd_value;                
+-        float trans_rtd_volt = *ptrans_rtd_volt;
+-	float time_filter = *ptime_filter;
++        float trans_rtd_volt = *ptrans_rtd_volt;                  
++        float time_filter = *ptime_filter;                        
+         float we_old = *pwe_old;                                  
+                                                                   
+ /******************************************************************************
+@@ -349,22 +371,23 @@
+     selected_gear = pv-> selected_gear;               // from transmission
+ 
+     fan_drive_state = pv-> fan_drive_state;           // from engine
+-                                                                                                                                 
++                                                                  
++                                                                  
+     actual_gear_ratio = pv-> actual_gear_ratio;       // from transmission
+ 
+     percent_load_v = pv-> percent_load_current_speed;             
+                                                                   
+                                                                   
+     v2 = pv->vehicle_speed;                      // From Sue's Code, Feb. 25 03
+-    if (pparams->vehicle_type == VEH_TYPE_TRUCK_BLUE) {          
+-        v1 = pv-> front_axle_speed*0.979783236;    // 0.979717*2342.5/2340.0; For rented trailer, mass_sw == 6; 12_02_03 //According to the survey by Chris Cherry
++     if (pparams->vehicle_type == VEH_TYPE_TRUCK_BLUE) {          
++        v1 = pv-> front_axle_speed*1.03306; //0.979783236;    // 0.979717*2342.5/2340.0; For rented trailer, mass_sw == 6; 12_02_03 //According to the survey by Chris Cherry
+         }
+-    if (pparams->vehicle_type == VEH_TYPE_TRUCK_GOLD) {
++     if (pparams->vehicle_type == VEH_TYPE_TRUCK_GOLD) {
+         v1 = pv-> front_axle_speed*0.9796992;  //0.975548*2347.8/2340; For rented trailer, 12_02_03  //*0.9981 for gl_rent; //*0.997;                 //0.9921;
+                // from ebc2 on D1
+         }                                                         
+-    if (pparams->vehicle_type == VEH_TYPE_TRUCK_SILVR) {
+-        v1 = pv-> front_axle_speed;
++     if (pparams->vehicle_type == VEH_TYPE_TRUCK_SILVR) {
++        v1 = pv-> front_axle_speed*0.9796235263; //0.9806638467;  //0.9776258546;
+         }                                                         
+     fl_axle_diff = pv-> front_left_wheel_relative;    // from ebc2 on D1
+     fr_axle_diff = pv-> front_right_wheel_relative;   // from ebc2 on D1
+@@ -491,7 +514,8 @@
+         *pbrk_demand = brk_demand;                                
+         *ptrans_rtd_mode = trans_rtd_mode;                        
+         *ptrans_rtd_value = trans_rtd_value;                      
+-        *ptrans_rtd_volt = trans_rtd_volt;                                
++        *ptrans_rtd_volt = trans_rtd_volt;                        
++        *ptime_filter = time_filter;
+         *pwe_old = we_old;                                        
+                                                                   
+         return 0;                                                 
+@@ -502,7 +526,7 @@
+ 	con_output_typ* con_output_pt, control_state_typ* con_state_pt,
+ 	control_config_typ* config, control_config_typ* config_pt, 
+ 	long_params *pparams, float *pminimum_torque, 
+-	long_output_typ *inactive_ctrl) {
++	long_output_typ *inactive_ctrl, manager_cmd_typ * manager_cmd_pt, switch_typ *sw_pt) {
+ 
+         float engine_reference_torque = *pengine_reference_torque;
+         int vehicle_pip = *pvehicle_pip;
+@@ -609,7 +633,7 @@
+           }                                                        
+       if (vehicle_pip == 1)                                         
+         {
+-         if (t_ctrl < t_wait-0.27) //1.35 //2.02                   
++         if (t_ctrl < t_wait-2.02) //1.35 //2.02                   
+           {                                                        
+               //pcmd-> fan_override = 1;                           
+               //pcmd-> fan_control = 1;                            
+@@ -625,7 +649,7 @@
+         }                                                          
+       else                                                         
+         {                                                          
+-         if (t_ctrl < t_wait) //1.35 //2.02                   
++         if (t_ctrl < t_wait-1.75) //1.35 //2.02                   
+           {                                                        
+               //pcmd-> fan_override = 1;
+               //pcmd-> fan_control = 1;                            
+@@ -666,7 +690,7 @@
+                        pcmd->engine_torque = 0.0;
+                        pcmd->brake_command_mode = EXAC_ACTIVE;
+                        if (pparams->vehicle_type == VEH_TYPE_TRUCK_SILVR)    
+-                       	pcmd->ebs_deceleration = - 0.82*STOP_BRAKE;
++                       	pcmd->ebs_deceleration = - 0.8*STOP_BRAKE;
+                        else
+                        	pcmd->ebs_deceleration = - 2.2*STOP_BRAKE;  // 2.0
+                                                                    
+@@ -743,9 +767,9 @@
+           pcmd->ebs_deceleration = - 2.2;                          
+      }                                                             
+                                                                    
+-      //if (sw_pt-> actuator_sw == 0)                              
+-      if (con_state_pt-> drive_mode == 3)                          
+-          pcmd = inactive_ctrl;                     // For transition, 04_23_03
++      if ((con_state_pt-> drive_mode == 3) || (sw_pt-> manu_sw ==1) || 
++		(manager_cmd_pt-> f_manage_index==3) || (sw_pt->brake_sw == 1) )
++      	  memcpy(pcmd ,inactive_ctrl, sizeof(long_output_typ) );
+                                                                    
+ /******************************************************************************
+ *******************************************************************************
+@@ -756,7 +780,7 @@
+         *pvehicle_pip = vehicle_pip;                                 
+         *pt_ctrl = t_ctrl;                                         
+         *pmaneuver_des = maneuver_des;                             
+-	*pminimum_torque = minimum_torque;
++		*pminimum_torque = minimum_torque;
+                                                                    
+         return 0;                                                  
+ }                                                                  
+@@ -764,7 +788,7 @@
+ int config_sw(int *pread_sw, int *pmanu_auto_sw, 
+ 	unsigned short *phandshake_start, int *pread_sw_old, switch_typ *sw_pt, 
+ 	long_vehicle_state *pv, vehicle_info_typ* vehicle_info_pt, 
+-	veh_comm_packet_t *comm_receive_pt, unsigned short *pprt1_sw) {
++	veh_comm_packet_t *comm_receive_pt, unsigned short *pprt1_sw, fault_index_typ* f_ind_pt) {
+ 	
+ 	int read_sw = *pread_sw; 
+ 	int manu_auto_sw = *pmanu_auto_sw; 
+@@ -773,6 +797,7 @@
+ 	char pip;
+ 	unsigned char actuator_sw = ON;
+ 	unsigned short prt1_sw = *pprt1_sw;
++	int ret_brake = 0;
+ /******************************************************************************
+ *******************************************************************************
+ 	Here begins Xiao-Yun's code
+@@ -790,34 +815,40 @@
+ 
+      read_sw=long_rdswitch(pv->dig_in);
+ 
++     ret_brake = long_rdbrake(pv->dig_in);
++     if( ret_brake == 1)
++	sw_pt->brake_sw = 1;
++
+      if ( (read_sw == 3) && (manu_auto_sw == 0)) // uncommitted state
+-     {
+-        sw_pt-> manu_sw = 1;
+-        manu_auto_sw = 1;
+-        fprintf(stderr, "Got uncommitted switch state the first time\n");
+-         }
+-     //if (t_ctrl < t_wait)
+-     //   {
+-     if ( read_sw== 1) // 0: auto mode, 1: manual mode, 2: request for automatic; -1: error.
+         {
++           sw_pt-> manu_sw = 1;
++           manu_auto_sw = 1;
++           fprintf(stderr, "Got uncommitted switch state the first time\n");
++           f_ind_pt -> sw=0;
++         }     
++     if ( (read_sw==1) && (sw_pt-> manu_sw==0)) // 0: auto mode, 1: manual mode, 2: request for automatic; -1: error.
++        {
+            if(sw_pt->manu_sw == 0)
+            	fprintf(stderr, "Got manual switch state\n");
+            sw_pt-> auto_sw=0;
+            sw_pt-> manu_sw=1;
++           f_ind_pt -> sw=0;
+         }
+-     if (read_sw == 2)
++     if ((read_sw == 2) && (sw_pt-> auto_sw==0))
+         {
+            if(sw_pt->auto_sw == 0)
+            	fprintf(stderr, "Got auto switch state\n");
+            sw_pt-> auto_sw=1;
+            sw_pt-> manu_sw=0;
++           f_ind_pt -> sw=0;
+         }
+      if (read_sw == -1)
+         {
+            if( (sw_pt->auto_sw == 1) || (sw_pt->manu_sw == 1) )
+-           	fprintf(stderr, "Error in switch state\n");
+-           sw_pt-> auto_sw=0;
+-           sw_pt-> manu_sw=0;
++           	  fprintf(stderr, "Error in switch state\n");
++           //sw_pt-> auto_sw=0;
++           //sw_pt-> manu_sw=1;
++           f_ind_pt -> sw=1;
+         }
+ //       }
+ //     else
+@@ -889,7 +920,8 @@
+ int set_init_leds(db_clt_typ *pclt, unsigned short *pprt1_sw, 
+ 	unsigned short *pprt_buff, unsigned short *phandshake_start, 
+ 	switch_typ *sw_pt, vehicle_info_typ* vehicle_info_pt,
+-        veh_comm_packet_t *comm_receive_pt) {
++        veh_comm_packet_t *comm_receive_pt, control_state_typ *con_state_pt, 
++	manager_cmd_typ *manager_cmd_pt ) {
+ 
+ 	unsigned short prt1_sw = *pprt1_sw;
+ 	unsigned short prt_buff = *pprt_buff;
+@@ -902,37 +934,52 @@
+ 	Here begins Xiao-Yun's code for "Starting mode"
+ *******************************************************************************
+ ******************************************************************************/
+-         if (sw_pt-> manu_sw == 1)
+-         {
+-	        if (long_setled(pclt, FLT_HI) != 0)
++    if (sw_pt-> manu_sw == 1)
++    {
++	    if (long_setled(pclt, FLT_HI) != 0)
+                fprintf(stderr, " Setting FLT_HI fail 2!\n"); 
+-            vehicle_info_pt-> ready = 0;
+-         }   
+-         else if (sw_pt-> auto_sw == 1)
+-           {                  
+-            if (long_setled(pclt, FLT_AUTO) != 0)
+-               fprintf(stderr, " Setting FLT_AUTO fail! \n");
+-           }           
++        vehicle_info_pt-> ready = 0;
++        user_ushort_2=0;
++    }   
++    else if (sw_pt-> auto_sw == 1)
++    {                  
++        if (long_setled(pclt, FLT_AUTO) != 0)
++           fprintf(stderr, " Setting FLT_AUTO fail! \n");
++        user_ushort_2 = 1;
++    } 
++    else;          
+ 
+-	user_ushort_2 = 1;
+-	for(pip = 1; pip <= vehicle_info_pt->pltn_size ; pip++) {
+-		if(pip != vehicle_info_pt->veh_id) {
++	
++	for(pip = 1; pip <= vehicle_info_pt->pltn_size ; pip++) 
++	{
++		if(pip != vehicle_info_pt->veh_id) 
++		{
+ 			user_ushort_2 &= comm_receive_pt[pip].user_ushort_2;
+ 		}
+ 	}
+-	if ( (handshake_start == ON) && (sw_pt->auto_sw == 1) && (user_ushort_2 == 1) ) {
++	if ( (handshake_start == ON) && (sw_pt->auto_sw == 1) && (user_ushort_2 == 1) ) 
++	{
+ 		if (long_setled(pclt, FLT_RDY2ROLL) != 0)
+ 			fprintf(stderr, " Setting FLT_RDY2ROLL fail! \n");
+ 		vehicle_info_pt-> ready = 1;
+-//		fprintf(stderr,"1:Ready\n");
+-		if (prt1_sw == ON) {  
++		if (prt1_sw == ON) 
++		{  
+ 			prt_buff ++;        
+-			if (prt_buff > 4) {
++			if (prt_buff > 2) 
++			{
+ 				fprintf(stderr, "\nPut to DRIVE Position! \n");
+ 				prt1_sw = OFF;
+ 			} 
+ 		}
+ 	}
++      if ((con_state_pt-> drive_mode == 3) || (sw_pt-> manu_sw ==1) ||
++                (manager_cmd_pt-> f_manage_index==3) || (sw_pt->brake_sw == 1) )
++    {
++	    if (long_setled(pclt, FLT_HI) != 0)
++               fprintf(stderr, " Setting FLT_HI fail 2!\n"); 
++        vehicle_info_pt-> ready = 0;
++        user_ushort_2=0;
++    }   
+ 
+ /******************************************************************************
+ *******************************************************************************
+@@ -945,15 +992,15 @@
+ 	return 0;     
+ }
+ 
+-int set_time_sync(float *pt_ctrl, float *pt_ctrl_1, float *pdt, 
++int set_time_sync(float *pt_ctrl, float *pdt, 
+ 	float *ptime_filter, int *pvehicle_pip, 
+ 	vehicle_info_typ* vehicle_info_pt) {
+ 
+-    float t_ctrl = *pt_ctrl; 
+-    float t_ctrl_1 = *pt_ctrl_1; 
+-    float dt = *pdt;     
++    float t_ctrl = *pt_ctrl;     
++    float dt = *pdt; 
+     float time_filter = *ptime_filter; 
+     int vehicle_pip = *pvehicle_pip;
++    static int t_ctrl_ini=ON;
+ /******************************************************************************
+ *******************************************************************************
+ 	Here begins Xiao-Yun's code
+@@ -965,19 +1012,41 @@
+           if (vehicle_info_pt-> ready == 1)
+              t_ctrl +=dt;
+        }
+-    else
++ /*   else
+        {    
+           if (vehicle_info_pt-> ready == 1)
+              {
+                 if (vehicle_pip == 1)
+                    t_ctrl += dt;
+-                else
++                else if (vehicle_pip == 2)
+                    {
+-                      t_ctrl_1 += dt;
+-                      t_ctrl = t_ctrl_1;
+-                   }       
++	                  if (t_ctrl_ini == ON)
++                      {
++                      	t_ctrl = t_ctrl_1;
++                      	t_ctrl_ini = OFF;
++                  	  }
++                      t_ctrl += dt;
++                                         
++                   }  
++                else if (vehicle_pip == 3)
++                   {                    
++                      if (t_ctrl_ini == ON)
++                      {
++                      	t_ctrl = t_ctrl_2;
++                      	t_ctrl_ini = OFF;
++                  	  }
++                      t_ctrl += dt;
++                      if (t_ctrl <= 0.0)
++                      	t_ctrl = 0.0;
++                   }
++                else;        
+              }
+-       }                
++       } */     // Cahnged on 08_02_10
++
++    if (vehicle_info_pt-> ready == 1)
++             t_ctrl +=dt;
++ 
++              
+          
+     if ( t_ctrl > t_wait )
+        time_filter += dt; 
+@@ -988,8 +1057,7 @@
+ *******************************************************************************
+ ******************************************************************************/
+     *pt_ctrl = t_ctrl; 
+-    *pt_ctrl_1 = t_ctrl_1; 
+-    *pdt = dt;     
++    *pdt = dt; 
+     *ptime_filter = time_filter; 
+     *pvehicle_pip = vehicle_pip;
+      return 0;       
+@@ -1002,7 +1070,7 @@
+ 	control_state_typ* con_state_pt, evrd_out_typ* evrd_out_pt, 
+ 	ldr_out_typ* ldr_out_pt, evt300_radar_typ *pvor_radar, 
+ 	fault_index_typ* f_index_pt, mdl_lidar_typ *pmdl_lidar, 
+-	long_params *pparams) {
++	long_params *pparams, float global_time) {
+ 
+ 	float dt = *pdt; 
+ 	float run_dist = *prun_dist; 
+@@ -1029,13 +1097,11 @@
+ 
+ 
+      if ( ((vehicle_info_pt-> veh_id != 0)  && (config->truck_platoon == FALSE))
+-         ||    // This logic needs testing 01_27_10
++||    // This logic needs testing 01_27_10
+           ((vehicle_info_pt-> veh_id != 0)  && (config->truck_platoon == TRUE) &&
+-            ( vehicle_info_pt-> veh_id != 1)) ) 
+-  {
++            ( vehicle_info_pt-> veh_id != 1)) ) {
+ 
+-        if(config->eaton_radar == TRUE) 
+-        {
++        if(config->eaton_radar == TRUE) {
+             if (vrd_flt(dt, pvor_radar, evrd_out_pt) != 1)   // Tested OK,06_06
+                 fprintf(stderr, " Calling radar_filter fail! \n");
+                                                                   
+@@ -1048,8 +1114,7 @@
+                                                                   
+         }                                                         
+                                                                   
+-        if(pparams->denso_lidar == 1)
+-        {                             
++        if(pparams->denso_lidar == 1) {                             
+ //            if (ldr_flt(dt, lid_hi_rg, lid_hi_rt, ldr_out_pt) != 1)
+ //               fprintf(stderr, " Calling Lidar_filter fail! \n");
+                                                                   
+@@ -1058,28 +1123,49 @@
+                 fprintf(stderr, " Calling Lidar1_filter fail! \n");
+                                                                   
+             con_state_pt-> lidar_range=ldr_out_pt-> long_pos;     
+-            con_state_pt-> lidar_range_rate=ldr_out_pt-> long_rt; 
++            con_state_pt-> lidar_range_rate=ldr_out_pt-> long_rt;
++            if (con_state_pt-> lidar_range <2.0)
++                con_state_pt-> lidar_range=10.0;
++            if (con_state_pt-> lidar_range >20.0)
++                con_state_pt-> lidar_range=10.0; 
++//	    denso_range = con_state_pt->lidar_range;
+             f_index_pt-> lidar = ldr_out_pt-> f_mode;             
+         }                                                         
+         
+-        if(pparams->mdl_lidar == 1) 
+-        {                             
+-                
+-            ldr_mdl. rg = (float)pmdl_lidar-> range;              
++      if(pparams->mdl_lidar == 1) {                             
++//            if (ldr_flt(dt, lid_hi_rg, lid_hi_rt, ldr_out_pt) != 1)
++//               fprintf(stderr, " Calling Lidar_filter fail! \n");
++              
++//            if ( clt_read( pclt, DB_MDL_LIDAR_VAR, DB_MDL_LIDAR_TYPE,
++//                       &db_data_lidarMB ) == FALSE )
++//            fprintf( stderr, "clt_read( DB_MDL_LIDAR_VAR) \n");
++//            pmdl_lidar=(mdl_lidar_typ *) db_data_lidarMB.value.user;  
++                     
++            ldr_mdl. rg = (float)pmdl_lidar-> range;
++	    if( (global_time < 10.0) && (ldr_mdl.rg > 15.0) ) 
++		ldr_mdl.rg = 10.0;
++            //ldr_mdl. cnt=pmdl_lidar-> data_pulse_cnt;    // Removed     
+             mdl_flt(dt, ldr_mdl, con_state_pt );
+             
+             con_state_pt-> lidar_range=con_state_pt-> mdl_rg;
+-            con_state_pt-> lidar_range_rate=evrd_out_pt-> tgt_rt; 
++//	    mdl_range = con_state_pt-> lidar_range;
+ 
+ //            f_index_pt-> mdl = mdl_out_pt-> f_mode;             
+         }        
+-        
++
++//      if( (pparams->mdl_lidar == 1) && (pparams->denso_lidar == 1) ){                             
++//       if(denso_range == denso_range_sav) 
++//		con_state_pt->lidar_range = mdl_range;
++//	else
++//		con_state_pt->lidar_range = denso_range;
++//	denso_range_sav = denso_range;
++//	mdl_range_sav = mdl_range;
++//	}
++
+           rad_dist(dt, con_state_pt, maneuver_id, pre_maneuver_id, 
+ 		f_index_pt, radar_sw);  // SW added on 07_25_03                                
+ 
+-   }      
+-   
+-                                                      
++        }                                                         
+ /******************************************************************************
+ *******************************************************************************
+ 	Here ends Xiao-Yun's code
+@@ -1093,3 +1179,44 @@
+ 
+      return 0;
+ }
++
++/*******************************************************************************
++
++    other functions
++
++********************************************************************************/
++int max_i(int a, int b)
++{
++    if (a >= b)
++        return a;
++    else
++        return b; 
++    
++}
++
++int min_i(int a, int b)
++{
++    if (a >= b)
++        return b;
++    else
++        return a; 
++    
++}
++
++float max_f(float a, float b)
++{
++    if (a >= b)
++        return a;
++    else
++        return b; 
++    
++}
++
++float min_f(float a, float b)
++{
++    if (a >= b)
++        return b;
++    else
++        return a; 
++    
++}

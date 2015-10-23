@@ -1,0 +1,17 @@
+#!/bin/sh
+# must be run as root
+# This script changes default policy to ACCEPT on all three built-in chains
+# and clears all rules from the currently running iptables (but does
+# not affect what will run after reboot). 
+# do iptables -L to see what has been set up on your Linux distribution 
+
+/usr/sbin/iptables -P INPUT ACCEPT
+/usr/sbin/iptables -P OUTPUT ACCEPT
+/usr/sbin/iptables -P FORWARD ACCEPT
+/usr/sbin/iptables -F INPUT
+/usr/sbin/iptables -F OUTPUT
+/usr/sbin/iptables -F FORWARD
+
+# DON'T use this on a public network unless you know what you are doing
+# But it may be necessary on a private network when using interfaces
+# in an unusual mode. (e.g., broadcast UDP, raw mode)

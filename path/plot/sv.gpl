@@ -1,0 +1,13 @@
+# This plot range against time for all targets on POV radar, along
+# with the NB d2i information from the sensor fusion. 
+set grid
+set xlabel "Tick # (75ms intervals)"
+set ylabel "Range"
+plot "a.plt" using 4 
+replot "a.plt" using 10 
+replot "a.plt" using 16 
+replot "a.plt" using 22 
+replot "a.plt" using 28 
+replot "a.plt" using 34 
+replot "a.plt" using 40
+replot "x.plt2" using ($19>0 ? $20 : 1/0)*30 with points 

@@ -223,129 +223,166 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 	fprintf(fp, "%hhd ", pv->ERC1ERActlMxAvlbRtdrtPerctTorque);
 		
 	// Transmission control of engine
-	fprintf(fp, "%d ", pv->TSC1_E_T_EnOvrdCtrlM);
-	fprintf(fp, "%d ", pv->TSC1_E_T_EnRSpdCtrlC);
-	fprintf(fp, "%d ", pv->TSC1_E_T_EnRSpdSpdLm);	//90
-	fprintf(fp, "%d ", pv->TSC1_E_T_EnRTrqTrqLm);
-	fprintf(fp, "%d ", pv->TSC1_E_T_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_EMSTECU_EnOvrdCtrlM);
+	fprintf(fp, "%d ", pv->TSC1_EMSTECU_EnRSpdCtrlC);
+	fprintf(fp, "%d ", pv->TSC1_EMSTECU_EnRSpdSpdLm);	//90
+	fprintf(fp, "%d ", pv->TSC1_EMSTECU_EnRTrqTrqLm);
+	fprintf(fp, "%d ", pv->TSC1_EMSTECU_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_EMSTECU_src_address);
+	fprintf(fp, "%d ", pv->TSC1_EMSTECU_destination_address);
+
+	// Brake control of engine
+	fprintf(fp, "%d ", pv->TSC1_EMSABS_EnOvrdCtrlM);	//95
+	fprintf(fp, "%d ", pv->TSC1_EMSABS_EnRSpdCtrlC);
+	fprintf(fp, "%d ", pv->TSC1_EMSABS_EnRSpdSpdLm);
+	fprintf(fp, "%d ", pv->TSC1_EMSABS_EnRTrqTrqLm);
+	fprintf(fp, "%d ", pv->TSC1_EMSABS_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_EMSABS_src_address);	//100
+	fprintf(fp, "%d ", pv->TSC1_EMSABS_destination_address);
+
+	// CC control of engine
+	fprintf(fp, "%d ", pv->TSC1_EMSVMCUes_EnOvrdCtrlM);
+	fprintf(fp, "%d ", pv->TSC1_EMSVMCUes_EnRSpdCtrlC);
+	fprintf(fp, "%d ", pv->TSC1_EMSVMCUes_EnRSpdSpdLm);
+	fprintf(fp, "%d ", pv->TSC1_EMSVMCUes_EnRTrqTrqLm);	//105
+	fprintf(fp, "%d ", pv->TSC1_EMSVMCUes_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_EMSVMCUes_src_address);
+	fprintf(fp, "%d ", pv->TSC1_EMSVMCUes_destination_address);
+
+	// ACC control of engine
+	fprintf(fp, "%d ", pv->TSC1_EMS_ACC_EnOvrdCtrlM);
+	fprintf(fp, "%d ", pv->TSC1_EMS_ACC_EnRSpdCtrlC);	//110
+	fprintf(fp, "%d ", pv->TSC1_EMS_ACC_EnRSpdSpdLm);
+	fprintf(fp, "%d ", pv->TSC1_EMS_ACC_EnRTrqTrqLm);
+	fprintf(fp, "%d ", pv->TSC1_EMS_ACC_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_EMS_ACC_src_address);
+	fprintf(fp, "%d ", pv->TSC1_EMS_ACC_destination_address);	//115
 
 	// Transmission control of engine retarder
-	fprintf(fp, "%d ", pv->TSC1_ER_T_EnOvrdCtrlM);
-	fprintf(fp, "%d ", pv->TSC1_ER_T_EnRSpdCtrlC);
-	fprintf(fp, "%d ", pv->TSC1_ER_T_EnRSpdSpdLm);	//95
-	fprintf(fp, "%d ", pv->TSC1_ER_T_EnRTrqTrqLm);
-	fprintf(fp, "%d ", pv->TSC1_ER_T_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_EMSrTECU_EnOvrdCtrlM);
+	fprintf(fp, "%d ", pv->TSC1_EMSrTECU_EnRSpdCtrlC);
+	fprintf(fp, "%d ", pv->TSC1_EMSrTECU_EnRSpdSpdLm);
+	fprintf(fp, "%d ", pv->TSC1_EMSrTECU_EnRTrqTrqLm);
+	fprintf(fp, "%d ", pv->TSC1_EMSrTECU_OvrdCtrlMPr);	//120
+	fprintf(fp, "%d ", pv->TSC1_EMSrTECU_src_address);
+	fprintf(fp, "%d ", pv->TSC1_EMSrTECU_destination_address);
+
+	// Brake control of engine retarder
+	fprintf(fp, "%d ", pv->TSC1_EMSrABS_EnOvrdCtrlM);
+	fprintf(fp, "%d ", pv->TSC1_EMSrABS_EnRSpdCtrlC);
+	fprintf(fp, "%d ", pv->TSC1_EMSrABS_EnRSpdSpdLm);	//125
+	fprintf(fp, "%d ", pv->TSC1_EMSrABS_EnRTrqTrqLm);
+	fprintf(fp, "%d ", pv->TSC1_EMSrABS_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_EMSrABS_src_address);
+	fprintf(fp, "%d ", pv->TSC1_EMSrABS_destination_address);
 
 	// CC control of engine retarder                                
-	fprintf(fp, "%d ", pv->TSC1_ER_V_EnOvrdCtrlM);
+	fprintf(fp, "%d ", pv->TSC1_ER_V_EnOvrdCtrlM);		//130
 	fprintf(fp, "%d ", pv->TSC1_ER_V_EnRSpdCtrlC);
-	fprintf(fp, "%d ", pv->TSC1_ER_V_EnRSpdSpdLm);		//100
+	fprintf(fp, "%d ", pv->TSC1_ER_V_EnRSpdSpdLm);
 	fprintf(fp, "%d ", pv->TSC1_ER_V_EnRTrqTrqLm);
 	fprintf(fp, "%d ", pv->TSC1_ER_V_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_ER_V_src_address);		//135
+	fprintf(fp, "%d ", pv->TSC1_ER_V_destination_address);
+
+	// ACC control of engine retarder
+	fprintf(fp, "%d ", pv->TSC1_ER_ACC_EnOvrdCtrlM);
+	fprintf(fp, "%d ", pv->TSC1_ER_ACC_EnRSpdCtrlC);
+	fprintf(fp, "%d ", pv->TSC1_ER_ACC_EnRSpdSpdLm);
+	fprintf(fp, "%d ", pv->TSC1_ER_ACC_EnRTrqTrqLm);	//140
+	fprintf(fp, "%d ", pv->TSC1_ER_ACC_OvrdCtrlMPr);
+	fprintf(fp, "%d ", pv->TSC1_ER_ACC_src_address);
+	fprintf(fp, "%d ", pv->TSC1_ER_ACC_destination_address);
 
 	fprintf(fp, "%.3f ", pv->VDC2_LateralAcceleration);
-	fprintf(fp, "%.3f ", pv->VDC2_LongitudinalAcceleration);
-	fprintf(fp, "%.3f ", pv->VDC2_SteeringWheelAngle);		//105
+	fprintf(fp, "%.3f ", pv->VDC2_LongitudinalAcceleration);	//145
+	fprintf(fp, "%.3f ", pv->VDC2_SteeringWheelAngle);
 	fprintf(fp, "%d ", pv->VDC2_SteeringWheelTurnCounter);
 	fprintf(fp, "%.3f ", pv->VDC2_YawRate);
       
 	fprintf(fp, "%d ", pv->EBC5_FoundationBrakeUse);
-	fprintf(fp, "%d ", pv->EBC5_HaltBrakeMode);
-	fprintf(fp, "%d ", pv->EBC5_XBRAccelerationLimit);		//110
+	fprintf(fp, "%d ", pv->EBC5_HaltBrakeMode);		//150
+	fprintf(fp, "%d ", pv->EBC5_XBRAccelerationLimit);
 	fprintf(fp, "%d ", pv->EBC5_XBRActiveControlMode);
 	   
 	fprintf(fp, "%.3f ", pv->MVS_X_E_AppliedVehicleSpeedLimit_BB1_X_E);
  
 	fprintf(fp, "%.3f ", pv->VP_X_TGW_Latitude_BB1_X_TGW);
-	fprintf(fp, "%.3f ", pv->VP_X_TGW_Longitude_BB1_X_TGW);
+	fprintf(fp, "%.3f ", pv->VP_X_TGW_Longitude_BB1_X_TGW);	//155
 	   
-	fprintf(fp, "%.3f ", pv->IC1_EngAirIntakePress);		//115
+	fprintf(fp, "%.3f ", pv->IC1_EngAirIntakePress);
 	fprintf(fp, "%.3f ", pv->IC1_EngDslPrtclateFilterIntakePress);
 	fprintf(fp, "%.3f ", pv->IC1_EngIntakeManifold1Press);
 	fprintf(fp, "%.3f ", pv->IC1_EngIntakeManifold1Temp);
 
-	fprintf(fp, "%d ", pv->CAN1_BusLoad);
-	fprintf(fp, "%d ", pv->CAN1_ExtData);		//120
+	fprintf(fp, "%d ", pv->CAN1_BusLoad);			//160
+	fprintf(fp, "%d ", pv->CAN1_ExtData);
 	fprintf(fp, "%d ", pv->CAN1_StdData);
 
 	fprintf(fp, "%d ", pv->CAN2_BusLoad);
 	   
 		/// long_output_typ
                 fprintf(fp, "%.3f ", pcmd->engine_speed);
-                fprintf(fp, "%.3f ", pcmd->engine_torque);
-                fprintf(fp, "%d ", pcmd->engine_command_mode);		//125
-                fprintf(fp, "%.3f ", pcmd->engine_retarder_torque);
-                fprintf(fp, "%d ", pcmd->engine_retarder_command_mode);
-                fprintf(fp, "%.3f ", pcmd->ebs_deceleration);
-                fprintf(fp, "%d ", pcmd->brake_command_mode);
-                fprintf(fp, "%.3f ", pcmd->trans_retarder_value);	//130
-                fprintf(fp, "%d ", pcmd->trans_retarder_command_mode);
+                fprintf(fp, "%.3f ", pcmd->engine_torque); 		//165 between 14.0 & 15.0
+                fprintf(fp, "%d ", pcmd->engine_command_mode); 		//between 0 & 2
+                fprintf(fp, "%.3f ", pcmd->engine_retarder_torque);	//0->-40.0 until end of file
+                fprintf(fp, "%d ", pcmd->engine_retarder_command_mode); //0->2 until end of file
+                fprintf(fp, "%.3f ", pcmd->ebs_deceleration);		//0->ugly negative number til end of file
+                fprintf(fp, "%d ", pcmd->brake_command_mode);		//170 //always 0
+                fprintf(fp, "%.3f ", pcmd->trans_retarder_value);	//always 0
+                fprintf(fp, "%d ", pcmd->trans_retarder_command_mode);	//always 0
 
 		/// GPS and COMM
 		fprintf(fp, "%.7f ", pv->self_gps.latitude);
 		fprintf(fp, "%.7f ", pv->self_gps.longitude);
-		fprintf(fp, "%.3f ", pv->self_gps.speed);
-		fprintf(fp, "%.3f ", pv->lead_trk.global_time);		//135
+		fprintf(fp, "%.3f ", pv->self_gps.speed);		//175
+		fprintf(fp, "%.3f ", pv->lead_trk.global_time);
 		// We removed the transmission of GPS over the comm link 
 		// because the packet was >128 bytes
 //		fprintf(fp, "%.7f ", pv->lead_trk.gps.latitude);
 //		fprintf(fp, "%.7f ", pv->lead_trk.gps.longitude);
 //		fprintf(fp, "%.3f ", pv->lead_trk.gps.speed);
-		fprintf(fp, "%.3f ", pv->lead_trk.velocity);		//136
-		fprintf(fp, "%.3f ", pv->second_trk.global_time);	//137
+		fprintf(fp, "%.3f ", pv->lead_trk.velocity);		//177
+		fprintf(fp, "%.3f ", pv->second_trk.global_time);
 //		fprintf(fp, "%.7f ", pv->second_trk.gps.latitude);
 //		fprintf(fp, "%.7f ", pv->second_trk.gps.longitude);
 //		fprintf(fp, "%.3f ", pv->second_trk.gps.speed);
-		fprintf(fp, "%.3f ", pv->second_trk.velocity);		//138
-		fprintf(fp, "%.3f ", pv->third_trk.global_time);	//139
+		fprintf(fp, "%.3f ", pv->second_trk.velocity);		//179
+		fprintf(fp, "%.3f ", pv->third_trk.global_time);	//180
 //		fprintf(fp, "%.7f ", pv->third_trk.gps.latitude);
 //		fprintf(fp, "%.7f ", pv->third_trk.gps.longitude);
-//		fprintf(fp, "%.3f ", pv->third_trk.gps.speed);
-		fprintf(fp, "%.3f ", pv->third_trk.velocity);		//140 
-
-
-
-		// Formerly used for MDL lidar
-		fprintf(fp, "%.3f ", pv->mdl_lidar.range);	//183
-
-		// Denso lidar
-		fprintf(fp,"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d ",
-                        pv->lidarA.h_latpos_1,pv->lidarA.l_latpos_1,	//185
-                        pv->lidarA.vert_pos_1, pv->lidarA.h_dist_1,
-                        pv->lidarA.l_dist_1,pv->lidarA.lanerate_1,
-                        pv->lidarA.veh_rate_1,pv->lidarA.targ_stat_1,	//191
-                        pv->lidarA.lat_vel_1, pv->lidarA.h_velocity_1,
-                        pv->lidarA.l_velocity_1,pv->lidarA.h_width_1,
-                        pv->lidarA.l_width_1,pv->lidarA.height_1, 
-                        pv->lidarA.h_depth_1, pv->lidarA.l_depth_1,
-                        pv->lidarA.rel_acc_1);				//200
-
-
+//		fprintf(fp, "%.3f ", pv->third_trk.gps.speed); fprintf(fp, "%.3f ", pv->third_trk.velocity);
 		// Digital inputs and outputs
 		fprintf(fp, "%02hhx %02hhx %02hhx %02hhx %02hhx ", 
 			pv->dig_in.manualctl,
 			pv->dig_in.autoctl,
 			pv->dig_in.brakesw,
 			pdig_out->outchar,				
-			pdig_out->amber_flash);				//205
+			pdig_out->amber_flash);		//185
 
 		// Platoon communication; add remaining fields later
 		fprintf(fp, "%.3f ", pcomm_tx->global_time);
 		fprintf(fp, "%hd ", pcomm_tx->user_ushort_1);		
 		fprintf(fp, "%hd ", pcomm_tx->user_ushort_2);
 		fprintf(fp, "%.3f ", pcomm_tx->user_float);	
-		fprintf(fp, "%.3f ", pv->lead_trk.global_time);		//210
+		fprintf(fp, "%.3f ", pv->lead_trk.global_time);		//190
 		fprintf(fp, "%hd ", pv->lead_trk.user_ushort_1);
 		fprintf(fp, "%hd ", pv->lead_trk.user_ushort_2);
 		fprintf(fp, "%.3f ", pv->lead_trk.user_float);
 		fprintf(fp, "%.3f ", pv->second_trk.global_time);
-		fprintf(fp, "%hd ", pv->second_trk.user_ushort_1);	//215
+		fprintf(fp, "%hd ", pv->second_trk.user_ushort_1);	//195
 		fprintf(fp, "%hd ", pv->second_trk.user_ushort_2);
 		fprintf(fp, "%.3f ", pv->second_trk.user_float);
 		fprintf(fp, "%.3f ", pv->third_trk.global_time);
 		fprintf(fp, "%hd ", pv->third_trk.user_ushort_1);
-		fprintf(fp, "%hd ", pv->third_trk.user_ushort_2);	//220
-		fprintf(fp, "%.3f ", pv->third_trk.user_float);		//221
+		fprintf(fp, "%hd ", pv->third_trk.user_ushort_2);	//200
+		fprintf(fp, "%.3f ", pv->third_trk.user_float);	
+		fprintf(fp, "%.3f ", pv->Volvo_TargetDist);
+		fprintf(fp, "%.3f ", pv->Volvo_TargetVel);
+		fprintf(fp, "%.3f ", pv->Volvo_TargetAcc);
+		fprintf(fp, "%d ", pv->Volvo_TargetAvailable);		//205
+		fprintf(fp, "%.3f ", pv->Volvo_EgoVel);
+		fprintf(fp, "%.3f ", pv->Volvo_EgoAcc);		//206
 
 		fprintf(fp, "\n");
 

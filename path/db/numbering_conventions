@@ -1,0 +1,24 @@
+In older code under QNX for demo 97 and transit projects, a numbering
+scheme like the one below for transit signal priority  was used, and
+each project declared its own database variables.
+*  0    to 99     Used by the system.
+ *  100  to 199    Reserved.
+ *  200  to 349    Permanent variables used to store bus-specific data
+ *  350  to 549    Permanent variables used to store signal-specific data
+ *  550  to 849    Permanent variables used to store priority-specific data
+ *  850  to 949   Permanent variables used to store other signal-specific data  
+ *  950  to 989   Permanent variables used to store stretch data        ^M
+ *  1000 to 1099   Temporary variables.
+
+Now that we are using more shared code across projects, we will continue
+to use numbers under 1000 for code that is not shared, but if your
+code will be used with code written by other projects, you will need
+to pick a number over 1000 as your base.
+
+Currently the following bases over 1000 are in use:
+3000 is being used as the base by the Actuated Traffic Signal Controller code.
+5000 is being used as the base by the radar code.
+7000 is being used as the base by the Adaptive Transit Signal Priority code.
+8000 is being used as the base by the GPS code.
+
+Need to assign numbering and adjust video and ibeo.

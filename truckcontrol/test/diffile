@@ -1,0 +1,128 @@
+Index: realtime.ini
+===================================================================
+--- realtime.ini	(revision 10740)
++++ realtime.ini	(working copy)
+@@ -160,8 +160,10 @@
+ 
+ 
+ [long_trk]
+-Mass_SW=0
+-MaxSpeed=55.0
++Task=0
++Run=0
++Mass_SW=5
++MaxSpeed=30.0
+ max_acc=0.8
+ max_dcc=1.0
+ k_1=1.1
+@@ -188,5 +190,5 @@
+ UseMagnets=TRUE
+ EndScenario=TRUE 
+ TruckPlatoon=TRUE
+-HandleFaults=FALSE
++HandleFaults=TRUE
+ PlatoonSize=3
+Index: silver.sm
+===================================================================
+--- silver.sm	(revision 10740)
++++ silver.sm	(working copy)
+@@ -85,6 +85,7 @@
+ 	# To start jbussend with debugging ON, add -d flag
+ 	$TEST_DIR/jbussend -c -e /dev/can1 -b /dev/can2 >/home/truckcontrol/test/jbussend.dbg &
+ 	sleep 1
++	ping -c 5 -w 500 10.0.1.7
+ 	$TEST_DIR/gpsrcv -n 202 -u 5050  >gpsrcv.dbg &
+ 	$TEST_DIR/veh_rcv -f $CONFIG_FILE -u 5051  -t Silvr >veh_rcv.dbg &
+ 	$TEST_DIR/veh_snd -i 20 -a $DSRC_IP -u 5052  -t Silvr >veh_snd.dbg &
+Index: test_velocity_and_brake.sh
+===================================================================
+--- test_velocity_and_brake.sh	(revision 10743)
++++ test_velocity_and_brake.sh	(working copy)
+@@ -35,9 +35,13 @@
+ 	# To start jbussend with debugging ON, add -d flag
+ 	$TEST_DIR/jbussend -c -e /dev/can1 -b /dev/can2 >/home/truckcontrol/test/jbussend.dbg &
+ 	sleep 1
+-	$TEST_DIR/long_out -v 950
+-#	$TEST_DIR/long_out -b -1.0
++	$TEST_DIR/long_out -v 950 &
++	sleep 4
++	slay  -f -Q -s TERM long_out
++	$TEST_DIR/long_out -b -1.0 &
++	sleep 4
+ 
++	slay  -f -Q -s TERM long_out
+ 	slay  -f -Q -s TERM jbussend
+ 	slay  -f -Q -s TERM can_man
+ 	slay  -f -Q -s TERM trk_cr
+Index: test_can.sh
+===================================================================
+--- test_can.sh	(revision 10739)
++++ test_can.sh	(working copy)
+@@ -24,36 +24,60 @@
+ echo 'Testing can1 with can_rx'
+ echo
+ echo
++        sleep 2
++	$CAN_CLIENT_DIR/can_rx -p /dev/can1 &
+         sleep 5
+-	$CAN_CLIENT_DIR/can_rx -p /dev/can1 &
+-        sleep 10
+         slay  -f -Q -s TERM can_rx
++	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can1'` == '' ]]
++	then
++		echo
++		echo can_man for can1 not running!!!
++		echo
++	fi
+ echo
+ echo
+ echo 'Testing can1 with rdj1939'
+ echo
+ echo
++        sleep 2
++	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 &
+         sleep 5
+-	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 &
+-        sleep 10
+         slay  -f -Q -s TERM rdj1939
++	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can1'` == '' ]]
++	then
++		echo
++		echo can_man for can1 not running!!!
++		echo
++	fi
+ echo
+ echo
+ echo 'Testing can2 with can_rx'
+ echo
+ echo
++        sleep 2
++	$CAN_CLIENT_DIR/can_rx -p /dev/can2 &
+         sleep 5
+-	$CAN_CLIENT_DIR/can_rx -p /dev/can2 &
+-        sleep 10
+         slay  -f -Q -s TERM can_rx
++	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can2'` == '' ]]
++	then
++		echo
++		echo can_man for can2 not running!!!
++		echo
++	fi
+ echo
+ echo
+ echo 'Testing can2 with rdj1939'
+ echo
+ echo
+-        sleep 5
++        sleep 2
+ 	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can2 &
+         sleep 10
+         slay  -f -Q -s TERM rdj1939
+         slay  -f -Q -s TERM jbussend
+         slay  -f -Q -s TERM can_man
++	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can2'` == '' ]]
++	then
++		echo
++		echo can_man for can2 not running!!!
++		echo
++	fi

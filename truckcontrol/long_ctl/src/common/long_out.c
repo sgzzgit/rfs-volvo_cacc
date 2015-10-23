@@ -23,7 +23,7 @@
 #include "db_clt.h"
 #include "db_utils.h"
 #include "clt_vars.h"
-#include "vehicle.h"
+#include "veh_trk.h"
 #include "timestamp.h"
 #include "jbus_vars.h"
 #include "jbus_extended.h"
@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
 		FILE *tmg_stream;
 		cmd_var.engine_command_mode = TSC_OVERRIDE_DISABLED;
 		cmd_var.engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
-		cmd_var.brake_command_mode = EXAC_NOT_ACTIVE;
+		cmd_var.brake_command_mode = XBR_NOT_ACTIVE;
 		if( clt_update( pclt, DB_LONG_OUTPUT_VAR, DB_LONG_OUTPUT_TYPE,
 		    sizeof( long_output_typ ), (void *) &cmd_var ) == FALSE ) {
 		    fprintf(stderr, "clt_update( DB_LONG_OUTPUT_VAR )\n" );
@@ -121,7 +121,7 @@ int main( int argc, char *argv[] )
 		cmd_var.engine_retarder_command_mode = 0;
 		
 		cmd_var.engine_command_mode = engine_mode;
-		cmd_var.brake_command_mode = EXAC_NOT_ACTIVE;
+		cmd_var.brake_command_mode = XBR_NOT_ACTIVE;
 		cmd_var.ebs_deceleration = 0.0;
 		switch(engine_mode){
 			case 0: 	/* disable */
@@ -145,7 +145,7 @@ int main( int argc, char *argv[] )
 		cmd_var.engine_command_mode = 0;
 
 		cmd_var.engine_retarder_command_mode = engine_mode;
-		cmd_var.brake_command_mode = EXAC_NOT_ACTIVE;
+		cmd_var.brake_command_mode = XBR_NOT_ACTIVE;
 		cmd_var.ebs_deceleration = 0.0;
 		switch(engine_mode){
 			case 0: 	/* disable */
@@ -164,7 +164,7 @@ int main( int argc, char *argv[] )
 		cmd_var.engine_command_mode = TSC_TORQUE_CONTROL;
 		cmd_var.engine_torque = 0.0;
 		cmd_var.engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
-		cmd_var.brake_command_mode = EXAC_ACTIVE;
+		cmd_var.brake_command_mode = XBR_ACTIVE;
 		cmd_var.ebs_deceleration = rqst_brake;
 	}
 	else {

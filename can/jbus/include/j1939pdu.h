@@ -96,7 +96,6 @@ extern int check_timestamp(timestamp_t *raw);
 #define EEC2	0xf003  /* (240, 3) electronic engine controller 2 */
 #define EEC1	0xf004	/* (240, 4) electronic engine controller 1 */
 #define ETC2	0xf005	/* (240, 5) electronic transmission controller 1 */
-#define VDC2	0xf009	/* (240, 9) electronic transmission controller 1 */
 #define GFI2	0xfe81	/* (254, 129) gaseous fuel information 2 */
 #define EI	0xfe92	/* (254, 146) engine information */
 #define FD	0xfebd	/* (254, 189) fan drive */

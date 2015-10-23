@@ -1,0 +1,34 @@
+This directory contains the source code for the database server process,
+db_slv and the database library libdb_clts.a.
+
+To build a clean copy of these programs from source on your system:
+
+As an ordinary user, type
+make clean
+make
+
+Become root and type
+setuid.sh
+
+You should not need to change any files in this directory (other than
+to rebuild to make sure you are in sync with your system's libraries.)
+
+If you find a bug, please report to 
+Sue Dickey, dickey@path.berkeley.edu
+and
+Tom Kuhn, tmk@path.berkeley.edu
+
+See the directory ../clt for test programs to help you get started
+using the database.
+
+See the file implementation notes in this directory if you want to
+understand more about porting this software from QNX4 to Linux.
+See message_queues.txt for information about setting parameters that
+affect the data server performance on Linux.
+
+See the file numbering_conventions for how to define database variables used
+in your project so that they are shared when needed and don't conflict with
+other projects.
+
+------------------------------------------------------------------------
+July 2008 Tom Kuhn has completed port of this code to QNX6.

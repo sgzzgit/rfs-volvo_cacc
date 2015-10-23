@@ -1,0 +1,41 @@
+This directory contains sample code for calculating round trip UDP delays,
+for synchronizing clock between two systems, and for reading GPS information
+and writing it to a file.
+
+Versions of this code have been used on the GM CVS project and with
+the Denso WAVE Radio modules, using the wl library.
+
+To some extent this duplicates the performance testing that can be
+done by utilities like iperf and ping, but has the advantage of
+being a small body of code that is easy to understand, modify and
+instrument for different environments and includes estimates of
+round-trip delay and clock skew between systems as well as throughput.
+The output format is line by line trace, not summary, but it is easy to
+write scripts to get summary.
+
+The version here is designed to have no dependencies on code other than
+the libraries in /home/path/local.
+
+To calculate round-trip delays:
+Start rt_rcv on the remote system.
+Start rt_mtr on the local system.
+Start rt_snd on the local system.
+
+On the local system, run for example:
+
+rt_mtr >mtr.dat &
+rt_snd -a 192.168.20.1 -t 100 -n 1000 -m 500
+
+-t is 100 milliseconds between sends
+-n 1000 is 1000 messages sent
+-m is the number of bytes per packet
+
+To set clock on a remote system (to match local system):
+On the remote system run (with root permission):
+clock_set -m 1
+-m = max updates before exiting (default 1. Make sure this number is <= n in
+clock_snd_skew, or you'll never exit)
+ON the local system run:
+clock_snd_skew  -a 192.168.20.1 -t 100 -n 100  
+
+

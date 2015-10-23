@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/usr/cogent/bin/qserve
+/usr/cogent/bin/nserve -r
+/usr/cogent/bin/datahub -d can_`hostname`
+

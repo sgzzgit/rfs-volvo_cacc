@@ -1,0 +1,32 @@
+DISTRIB_DIR = ..
+
+LOCAL_DIR = /home/local
+CAN_DIR = /home/can
+
+CC = cc
+CFLAGS = -c -I$(LOCAL_DIR) -I/usr/cogent/include -I$(CAN_DIR) -O 
+CFLAGS += -V gcc_ntox86  -I /home/ids/src
+
+LINK = cc
+LINKFLAGS = -N16000 -L$(LOCAL_DIR) -L/usr/cogent/lib 
+LIBS = -llocals -ldb_clt -lcogent  -lsocket  -lm 
+
+HDRS = ibeo.h 
+EXEC = ibeo_rx
+OBJS = $(CAN_DIR)/client/can_client.o ibeo_qnx6.o ibeo_utils.o 
+
+all: 	$(EXEC)	
+
+.c.o: $(HDRS) 
+	$(CC) $(CFLAGS) -c $*.c -o $*.o
+
+.o: $(OBJS) $@.o
+	$(LINK) $(LINKFLAGS) $(OBJS) $@.o $(CPPLIBS) $(LIBS) -o $@
+
+test_int64: $(OBJS) test_int64.o
+test_mask: $(OBJS) test_mask.o
+get_field: $(OBJS) get_field.o
+ibeo_rx: $(OBJS) ibeo_rx.o
+
+clean:
+	\rm -f *.o $(EXEC) 

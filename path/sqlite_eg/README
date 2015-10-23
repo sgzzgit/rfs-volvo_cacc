@@ -1,0 +1,4 @@
+This directory contains examples for using the sqlite C API,
+can be compiled for SOBU (by doing make from sobos cross-compile
+directory, will be part of path_utils*.ipk) or native compiles
+(laptops or MCNU).

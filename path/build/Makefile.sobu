@@ -1,0 +1,182 @@
+# 
+# Copyright (C) 2006 OpenWrt.org
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+# $Id: Makefile 9906 2007-12-25 01:40:47Z nbd $
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=capath_util
+PKG_VERSION:=1.0
+PKG_RELEASE:=1
+
+include $(INCLUDE_DIR)/package.mk
+
+PATH_UTIL_PATH_DIR:=$(PKG_BUILD_DIR)/path
+PATH_UTIL_LOCAL_DIR:=$(PATH_UTIL_PATH_DIR)/local
+PATH_UTIL_DB_DIR:=$(PATH_UTIL_PATH_DIR)/db
+PATH_UTIL_CLT_DIR:=$(PATH_UTIL_PATH_DIR)/clt
+PATH_UTIL_SENS_DIR:=$(PATH_UTIL_PATH_DIR)/sens
+PATH_UTIL_MTCP_DIR:=$(PATH_UTIL_PATH_DIR)/mtcp
+PATH_UTIL_SENS_RADAR_DIR:=$(PATH_UTIL_PATH_DIR)/sens/radar
+PATH_UTIL_GPS_DIR:=$(PATH_UTIL_PATH_DIR)/sens/gps
+PATH_UTIL_GPS_SRC_DIR:=$(PATH_UTIL_PATH_DIR)/sens/gps/src
+PATH_UTIL_GPS_EXAMPLES_DIR:=$(PATH_UTIL_PATH_DIR)/sens/gps/examples
+PATH_UTIL_SENS_INCLUDE_DIR:=$(PATH_UTIL_PATH_DIR)/sens/include
+PATH_UTIL_SQLITE_EG_DIR:=$(PATH_UTIL_PATH_DIR)/sqlite_eg/
+PATH_UTIL_SQLITE_EG_SRC_DIR:=$(PATH_UTIL_PATH_DIR)/sqlite_eg/src
+PATH_UTIL_ATSC_DIR:=$(PKG_BUILD_DIR)/atsc
+PATH_UTIL_ATSC_IX_DIR:=$(PATH_UTIL_ATSC_DIR)/ix
+PATH_UTIL_ATSC_INCLUDE_DIR:=$(PATH_UTIL_ATSC_DIR)/include
+PATH_UTIL_ATSC_PHASES_DIR:=$(PATH_UTIL_ATSC_DIR)/phases
+PATH_UTIL_ATSC_PHASE170_DIR:=$(PATH_UTIL_ATSC_DIR)/phase170
+PATH_UTIL_TSP_DIR:=$(PKG_BUILD_DIR)/tsp
+PATH_UTIL_CICAS_DIR:=$(PKG_BUILD_DIR)/cicas
+PATH_UTIL_CICAS_VII_DIR:=$(PKG_BUILD_DIR)/cicas/vii
+
+PATH_UTIL_BIN:=$(PATH_UTIL_DB_DIR)/sobu/db_slv \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/README.gps \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/gpsdb \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/gps2xy \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/gpsrcv \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/gpssnd \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/gpsget \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/macget \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/tcp_echo \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/tcp_client \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/bcnrcv \
+	 $(PATH_UTIL_GPS_EXAMPLES_DIR)/sobu/gpssetdate \
+	 $(PATH_UTIL_CLT_DIR)/sobu/fwudp \
+	 $(PATH_UTIL_CLT_DIR)/sobu/rcvdbg \
+	 $(PATH_UTIL_CLT_DIR)/sobu/snddbg \
+	 $(PATH_UTIL_CLT_DIR)/rtperf/sobu/rt_mtr \
+	 $(PATH_UTIL_CLT_DIR)/rtperf/sobu/rt_snd \
+	 $(PATH_UTIL_CLT_DIR)/rtperf/sobu/rt_rcv \
+	 $(PATH_UTIL_CLT_DIR)/sobu/rmcsnd \
+	 $(PATH_UTIL_MTCP_DIR)/sobu/test-mtcp \
+	 $(PATH_UTIL_MTCP_DIR)/sample/sobu/pub \
+	 $(PATH_UTIL_MTCP_DIR)/sample/sobu/sub \
+	 $(PATH_UTIL_MTCP_DIR)/sample/sobu/read \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/loop_test \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/gpsinsert \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/ptsnd \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/ptrcv \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/ptreplay \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/coswrcvmap \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/coswrcvwarn \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/gemssnd \
+	 $(PATH_UTIL_SQLITE_EG_SRC_DIR)/sobu/ptrel \
+	 $(PATH_UTIL_ATSC_IX_DIR)/sobu/snd_ix_msg \
+	 $(PATH_UTIL_ATSC_IX_DIR)/sobu/rcv_ix_msg \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/povsnd \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/povrcv \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/svsnd \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/svrcv \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/pov_create \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/wrtrialdb \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/rdtrialdb \
+	 $(PATH_UTIL_CICAS_VII_DIR)/sobu/button
+
+PATH_WEB_BIN:=$(PATH_UTIL_CICAS_VII_DIR)/php/trial.php \
+	 $(PATH_UTIL_CICAS_VII_DIR)/php/dblaunch.php
+	
+
+define Package/capath_util
+  SUBMENU:=SDK Apps
+  TITLE:=Sample capath_util SDK app.
+  URL:=http://savari.net/
+  DEPENDS:=
+  FILES:=capath_util
+endef
+
+define Package/capath_util/description
+ This package contains California PATH programs built for the SOBU application.
+endef
+
+define Build/Prepare
+	# Add any preparation statements like copying.
+	mkdir -p $(PATH_UTIL_PATH_DIR)
+	$(CP) -r path/local $(PATH_UTIL_LOCAL_DIR)
+	$(CP) -r path/db $(PATH_UTIL_DB_DIR)
+	$(CP) -r path/clt $(PATH_UTIL_CLT_DIR)
+	$(CP) -r path/sqlite_eg $(PATH_UTIL_SQLITE_EG_DIR)
+	$(CP) -r path/mtcp $(PATH_UTIL_MTCP_DIR)
+	mkdir -p $(PATH_UTIL_SENS_DIR)
+	$(CP) path/sens/Makefile path/sens/make_includes $(PATH_UTIL_SENS_DIR) 
+	chmod +x $(PATH_UTIL_SENS_DIR)/make_includes
+	$(CP) -r path/sens/lib $(PATH_UTIL_SENS_DIR)/lib
+	$(CP) -r path/sens/radar $(PATH_UTIL_SENS_RADAR_DIR)
+	$(CP) -r path/sens/gps $(PATH_UTIL_GPS_DIR)
+	mkdir -p $(PATH_UTIL_ATSC_DIR)
+	$(CP) -r atsc/include $(PATH_UTIL_ATSC_INCLUDE_DIR)
+	$(CP) -r atsc/ix $(PATH_UTIL_ATSC_IX_DIR)
+	$(CP) -r atsc/phases $(PATH_UTIL_ATSC_PHASES_DIR)
+	$(CP) -r atsc/phase170 $(PATH_UTIL_ATSC_PHASE170_DIR)
+	$(CP) -r tsp $(PATH_UTIL_TSP_DIR)
+	$(CP) -r cicas $(PATH_UTIL_CICAS_DIR)
+endef
+
+define Build/Configure
+	# Add any configuration statements like running config script.
+endef
+
+MAKE_ARGS:=PATH_CC="$(TARGET_CC)" PATH_CPP="$(TARGET_CC)" PATH_LINK="$(TARGET_CC)" PATH_AR="$(TARGET_AR)" STRIP=$(STRIP) \
+	   CFLAGS="$(TARGET_CFLAGS)" \
+	   LDFLAGS="$(TARGET_LDFLAGS)" \
+	   INCLUDES="-I$(STAGING_DIR_HOST)/include" \
+	   TGT=
+
+define Build/Compile
+	# Add any compile statements
+	$(MAKE) -C $(PATH_UTIL_LOCAL_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_DB_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_CLT_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_MTCP_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_SENS_DIR) $(MAKE_ARGS) includes
+	$(MAKE) -C $(PATH_UTIL_SENS_DIR) $(MAKE_ARGS) lib/sobu
+	$(MAKE) -C $(PATH_UTIL_GPS_SRC_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_GPS_SRC_DIR) $(MAKE_ARGS) install
+	$(MAKE) -C $(PATH_UTIL_GPS_EXAMPLES_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_TSP_DIR) $(MAKE_ARGS) includes
+	$(MAKE) -C $(PATH_UTIL_SQLITE_EG_SRC_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_ATSC_IX_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_ATSC_PHASES_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_ATSC_PHASE170_DIR) $(MAKE_ARGS) all
+	$(MAKE) -C $(PATH_UTIL_CICAS_VII_DIR) $(MAKE_ARGS) all
+endef
+
+define Build/InstallDev
+	#
+	# Add any development install cmd like copying header files.
+endef
+
+define Build/Clean
+	$(MAKE) -C $(PATH_UTIL_LOCAL_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_DB_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_CLT_DIR) $(MAKE_ARGS) clean
+#	$(MAKE) -C $(PATH_UTIL_MTCP_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_GPS_SRC_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_GPS_EXAMPLES_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_SQLITE_EG_SRC_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_ATSC_INCLUDE_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_ATSC_IX_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_ATSC_PHASES_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_ATSC_PHASE170_DIR) $(MAKE_ARGS) clean
+	$(MAKE) -C $(PATH_UTIL_CICAS_VII_DIR) $(MAKE_ARGS) clean
+endef
+
+define Package/capath_util/install
+	$(INSTALL_DIR) $(1)/usr/local
+	$(INSTALL_DIR) $(1)/usr/local/lib
+	$(INSTALL_DIR) $(1)/usr/local/bin
+	$(INSTALL_DIR) $(1)/usr/local/etc
+	$(INSTALL_DIR) $(1)/home/lighttpd
+	#$(INSTALL_CONF) config files $(1)/lib/etc  # conf files
+	$(INSTALL_BIN) $(PATH_UTIL_BIN) $(1)/usr/local/bin # binaries
+	$(INSTALL_BIN) $(PATH_WEB_BIN) $(1)/home/lighttpd # php
+	#$(INSTALL_DATA) $(PATH_UTIL_BIN) $(1)/usr/local/etc # data files
+endef
+
+$(eval $(call BuildPackage,capath_util))

@@ -6,6 +6,13 @@
 include $(CAPATH_MK_DEFS)
 
 TRUCK_DIR = $(DISTRIB_DIR)/truckcontrol
+ASNDIR = ./BSM_asn1_dir
+J2735DIR = ./dsrc/asn1j2735
+J2735INC = $(J2735DIR)/include
+
+PATH_CFLAGS += -I$(ASNDIR) -I$(J2735INC)
+PATH_LDFLAGS += -L$(ASNDIR)
+PATH_OBJS += $(ASNDIR)/*.o
 
 EXEC =  $(OBJDIR)/veh_rcv $(OBJDIR)/veh_snd $(OBJDIR)/veh_snd_test
 

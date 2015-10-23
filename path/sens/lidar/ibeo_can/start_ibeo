@@ -1,0 +1,2 @@
+#ibeo_rx -t -e -f /home/can/ibeo/data/ibeo.dat -d can_sue &
+ibeo_rx -t -f /home/can/ibeo/data/ibeo.dat -d can_sue >ibeo_parse.dat &

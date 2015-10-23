@@ -1,0 +1,28 @@
+= MTCP and Sockhop
+
+== MTCP
+
+MTCP is a library for sending and receiving datagrams over a stream socket (e.g., TCP or UNIX) using a very simple protocol.
+
+The Makefile handles build, test and documentation tasks. Briefly:
+
+make      -- build everything
+make test -- build everything and run tests
+make docs -- build docs indexed in doc/html/index.html
+
+See the docs (or mtcp.h) for details.
+
+MTCP has worked on windows, but test_mtcp will not (it uses fork).
+
+== Sockhop
+
+Sockhop is a socket client/server protocol for publish/subscribe IPC. The sockhop protocol is based on mtcp:
+
+- to subscribe, send the topic as a message, then receive data messages
+
+- to publish, send the topic, then send data messages
+
+- to read the last value, send the topic, receive a data message, and repeat
+
+Rather than use mtcp driectly, it is easier to use the interface defined in sockhop-client.h. See the sample/ dir for sample clients for the above uses. The server is currently implemented in ruby--see the sockhop package.
+

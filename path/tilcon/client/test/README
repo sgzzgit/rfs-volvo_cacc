@@ -1,0 +1,12 @@
+The script obm_test.sh  and sample.sh are guides for running the programs.
+Start  obm_test or sample in another window.
+
+The programs stop.sh and stop_obm.sh are supposed to kill all three 
+processes, but sometimes the Tilcon processes refuse to die and have to
+be killed as root or killed with -9 by process id.
+
+When processes die unexpectedly (without doing a proper clt_logut) you
+may need to run db_clean.sh to get the data bucket operating correctly again.
+
+Note that if db_clean.sh is run when processes have executed cleanly, you
+may get a usage message from ipcrm, but this doesn't mean anything is wrong.

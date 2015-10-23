@@ -1,0 +1,40 @@
+Notes on porting to Linux
+Sue Dickey April 2006
+
+On QNX4, the native message passing Inter Process Communication (IPC)
+primitives were used by the original author of these programs. To port
+to Linux, I have emulated this messaage passing behavior using Posix
+message queues (man ipcs and man msgget on Linux for more information,
+be sure to look at the SEE ALSO at the end of the man page.)
+
+For the Posix message queue implementation, db_slv creates a queue
+where all client processes can send messages of different types for
+login, variable create, variable write, variable read, and logout. Each
+client creates an individual queue to receive replies from db_slv,
+including especially the values that are read from the variables.
+
+All queues use pid in the name to create a file on which the special function
+ftok (man ftok)is run to get a key for creating a message queue, since
+each process has only one queue has only one queue associated with it.
+These files are created in /home/path/db/register (but this can be
+changed by changing the definition of DEFAULT_SERVICE in db_clt.h, or
+by passing a different service parameter to a set of interactin programs.)
+
+Each client process should have a timer of some kind active, and if the
+signal from the timer is received before the reply from the database,
+the error handling after msgrcv must notice that the call was interupted
+by a timer signal and behave appropriately. If this shows that the wait
+for getting data was too long, it may be an error return, require a retry
+or an abort. The msgrcv and msgsend processes do not restart automatically
+after a signal. When a trigger has been set the db_slv process
+will send a message to the registered client when the trigger variable is
+written; if the process desires to wait either on a timer or on the trigger,
+check the return value for msgrcv for EINTR.  This will usually not be an
+error, just an alternate method of waking up the process.
+
+We added an extra requirement to the data sent and received using the wrappers
+in db_comm.c, in order to support replies to sender. In addition to the
+first field being the type field required by Posix message queues, the
+second field must be the key of the return queue. 
+
+We do not use the comm_header_typ used in QNX4.

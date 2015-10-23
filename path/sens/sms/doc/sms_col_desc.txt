@@ -1,0 +1,16 @@
+1	Timestamp of file writing HH:MM:SS.SSS
+2	Date	YYYYMMDD
+3	Object number	1-64
+4	X range	m
+5	Y range m
+6	x velocity	m/s
+7	y velocity	m/s
+8	object length	m
+9	Ethernet status	0-5
+10	CAN status	bit-mapped 0-0x80
+11	Sensors present bit-mapped 0-0xFFFF
+12	Number of objects 0-64
+13	Number of messages 0-15
+14	t_scan ms
+15	mode 0=live, 4=simulation
+16	cycle count	0-15

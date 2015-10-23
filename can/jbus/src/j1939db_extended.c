@@ -40,7 +40,8 @@ j1939_pgn_index pdu1_index[256] = {
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 15 */
-	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, DB_J1939_VOLVO_XBR_WARN_VAR},		    /* 16 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 31 */
@@ -116,7 +117,7 @@ j1939_pgn_index pdu1_index[256] = {
 	{NULL, 500},	/* 236 Transfer Protocol Connection Mgmt */
 	{NULL, 500},	/* 237 Network Layer */
 	{NULL, 500},	/* 238 Address Claimed */
-	{NULL, 500},	/* 239 Proprietary A */
+	{pdu2_239, 500},	/* 239 Proprietary A */
 	{pdu2_240, 500},	/* less than 100ms PDU2 PGs */
 	{NULL, 500},
 	{NULL, 500},
@@ -129,6 +130,74 @@ j1939_pgn_index pdu1_index[256] = {
 	{pdu2_255, 500},   /* Proprietary B */
 };
 
+
+j1939_pgn_index pdu2_239[256] = {
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, 
+	{NULL, DB_J1939_VOLVO_XBR_VAR},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 15 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 31 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 47 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 63 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 79 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 95 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 111 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 127 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 143 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 159 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 175 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 191 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 207 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 223 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},	
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},	
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},	
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 239 */	
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},	
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 255 */	
+};
 
 j1939_pgn_index pdu2_240[256] = {
 	{NULL, DB_J1939_ERC1_VAR}, 
@@ -287,8 +356,9 @@ j1939_pgn_index pdu2_254[256] = {
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 47 */
-	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
-	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, 
+	{NULL, DB_J1939_VOLVO_TARGET_VAR}, {NULL, DB_J1939_VOLVO_EGO_VAR}, //FE33 & FE34
+	{NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 63 */
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
@@ -499,12 +569,24 @@ j1939_dbv_info db_ref[] = {
 	{VDC2, sizeof(j1939_vdc2_typ), pdu_to_vdc2, NULL, print_vdc2, 0},
 	{MVS_X_E, sizeof(j1939_mvs_x_e_typ), pdu_to_mvs_x_e, NULL, print_mvs_x_e, 0},
 	{EBC5, sizeof(j1939_ebc5_typ), pdu_to_ebc5, NULL, print_ebc5, 0},
-	/* late add: TSC1 ACC to engine*/
+	/* late add: TSC1 ACC to engine dbnum=538 */
 	{TSC1, sizeof(j1939_tsc1_typ), pdu_to_tsc1, NULL, print_tsc1, 0},
-	/* late add: TSC1 ACC to transmission retarder */
+	/* late add: TSC1 ACC to transmission retarder  dbnum=539 */
 	{TSC1, sizeof(j1939_tsc1_typ), pdu_to_tsc1, NULL, print_tsc1, 0},
-//	{CAN1, sizeof(j1939_can1_typ), pdu_to_can1, NULL, print_can1, 0},
-//	{CAN2, sizeof(j1939_can2_typ), pdu_to_can2, NULL, print_can2, 0},
+	/* late add: TSC1 brake to engine dbnum=540 */
+	{TSC1, sizeof(j1939_tsc1_typ), pdu_to_tsc1, NULL, print_tsc1, 0},
+	/* late add: TSC1 VCU (or CC) to engine dbnum=541 */
+	{TSC1, sizeof(j1939_tsc1_typ), pdu_to_tsc1, NULL, print_tsc1, 0},
+	/* late add: TSC1 brake to engine retarder dbnum=542 */
+	{TSC1, sizeof(j1939_tsc1_typ), pdu_to_tsc1, NULL, print_tsc1, 0},
+	/* late add: TSC1 transmission to engine retarder dbnum=543 */
+	{TSC1, sizeof(j1939_tsc1_typ), pdu_to_tsc1, NULL, print_tsc1, 0},
+	/* late add: TSC1 VEC (or CC) to engine retarder dbnum=544 */
+	{TSC1, sizeof(j1939_tsc1_typ), pdu_to_tsc1, NULL, print_tsc1, 0},
+	{VOLVO_TARGET, sizeof(j1939_volvo_target_typ), pdu_to_volvo_target, NULL, print_volvo_target, 0},
+	{VOLVO_EGO, sizeof(j1939_volvo_ego_typ), pdu_to_volvo_ego, NULL, print_volvo_ego, 0},
+	{VOLVO_XBR_WARN, sizeof(j1939_volvo_xbr_warn_typ), pdu_to_volvo_xbr_warn, NULL, print_volvo_xbr_warn, 0},
+	{VOLVO_XBR, sizeof(j1939_volvo_xbr_typ), pdu_to_volvo_xbr, NULL, print_volvo_xbr, 0},
 };
 
 /*
@@ -615,7 +697,7 @@ j1939_database_init(char **argv)
 	db_clt_typ *pclt;
 	if ((pclt = open_local_database(argv)) == NULL)
 		return NULL;
-	for ( i = DB_J1939_PDU_VAR; i < DB_J1939_TSC1_ER_ACC_TYPE; i++) {
+	for ( i = DB_J1939_PDU_VAR; i < DB_J1939_VOLVO_XBR_VAR; i++) {
 		info = get_jdbv_info(i);
 		n += clt_create(pclt, i, i, info->dbv_size);
 	}
@@ -664,17 +746,40 @@ get_pgn_dbv(int pgn, struct j1939_pdu *pdu, j1939_dbv_info **pinfo)
 	 */
 	switch(dbv){
 	case DB_J1939_TSC1_VAR: 
-		if (pdu->pdu_specific == J1939_ADDR_ENGINE &&
-			pdu->src_address == J1939_ADDR_BRAKE)
-			dbv = DB_J1939_TSC1_BRKSRC_VAR;
-		if (pdu->pdu_specific == J1939_ADDR_ENG_RTDR)
-			dbv = DB_J1939_TSC1_RTDR_VAR;
-		if (pdu->pdu_specific == J1939_ADDR_TR_RTDR)
-			dbv = DB_J1939_TSC1_TRTDR_VAR;
-		if (pdu->pdu_specific == J1939_ADDR_BRAKE)
-			dbv = DB_J1939_EXAC_VAR;
-		/* default is to the engine, from the PATH controller */
-		break;
+                //Destination: engine
+                if (pdu->pdu_specific == J1939_ADDR_ENGINE &&
+                        pdu->src_address == J1939_ADDR_ACC)
+                        dbv = DB_J1939_TSC1_E_ACC_VAR;
+                else
+                if (pdu->pdu_specific == J1939_ADDR_ENGINE &&
+                        pdu->src_address == J1939_ADDR_BRAKE)
+                        dbv = DB_J1939_TSC1_E_A_VAR;
+                else
+                if (pdu->pdu_specific == J1939_ADDR_ENGINE &&
+                        pdu->src_address == J1939_ADDR_TRANS)
+                        dbv = DB_J1939_TSC1_E_T_VAR;
+                else
+                if (pdu->pdu_specific == J1939_ADDR_ENGINE &&
+                        pdu->src_address == J1939_ADDR_CC)
+                        dbv = DB_J1939_TSC1_E_V_VAR;
+
+                //Destination: engine retarder
+                if (pdu->pdu_specific == J1939_ADDR_ENG_RTDR &&
+                        pdu->src_address == J1939_ADDR_ACC)
+                        dbv = DB_J1939_TSC1_ER_ACC_VAR;
+                else
+                if (pdu->pdu_specific == J1939_ADDR_ENG_RTDR &&
+                        pdu->src_address == J1939_ADDR_TRANS)
+                        dbv = DB_J1939_TSC1_ER_T_VAR;
+                else
+                if (pdu->pdu_specific == J1939_ADDR_ENG_RTDR &&
+                        pdu->src_address == J1939_ADDR_BRAKE)
+                        dbv = DB_J1939_TSC1_ER_A_VAR;
+                else
+                if (pdu->pdu_specific == J1939_ADDR_ENG_RTDR &&
+                        pdu->src_address == J1939_ADDR_CC)
+                        dbv = DB_J1939_TSC1_ER_V_VAR;
+
 	case DB_J1939_ERC1_VAR:
 		if (pdu->src_address == J1939_ADDR_TR_RTDR)
 			dbv = DB_J1939_ERC1_TRANS_VAR;

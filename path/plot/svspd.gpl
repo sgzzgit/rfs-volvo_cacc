@@ -1,0 +1,8 @@
+# This plot GPS speed and Taurus speed 
+# with the NB spd_value information from the sensor fusion. 
+set grid
+set xlabel "Tick # (75ms intervals)"
+set ylabel "Speed"
+plot "x.plt2" using ($41)
+replot "x.plt2" using ($42) 
+replot "x.plt2" using ($21>0 ? $22 : 1/0) with points lc -1 

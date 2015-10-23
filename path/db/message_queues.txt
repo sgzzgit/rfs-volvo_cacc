@@ -1,0 +1,29 @@
+There are three parameters in /proc/sys/kernel that affect the behavior
+of Posix message queues, here are the values we have seen on some of our
+systems:
+
+msgmni	max queues system wide = 16
+msgmax	max size of message (bytes) = 8192
+msgmnb	default max size of queue (bytes) = 16384
+
+If you have more than 16 processes using the data server, you may have
+trouble with the first one. To fix this, as root,
+
+# cd /proc/sys/kernel
+# echo 64 > msgmni
+
+and see if that helps. If it does, you should add the line
+
+# echo 64 >/proc/sys/kernel/msgmni
+
+to /etc/rc.local so that it will be set up that way every time the system
+reboots.
+
+You may also have to change the other parameters. MAX_DATA_SIZE is 128
+bytes, the actual size put in the POSIX message queue for each data
+variable read/write request is larger than that. If you have 64 processes
+accessing db_slv at once for read or write, that will be at least 2^13
+or 8192 bytes.  Write a test program that prints DB_COMM_SIZE to find out
+how much overhead there is per data variable, and make sure the expected
+number of processes accessing the data server times DB_COMM_SIZE does
+not exceed msgmnb.

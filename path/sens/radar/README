@@ -1,0 +1,13 @@
+The evt300 radar driver was originally written by Paul Kretz, and
+ported to Linux by Sue Dickey and John Spring.  
+
+January 24 2008 -- version in this directory has had mods to evt300.h
+from version in the cabinet in order to run standalone, and some clean up.
+Functionality for writing radar files in the format that researchers
+like Ching-yao and Xiao-yun have used in the past (formerly written
+by wrfiles) has been added. A stub has been put in for export to mysql.
+It compiles but has not yet been tested. Sue 
+
+July 25, 2008 -- evt300 executable using the library has been in use
+since May 2008 in the RFS intersection, with no reported problems and
+correct operation of the IDS demo. 

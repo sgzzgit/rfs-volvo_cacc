@@ -24,60 +24,36 @@ echo
 echo 'Testing can1 with can_rx'
 echo
 echo
-        sleep 2
-	$CAN_CLIENT_DIR/can_rx -p /dev/can1 &
         sleep 5
+	$CAN_CLIENT_DIR/can_rx -p /dev/can1 &
+        sleep 10
         slay  -f -Q -s TERM can_rx
-	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can1'` == '' ]]
-	then
-		echo
-		echo can_man for can1 not running!!!
-		echo
-	fi
 echo
 echo
 echo 'Testing can1 with rdj1939'
 echo
 echo
-        sleep 2
-	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 &
         sleep 5
+	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 &
+        sleep 10
         slay  -f -Q -s TERM rdj1939
-	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can1'` == '' ]]
-	then
-		echo
-		echo can_man for can1 not running!!!
-		echo
-	fi
 echo
 echo
 echo 'Testing can2 with can_rx'
 echo
 echo
-        sleep 2
-	$CAN_CLIENT_DIR/can_rx -p /dev/can2 &
         sleep 5
+	$CAN_CLIENT_DIR/can_rx -p /dev/can2 &
+        sleep 10
         slay  -f -Q -s TERM can_rx
-	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can2'` == '' ]]
-	then
-		echo
-		echo can_man for can2 not running!!!
-		echo
-	fi
 echo
 echo
 echo 'Testing can2 with rdj1939'
 echo
 echo
-        sleep 2
+        sleep 5
 	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can2 &
         sleep 10
         slay  -f -Q -s TERM rdj1939
         slay  -f -Q -s TERM jbussend
         slay  -f -Q -s TERM can_man
-	if [[ `ps -aef | grep -v grep | grep can_man | grep 'dev/can2'` == '' ]]
-	then
-		echo
-		echo can_man for can2 not running!!!
-		echo
-	fi

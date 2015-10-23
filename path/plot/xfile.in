@@ -1,0 +1,47 @@
+wrtime	1	Timestamp of file writing
+trialno	2	Trial number
+specid	3	spec ID (must not contain any embedded white space)
+svstg	4	SV stage
+povstg	5	POV stage
+svlane	6	SV lane
+diiexS	7	Southbound (phase 2) DII existence flag
+diiS	8	Southbound (phase 2) DII value
+spdexS	9	Southbound (phase 2) speed existence flag
+spdS	10	Southbound (phase 2) speed value
+accexS	11	Southbound (phase 2) acceleration existence flag
+accS	12	Southbound (phase 2) acceleration value
+diiexW	13	Westbound  (phase 4) DII existence flag
+diiW	14	Westbound  (phase 4) DII value
+spdexW	15	Westbound  (phase 4) speed existence flag
+spdW	16
+accexW	17	Westbound  (phase 4) acceleration existence flag
+accW	18	Westbound  (phase 4) acceleration value
+diiexN	19	Northbound (phase 6) DII existence flag
+diiN	20	Northbound (phase 6) DII value
+spdexN	21	Northbound (phase 6) speed existence flag
+spdN	22	Northbound (phase 6) speed value
+accexN	23	Northbound (phase 6) acceleration existence flag
+accN	24	Northbound (phase 6) acceleration value
+diiexE	25	Eastbound  (phase 8) DII existence flag
+diiE	26	Eastbound  (phase 8) DII value
+spdexE	27	Eastbound  (phase 8) speed existence flag
+spdE	28	Eastbound  (phase 8) speed value
+accexE	29	Eastbound  (phase 8) acceleration existence flag
+accE	30	Eastbound  (phase 8) acceleration value
+dii	31	DII state
+dvi	32	DVI state
+backbex	33	Internal back buffer existence flag
+backb	34	Internal back buffer value
+frntbex	35	Internal front buffer existence flag
+frntb	36	Internal front buffer value
+utc	37	UTC time
+lat	38	Latitude
+long	39	Longitude
+cog	40	Course over ground
+sog	41	Speed over ground
+tauspd1	42	Taurus speed 1
+tauspd2	43	Taurus speed 2
+rcvseq	44	sequence number of receive message
+rcvtyp	45	receive message type
+sndseq	46	sequence number of send message
+sndtyp	47	send message type

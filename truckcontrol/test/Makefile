@@ -16,7 +16,7 @@ include $(CAPATH_MK_DEFS)
 HOME_DIR=$(DISTRIB_DIR)/path
 TEST_DIR=.
 
-PATH_EXECS= db_slv evt300 rdlidar dmm32 rddmm32 gpsrcv
+PATH_EXECS= db_slv evt300 rdlidar dmm32 rddmm32 gpsrcv gpsdb
 TRUCK_EXECS= veh_trk long_trk veh_snd veh_rcv long_out \
 		jbussend cmdtest rdbrake test_utils trk_io \
 		set_fault setLEDs rdswitches trk_cr trk_wr \
@@ -29,6 +29,7 @@ install:
 	cp $(HOME_DIR)/sens/lidar/mdl/qnx/mdl $(TEST_DIR) 
 	cp $(HOME_DIR)/sens/das/driver/qnx/dmm32 $(TEST_DIR) 
 	cp $(HOME_DIR)/sens/gps/examples/qnx/gpsrcv $(TEST_DIR) 
+	cp $(HOME_DIR)/sens/gps/examples/qnx/gpsdb $(TEST_DIR) 
 
 clean:
 	rm -f *.dbg *.tmg *.log 

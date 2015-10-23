@@ -1,0 +1,14 @@
+1	   Local timestamp
+2	   UTC
+3	   Longitude
+4	   Latitude
+5	   Heading
+6	   Optical sensors (digin)
+7	   Number of objects
+8	   SMS acquistion timestamp
+9,15,21	   Object ID of 1st,2nd,3rd objects
+10,16,22   X position
+11,17,23   Y position
+12,18,24   X velocity
+13,19,25   Y velocity
+14,20,26   Object length

@@ -1,0 +1,12 @@
+This directory contains code fragments that need to be added or
+changed in order to port from QNX to Linux using the database.
+
+There is a change in the signal handling, see sig_d (declarations)
+and sig_x (exit environment within body of code).
+
+The clt_login call must now include COMM_PSX_XPORT as the xport 
+parameter, as opposed to COMM_QNX_XPORT on QNX4 and don't care on QNX6.
+This call must also have the domain (or service, as it is called within
+the database source) set to the base file name for the files that will
+be created for each process's queue.
+

@@ -140,9 +140,9 @@ void copy_to_command (profile_item *pitem, long_output_typ *pcmd,
 	else
 		pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 	if (pcmd->ebs_deceleration < 0.0)
-		pcmd->brake_command_mode = EXAC_ACTIVE;
+		pcmd->brake_command_mode = XBR_ACTIVE;
 	else
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE;
 }
 
 
@@ -152,7 +152,7 @@ static dbv_size_type dbv_used[] = {
 	{DB_J1939_EEC1_VAR, sizeof(j1939_eec1_typ)},
 	{DB_J1939_CCVS_VAR, sizeof(j1939_ccvs_typ)},
 	{DB_J1939_LFE_VAR, sizeof(j1939_lfe_typ)},
-	{DB_J1939_TSC1_BRKSRC_VAR, sizeof(j1939_tsc1_typ)},
+	{DB_J1939_TSC1_E_A_VAR, sizeof(j1939_tsc1_typ)},
 };
 
 static int profile_num_dbvs = sizeof(dbv_used)/sizeof(int);

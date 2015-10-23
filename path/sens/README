@@ -1,0 +1,12 @@
+This directory is for drivers/parsers for sensors that are likely to
+be shared across projects.
+
+The drivers should be written so that they can be used either with
+the data server, or without it to get a trace, by changing a command
+line flag.
+
+All structures and data server definitions needed by the sensor driver
+should be contained in the associated header file.
+
+Data server variable definitions must be take from a range that
+does not conflict with any project.

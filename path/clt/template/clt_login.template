@@ -1,0 +1,8 @@
+	get_local_name(hostname, MAXHOSTNAMELEN);
+	if ((pclt = clt_login(argv[0], hostname, domain, xport))
+			== NULL)
+	{
+		printf("clt login %s %s %s %d failed\n",
+			argv[0], hostname, domain, xport);
+		exit(EXIT_FAILURE);
+	}

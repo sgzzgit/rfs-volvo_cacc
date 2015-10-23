@@ -1,0 +1,65 @@
+This directory hold programs and scripts to make plotting easier.
+
+SHELL SCRIPTS
+
+fixtime.sh converts a file $base.dat with first column hr:min:sec.milli
+timestamp to a file $base.plt that has a first column in seconds since midnight
+
+fixradar.sh does the same thing for a file with first two columns as
+hr:min:sec.milli timestamps. 
+
+fixutc.sh takes an xfile already processed by fixtime.sh and converts
+the utc timestamp in column 37 to seconds since midnight (Greenwich)
+
+fixgga.sh takes a file in GPS NEMA format containing GGA lines and produces
+a 3-column output, utc, lat, long.
+
+fixgpslog.sh takes the current log of the gpsread process and puts it
+in pseudo-NEMA GGA format for processing by fixgga.sh 
+
+The .plt files are easier to plot in gnuplot, matlab or excel.
+
+C PROGRAMS
+
+The C programs can all be build with default make.
+
+create_ml takes as input a file with variable names and column numbers
+and produces a .m file for loading a .dat file into matlab.
+
+create_pl takes as input a file with variable names and column numbers
+and produces a set of gnuplot macros that when loaded into gnuplot
+will create multiplots of the variables in file "test.dat"
+
+COLUMN DESCRIPTION FILES
+
+radar.in and xfile.in are sample input files to create_ml and create_pl
+that contain all the columns in the CICAS [ab]*.dat and x*.dat files,
+respectively; radbg.in is a selection of fields for debuggin that
+show the radar targets 1 and 2, which are most likely to be active with
+the EVT 300 radars.
+
+Use these as standard input, e.g.,
+
+create_pl <radar.in >radar.out
+
+Then convert the radar file you are interested in and rename it test.dat:
+fixradar.sh a1121036.dat
+cp a1121036.plt test.dat
+
+Then
+gnuplot
+> l 'radar.out'
+
+to do the plots
+ 
+SAMPLE GNUPLOT MACROS
+
+The file "gps.gpl" can be loaded for a latitude/longitude plot of GPS
+data; it has examples of setting ranges in gnuplot and using an abscissa
+other than the default line number (which in our usage corresponds to
+"ticks" or time samples); 'gpspos.gpl' is the same except the longitude
+range is positive, so can be used for data taken directly from GPS NEMA
+traces without converting to negative. 
+
+
+

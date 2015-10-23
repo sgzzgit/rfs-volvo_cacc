@@ -1,0 +1,9 @@
+BEGIN TRANSACTION;
+CREATE TABLE ggatbl(utc_time TIME, utc_ms INTEGER, latitude REAL, longitude REAL, pos INTEGER, num_sats INTEGER, hdop REAL, altitude REAL, alt_offset REAL, time_since_dgps REAL, dgps_station_id INTEGER, date_time DATETIME);
+CREATE TABLE vtgtbl(true_track REAL, magnetic_track REAL, speed_knots REAL, speed_kph REAL, date_time DATETIME);
+CREATE TABLE rmctbl(utc_time TIME, utc_ms INTEGER, nav_warning INTEGER, latitude REAL, longitude REAL, speed_knots REAL, true_track REAL, date_of_fix INTEGER, magnetic_variation REAL, date_time DATETIME);
+CREATE TABLE pttbl(object_id BLOB_6BYTE, local_time TIME, local_ms INTEGER, utc_time TIME, utc_ms INTEGER, latitude REAL_DEGREES, longitude REAL_DEGREES, speed REAL, heading REAL, pos INTEGER, num_sats INTEGER, hdop REAL, sequence_no INTEGER, date_time DATETIME);
+CREATE TABLE bsmtbl(msgid INT_1BYTE, ms_in_min INT_2BYTE, tmp_id BLOB_6BYTE, latitude INTEGER_EIGHTH_UDEGREE, longitude INTEGER_EIGHTH_UDEGREE, elevation INT_2BYTE, speed INT_2BYTE, heading INT_2BYTE, date_time DATETIME);
+CREATE TABLE reltbl(object_id BLOB_6BYTE, local_time TIME, local_ms INTEGER, utc_time TIME, utc_ms INTEGER, x REAL_METERS, y REAL_METERS, speed REAL_MPS, heading REAL_DEGREES, distance REAL_METERS, date_time DATETIME);
+CREATE TABLE ixtbl(object_id BLOB_6BYTE, local_time TIME, local_ms INTEGER,  cnt1 REAL_COUNTDOWN, cnt2 REAL_COUNTDOWN, sig1 CHAR_RYG, sig2 CHAR_RYG, bus_priority_type INTEGER_1BYTE, bus_approach INTEGER_1BYTE, bus_time_saved INTEGER_1BYTE, date_time DATETIME);
+COMMIT;

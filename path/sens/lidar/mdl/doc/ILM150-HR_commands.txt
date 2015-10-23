@@ -1,0 +1,15 @@
+E Toggle serial output on and off
+F Stop laser
+H Display this message
+N Start laser
+P Pointer on
+Q Pointer off
+R In speed mode toggles display of range as well
+S In single shot mode fires the laser and returns value
+T Set trigger values
+U With the laser on but output off, outputs last range in binary
+Z Set offset to current range
+# Return laser serial number
+<ctrl A> Set Auto Trigger
+? Display date and time code was built
+

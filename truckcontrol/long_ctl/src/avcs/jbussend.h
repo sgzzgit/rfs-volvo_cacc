@@ -20,7 +20,7 @@
 #include "j1939pdu_extended.h"
 #include "j1939db.h"
 #include "clt_vars.h"
-#include "vehicle.h"
+#include "veh_trk.h"
 #include <timing.h>
 #include <path_gps_lib.h>
 
@@ -50,7 +50,8 @@ typedef struct {
 	int dbv;	/* database variable number of the command type */
 	union {
 		j1939_tsc1_typ tsc1;
-		j1939_exac_typ exac;
+		j1939_volvo_xbr_typ volvo_xbr;
+		j1939_volvo_xbr_warn_typ volvo_xbr_warn;
 		path_gps_point_t gps;
 	} cmd;
 	struct timeb last_time;	/* last time a command was sent */	
@@ -74,16 +75,17 @@ typedef struct {
 
 #define JBUS_SEND_ENGINE_SRC_ACC		0
 #define JBUS_SEND_ENGINE_RETARDER_SRC_ACC	1
-#define	JBUS_SEND_EBS			2
-#define	JBUS_SEND_TRANS_RETARDER	3
+#define	JBUS_SEND_XBR			2
+#define	JBUS_SEND_XBR_WARN		3
 #define	JBUS_SEND_GPS			4
-#define NUM_JBUS_SEND			2
+#define NUM_JBUS_SEND			4
 
 /* is_ready_to_send functions */
 extern int ready_to_send_engine (long_output_typ *ctrl, jbus_cmd_type *cmd); 
 extern int ready_to_send_engine_retarder (long_output_typ *ctrl,
 		 jbus_cmd_type *cmd); 
-extern int ready_to_send_ebs (long_output_typ *ctrl, jbus_cmd_type *cmd); 
+extern int ready_to_send_xbr (long_output_typ *ctrl, jbus_cmd_type *cmd); 
+extern int ready_to_send_xbr_warn (long_output_typ *ctrl, jbus_cmd_type *cmd); 
 extern int ready_to_send_trans_retarder (long_output_typ *ctrl,
 		 jbus_cmd_type *cmd); 
 
@@ -92,7 +94,9 @@ extern void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd,
 	 int dosend);
 extern void update_engine_retarder_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd,
 	int dosend);
-extern void update_brake_exac (long_output_typ *ctrl, jbus_cmd_type *cmd,
+extern void update_brake_volvo_xbr(long_output_typ *ctrl, jbus_cmd_type *cmd,
+	int dosend);
+extern void update_brake_volvo_xbr_warn(long_output_typ *ctrl, jbus_cmd_type *cmd,
 	int dosend);
 extern void update_trans_retarder_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd,
 	int dosend);

@@ -1,0 +1,40 @@
+\file
+Structure of Data Acquisition System functions
+
+The DAS provides a uniform interface for implementing device drivers
+(or resource managers as they are called on QNX6) for analog-to-digital,
+digital-to-analog and timer cards.
+
+das_man.c contains a main program and is used as a template for a DAS
+driver that must be linked with definitions of all the required
+I/O functions for a resource manager. Most of these I/O functions
+will be the QNX6 default functions, except for io_devctl and io_msg,
+which are implemented in io_func.c -- see the "Writing a Resource Manager"
+section of the Programmers Guide in QNX6/Neutrino on-line help.
+
+The implementations in io_func.c depend on supplying functions for
+DAS devctl and io message subtypes.  das_default.c provides an 
+implementation with the correct message passing characteristics for each
+of these functions that need to be supplied. The functions in das_default.c can
+be used as a model for and/or called by functions that implement the
+appropriate hardware functions. If the function is not active for the
+paricular hardware device, the default function can be used as a placeholder.
+
+null_das.c is an example of a null DAS device that can be used for testing
+the interface between DAS resource managers and DAS clients. It shows
+the basic required functions that must be implemented for each driver,
+as well as the use of a non-default function for a devctl function. The
+required functions are:
+
+int das_func_init(IOFUNC_ATTR_T *pattr)
+int das_open_dev(IOFUNC_ATTR_T *pattr)
+void das_handle_interrupt(RESMGR_OCB_T *pocb)
+bool_typ das_ad_data(float *pdata, int n_data)
+
+Functions in sys_das.c in the 'local' directory are used by client programs
+to communicate with a DAS driver.  sys_das.c is linked to the local library;
+unlike the DAS implementation on QNX4, there is no need for a separate
+das_msg.o module that must be linked separately to each client. Note that
+das_clt.h in the 'local' directory is also referenced by the driver
+routines for the definition of the das_info type.
+

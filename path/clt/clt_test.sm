@@ -1,0 +1,89 @@
+#!/usr/local/bin/simple_menu
+#
+# Variable definitions
+
+from-env "COUNT" = '100' ;
+from-env "INTERVAL" = '500' ;
+from-env "VARNUM" = '200' ;
+
+#This is the beginning of the main menu
+
+menu "MAIN_MENU"
+
+title 'Database client tests' 
+
+clear bold always-show
+
+skip ;
+
+do-menu "PARAMETER_SETUP" 'Set configuration'
+;
+
+shell 'Show configurations'
+%(
+
+	echo Number of database reads is $COUNT.
+	echo Interval between consecutive updates is $INTERVAL 
+	echo Variable number to use is $VARNUM 
+%)
+;
+
+skip ;
+
+shell 'Initialize database server'
+%(
+	/home/path/db/db_slv & 
+%)
+;
+
+shell 'Stop database server'
+%(
+	killall -TERM db_slv	
+%)
+;
+
+skip ; 
+
+shell 'Start update program (runs until stopped)'
+%(
+	/home/path/clt/test_update -n 0 -t$INTERVAL -v$VARNUM >clt_update.log &
+%)
+;
+
+shell 'Stop update program'
+%(
+	killall -TERM test_update
+%)
+;
+
+skip ;
+
+shell 'Start read test (reads as specified in paramter setup)'
+%(
+	/home/path/clt/test_read -n$COUNT -t$INTERVAL -v$VARNUM >clt_$INTERVAL.log &
+%)
+;
+
+skip ;
+
+menu "PARAMETER_SETUP"
+
+title 'Setup parameters'
+
+clear bold always-show
+
+skip ;
+
+reset-global 'Set number of reads'
+from-user "COUNT" 'Number of reads ? '
+;
+
+reset-global 'Set interval between reads'
+from-user "INTERVAL" 'Interval between reads? '
+;
+
+reset-global 'Set database variable number'
+from-user "VARNUM" 'Database variable number '
+;
+
+skip ;

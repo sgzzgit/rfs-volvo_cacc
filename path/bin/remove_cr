@@ -1,0 +1,13 @@
+#!/bin/sh
+# Get rid of all the DOS style carriage returns (^M, ASCII 13, octal 015)
+# left when people edit files on Windows.  
+# Takes a list of text files as argument.
+# Use temporary files instead of -r option to tr, which is available
+# on QNX but not on Linux
+for i in $*
+do
+	cp $i $i.tmp
+	tr -d '\015' <$i.tmp >$i 
+	rm $i.tmp
+done
+	

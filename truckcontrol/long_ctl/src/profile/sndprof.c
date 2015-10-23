@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
 		/* Set override disable before exiting */
 		cmd_var.engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		cmd_var.engine_command_mode = TSC_OVERRIDE_DISABLED;
-		cmd_var.brake_command_mode = EXAC_NOT_ACTIVE;
+		cmd_var.brake_command_mode = XBR_NOT_ACTIVE;
 
 		if( clt_update( pclt, DB_LONG_OUTPUT_VAR, DB_LONG_OUTPUT_TYPE,
 		    sizeof( long_output_typ ), (void *) &cmd_var ) == FALSE )

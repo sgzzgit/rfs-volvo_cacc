@@ -1,0 +1,13 @@
+	/* Catch the signals SIGINT, SIGQUIT, and SIGTERM.  If signal occurs,
+	 * log out from database and exit. */
+	if( setjmp( exit_env ) != 0 )
+	{
+	    /* Log out from the database. */
+	    if (pclt != NULL)
+		clt_destroy( pclt, DB_DII_OUT_VAR, DB_DII_OUT_VAR); 
+	        clt_logout( pclt );
+
+		exit( EXIT_SUCCESS );
+	}
+	else
+		sig_ign( sig_list, sig_hand );

@@ -1,0 +1,30 @@
+# This plot range against time for all targets on POV radar, along
+# with the SB d2i information from the sensor fusion. 
+set grid
+set xlabel "Seconds since midnight"
+set ylabel "Meters"
+plot "speed.plt" using 1:3
+replot "speed.plt" using 1:4
+replot "speed.plt" using 1:5
+replot "speed.plt" using 1:6
+replot "speed.plt" using 1:7
+replot "speed.plt" using 1:8
+replot "speed.plt" using 1:9
+replot "speed.plt" using 1:10
+replot "speed.plt" using 1:11
+replot "speed.plt" using 1:12
+replot "speed.plt" using 1:13
+replot "speed.plt" using 1:14
+replot "speed.plt" using 1:15
+replot "speed.plt" using 1:16
+replot "speed.plt" using 1:17
+replot "speed.plt" using 1:18
+replot "speed.plt" using 1:19
+replot "speed.plt" using 1:20
+replot "speed.plt" using 1:21
+replot "speed.plt" using 1:22
+replot "speed.plt" using 1:23
+replot "speed.plt" using 1:24
+replot "speed.plt" using 1:25
+replot "speed.plt" using 1:26
+replot "speed.plt" using 1:27  

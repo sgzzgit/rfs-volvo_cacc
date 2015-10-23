@@ -1,0 +1,22 @@
+Summary of J1735 Basic Safety Message format
+(still under construction -- Sue, June 14)
+
+msgid	DSRCmsgID	1         value 2 for basicSafetyMesage 
+secmark	DSecond	2	milliseconds in a minute (65535 unknown)
+id	TemporaryID	6	MAC address               
+lat	Latitude	4	
+long	Longitude	4            -x- 4 bytes
+elev	Elevation	4            -x- 2 bytes
+speed	Speed	2                -x- 2 bytes
+heading	Heading	2              -x- 2 byte
+acclong	Acceleration	2  -x- accel set (four way) 7 bytes
+acclat	Acceleration	2  -x- accel set (four way) 7 bytes
+accvert	VerticalAcceleration	2
+yaw	YawRate	1
+brakes	BrakeSystemStatus	1	(4 bits wheel brakes applied status, 2 bits traction control state, 2 bits anti lock brake status)
+steering	SteeringWheelAngle	2
+throttle	ThrottlePosition	1
+lightset	ExteriorLights	1            -- 1 byte
+vehsize	VehicleSize	3	(centimeters, 10 bits width, 14 bits length)	
+
+Variable length addition of other data elements

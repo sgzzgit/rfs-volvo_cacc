@@ -1,0 +1,10 @@
+#!/bin/sh /etc/rc.common
+START=99
+start() {
+  killall -2 fwdMon.sh
+  /usr/local/bin/path/fwdMon.sh &
+}
+
+stop() {
+  killall -2 fwdMon.sh
+}

@@ -1,0 +1,21 @@
+By default, gpsinsert operates on path_gps.db, use -d flag to change.
+ 
+To run gpsinsert, first delete or copy out the old path_gps.db, then
+pipe a GPS NEMA stream to it; -t flag prints timing at end, -v is very
+verbose for debugging.
+
+# cat </dev/ttyUSB0 | gpsinsert -t & 
+
+or on a system with gpsd, you can use tcp_client from sens/gps/examples
+to get a raw NEMA stream.
+
+# tcpclient -t -q r | gpsinsert -t & 
+
+While it is running or after killed, can use
+
+# sqlite3 path_gps.db
+
+to examine the tables (see creation in gps.dump). 
+
+Work in progress in this directory to get relative coordinate
+database going -- Sue, July 2008.

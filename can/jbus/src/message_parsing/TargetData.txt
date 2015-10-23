@@ -1,0 +1,5 @@
+Name	Message	Multiplexing/Group	Startbit	Length [Bit]	Byte Order	Value Type	Initial Value	Factor	Offset	Minimum	Maximum	Unit	Value Table	Comment	SigType	GenSigEVName	GenSigILSupport	GenSigSendType	GenSigStartValue	SPN
+TargetDist	TargetData	-	0	16	Intel	Unsigned	0	0.01	0	0	655.35		<none>		Default	Env@Nodename_@Signame	Yes	NoSigSendType	0	0
+TargetVel	TargetData	-	16	16	Intel	Unsigned	0	0.01	0	0	655.35		<none>		Default	Env@Nodename_@Signame	Yes	NoSigSendType	0	0
+TargetAcc	TargetData	-	32	16	Intel	Signed	0	0.01	0	-327.68	327.67		<none>		Default	Env@Nodename_@Signame	Yes	NoSigSendType	0	0
+TargetAvailable	TargetData	-	48	1	Intel	Unsigned	0	1	0	0	1		<none>		Default	Env@Nodename_@Signame	Yes	NoSigSendType	0	0

@@ -1,0 +1,50 @@
+Sue,
+
+Ok here is a summary of the documentation.  I looked at the binary data 
+and confirmed that it seems to match
+what the documenation says. So each message starts with a message hader 
+which consist of the 4 uint32 fields (in order)
+
+1. the magic word 0xAFFEC0C0
+2. size of message body in bytes
+3. data type (1 for object data and 15 for compressed scan)
+4. time stamp in milliseconds.
+
+If data type = 1 then it is a sequence of CAN messages of 8 byte 
+length.  The maximum length is 3,136 bytes.
+If data type = 15 then the message body consists of a scan header 
+followed by the scan data.
+
+So I think the code you have right now will work for messages of typ 1 
+correct? I can write code to pull this data out
+and also to decode type 15 messages.  Let me know if this makes sense to 
+you. thanks
+
+Here's the format for scan header:
+
+Scan header   data type  description
+Version          unit8         version (should be 1)
+scannertype    unit8        
+ecu_id            unit8         id of ecu that sent the scan
+padbyte          unit8         used for memory alignment
+timestamp       unit32      timestamp of scan in milliseconds
+startangle        int16        scan start angle
+endangle         int16
+scancounter    uint16      consecutive scan number
+num points      uint16      number of subsequent scan points
+
+Scan point:
+ScannerID          unit8      id of scanner that detected this point
+channel               unit8      zero based channel number
+subchannel          unit8      zero based sub-channel
+pointstatus          uint8      point can be ground, dirt, rain
+xccord                int16
+ycoord                int16
+zcoord                int16
+echopulsewidth   unit16
+
+Susan Dickey wrote:
+> ibeo_rx_file builds now on Linux and seems to work on data/ibeo.dat
+>
+> Next question is how to get your data file in that form, can you
+> tell me more about what format it is in? How did you grab it?

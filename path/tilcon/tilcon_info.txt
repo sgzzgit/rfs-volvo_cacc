@@ -1,0 +1,122 @@
+
+On my dell laptop which I'll leave up and running with linux,  
+128.32.234.243, username PATH, pwd pathavcs, there's a directory in  
+the home called Installers.  If you want to install Tilcon on your  
+local machine, grab the files:
+
+550G-GM-TSP-RHLE4-X86-002.bin
+licensex.til
+tilcon_help55.tgz
+
+The interface developer is locked to run only on my laptop, but that  
+TSP package can be installed on any machine to allow runtime apps and  
+compiling.  I'll assume that you just copy the licensex.til file into  
+what ever directory the .bin creates.
+
+I don't know if the new tilcon help files will come with the TSP  
+install.  If not, I've tar'ed them up and provided you with a .tgz  
+file.  All of the help is webpage based, so just unpack the .tgz and  
+open up the help files with your browser.
+
+Finally, if you want, tomorrow I can ask Jonathan how to enable  
+remote desktop sharing or vnc or something like that on the linux  
+laptop.  You might be able to remotely and graphically log into the  
+linux laptop to use the Tilcon developer if you need to.  I know  
+there are options and ways, but I just don't have a clue how.  Let me  
+know if you want that.
+
+Chrisotpher
+
+On Nov 8, 2006, at 3:22 PM, Susan Dickey wrote:
+
+> I would like you to give me a very simple truck screen .twd file that
+> displays the values of a very few atabase variables, maybe one as  
+> multi-state
+> objects, one as text and one as a number.
+>
+> I would like John to give me a complete backup of the entire path
+> directory as he has installed it on the truck including any new  
+> code he has
+> written in any other directories.
+>
+> Then I will install his code on your laptop, make a directory for the
+> tilcon utilities that we developed on QNX and see if I can get them
+> to compile and get the simple app to run with a test program that  
+> changes
+> values of the database variables (e.g., like chgdii).
+>
+> I think the LTAP-OD demo is too large a piece of code to begin the  
+> porting
+> with, and I think it would be too big of a learning curve for  
+> anyone but
+> me to port the Tilcon utilities and get the initial piece of Tilcon  
+> code running.  Once it is ported, you and John can test it with  
+> live variables
+> on the truck and develop it further.
+>
+> I will probably need to work closely with you to tell me whether  
+> things
+> look right, but I'm sure there will be compile and build problems and
+> crashes to deal with first. Once I get something that runs we can work
+> together to get it to run correctly.
+>
+> On Wed, 8 Nov 2006, Christopher Nowakowski wrote:
+>
+>>
+>> 1.  All the software written to support Tilcon under QNX must be  
+>> identified and made to work under Linux.
+>> 2.  We'll need to figure out how to install the Tilcon TSP on the  
+>> silver truck
+>>
+>> As I mentioned in my last email, there are two ways of going about  
+>> this.
+>>
+>> 1.  We could take a step back, and try to get the LTAP-OD demo  
+>> working under linux.
+>> 2.  We could try to start from scratch with a simple truck screen.
+>>
+>> I need a decision on which method the software group is more  
+>> comfortable pursuing.
+>>
+>> -c
+>>
+>> On Nov 8, 2006, at 1:56 PM, John Spring wrote:
+>>
+>>> Chris:
+>>> There is a computer with Linux 2.6 on the gray truck now.  Xiao- 
+>>> Yun is using
+>>> it to calibrate the lidar and radar.  The database app and all  
+>>> the clients
+>>> except the gyro are working and correctly write to the DB.
+>>> What do you need?
+>>> John
+>>> On Tuesday 07 November 2006 5:05 pm, Christopher Nowakowski wrote:
+>>>> Sue,
+>>>> I've got Tilcon for Linux up and running on the new linux  
+>>>> laptop, at
+>>>> least the interface developer is installed and working and the
+>>>> license issues are straightened out.  I'm not sure what exactly  
+>>>> to do
+>>>> next.  I suppose that one way to proceed would be to try to get the
+>>>> left-turn demo back working on the laptop only under linux.  I'm  
+>>>> open
+>>>> to other ideas.
+>>>> Our first Tilcon linux app will be for the FMCSA truck project.  I
+>>>> can start designing an app, but there are no computers set up or
+>>>> working to really do anything with or test anything with.
+>>>> Considering all the underlying software Sue wrote in QNX to support
+>>>> Tilcon, I'm not sure simply waiting until the truck project  
+>>>> deadline
+>>>> hits us would be the wisest move.
+>>>> I also don't know anything about managing this linux laptop  
+>>>> (setting
+>>>> up automated scripts for different IP/network configurations) or  
+>>>> how
+>>>> our software architecture is going to work under linux.  The laptop
+>>>> has a single user right now and is on the network with ssh enabled.
+>>>> 128.32.234.243
+>>>> Username: PATH
+>>>> pwd: pathavcs (cause linux wouldn't allow our usual password)
+>>>> root: our usual
+>>>> Chrisotpher
+

@@ -1,0 +1,4 @@
+#!/bin/sh
+stty 9600 </dev/ttyUSB0
+stty raw </dev/ttyUSB0
+stty -echo -echoe -echok -echonl -echoprt -echoctl -echoke </dev/ttyUSB0

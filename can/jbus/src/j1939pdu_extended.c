@@ -1768,25 +1768,25 @@ print_fd(void *pdbv, FILE  *fp, int numeric)
 /** EXAC (External Acceleration Command) WABCO proprietary
  * Since this is a command, conversion routine translates database
  * variable to PDU for transmission.
- */
+ 
  
 void exac_to_pdu (struct j1939_pdu *pdu, void *pdbv) 
 {
 	j1939_exac_typ *exac = (j1939_exac_typ *) pdbv;
 	short requested_deceleration;
 
-        pdu->priority = 3; /* high PDU priority */
+        pdu->priority = 3;  high PDU priority 
         pdu->R = 0;
         pdu->DP = 0;
         pdu->pdu_format = 0;	
         pdu->pdu_specific = J1939_ADDR_BRAKE;
 
-	/* pretend to be adaptive cruise control */
+	pretend to be adaptive cruise control
         pdu->src_address = exac->src_address; 
 
         pdu->numbytes = 8;
         pdu->data_field[0] = 
-			0xf0 |		/* bits 5-8 undefined */
+			0xf0 |		 bits 5-8 undefined 
 			BITS21(exac->ebs_override_control_mode_priority)  << 2 |
 			BITS21(exac->external_deceleration_control_mode); 
 	requested_deceleration = deceleration_to_short(
@@ -1799,7 +1799,7 @@ void exac_to_pdu (struct j1939_pdu *pdu, void *pdbv)
         pdu->data_field[1] = LOBYTE(requested_deceleration);
         pdu->data_field[2] = HIBYTE(requested_deceleration);
         pdu->data_field[3] = 
-			0xf0 |		/* bits 5-8 undefined */
+			0xf0 |		 bits 5-8 undefined 
 			BITS21(exac->edc_override_control_mode_priority) << 2 |
 			BITS21(exac->override_control_modes); 
         pdu->data_field[4] =
@@ -1815,7 +1815,110 @@ void exac_to_pdu (struct j1939_pdu *pdu, void *pdbv)
 			pdu->data_field[6] + 1;
 
 }
+*/
 
+/** VOLVO XBR (External Brake Command) VOLVO proprietary
+ * Since this is a command, conversion routine translates database
+ * variable to PDU for transmission.
+ */
+ 
+void volvo_xbr_to_pdu (struct j1939_pdu *pdu, void *pdbv) 
+{
+	j1939_volvo_xbr_typ *volvo_xbr = (j1939_volvo_xbr_typ *) pdbv;
+	unsigned short requested_deceleration;
+	unsigned int checksum;
+	unsigned const int id_sum = 0x0C + 0xEF + 0x0B + 0x2A;
+	unsigned const int customer_key = 5;
+	static unsigned char counter = 0;
+	int i;
+
+        pdu->priority = 3; /* high PDU priority */
+        pdu->R = 0;
+        pdu->DP = 0;
+        pdu->pdu_format = 0xef;	
+        pdu->pdu_specific = J1939_ADDR_BRAKE;
+	if(++counter >= 16)
+		counter = 0;
+
+	/* pretend to be adaptive cruise control */
+        pdu->src_address = 0x2A; 
+//	volvo_xbr->XBRPriority = 3;
+
+
+        pdu->numbytes = 8;
+        pdu->data_field[2] = 
+			0xc0 |		/* bits 7-8 undefined */
+			BITS21(volvo_xbr->XBREBIMode) |
+			(BITS21(volvo_xbr->XBRPriority)  << 2) |
+			(BITS21(volvo_xbr->XBRControlMode)  << 4);
+	if(volvo_xbr->XBRControlMode == 0)
+		volvo_xbr->ExternalAccelerationDemand = 10;
+	requested_deceleration = ((unsigned short)((volvo_xbr->ExternalAccelerationDemand + 15.687) / 0.0004882812)) & 0xFFFF;
+//	0x557F = -5.00
+#ifdef DEBUG_BRAKE
+	printf("requested_deceleration %.3f m/s/s = (%#0hx)\n",
+		volvo_xbr->ExternalAccelerationDemand, requested_deceleration);
+#endif
+        pdu->data_field[0] = LOBYTE(requested_deceleration);
+        pdu->data_field[1] = HIBYTE(requested_deceleration);
+        pdu->data_field[3] = volvo_xbr->XBRUrgency; 
+        pdu->data_field[3] = 100; 
+        pdu->data_field[4] = volvo_xbr->spare1;
+        pdu->data_field[5] = volvo_xbr->spare2;
+	pdu->data_field[6] = volvo_xbr->spare3;
+
+printf("Calling volvo_xbr_to_pdu: mode %d msg ctr %#hhx id_sum %#x cust_key %#x ",
+	volvo_xbr->XBRControlMode,
+	counter,
+	id_sum,
+	customer_key
+);
+	checksum = pdu->data_field[0] + pdu->data_field[1] +
+			pdu->data_field[2] + pdu->data_field[3] +
+			pdu->data_field[4] + pdu->data_field[5] +
+			pdu->data_field[6] + 
+			counter +
+			id_sum + customer_key;
+
+printf("CS1 %#x ", checksum);
+	checksum &= 0xFF;
+printf("CS2 %#x ", checksum);
+	checksum = (((checksum & 0xF0) >> 4) + (checksum & 0x0F)) & 0x0F;
+printf("CS3 %#x msg ctr %#hhx ", checksum, counter);
+	pdu->data_field[7] = ((checksum << 4) & 0xF0) + counter;
+
+for(i=0; i<8; i++)
+	printf("D[%d] %#hhx ", i, pdu->data_field[i]);
+printf("\n");
+}
+
+void volvo_xbr_warn_to_pdu (struct j1939_pdu *pdu, void *pdbv) 
+{
+	j1939_volvo_xbr_warn_typ *volvo_xbr_warn = (j1939_volvo_xbr_warn_typ *) pdbv;
+	int i;
+//CFF10FE is wrong
+        pdu->priority = 6; /* low PDU priority */
+        pdu->R = 0;
+        pdu->DP = 0;
+        pdu->pdu_format = 0xff;	
+        pdu->pdu_specific = 0x10;
+        pdu->src_address = (0x2A & 0xFF); 
+
+        pdu->numbytes = 8;
+
+        pdu->data_field[0] = 0xFF;
+        pdu->data_field[1] = 0xFF;
+        pdu->data_field[2] = 0xFF;
+        pdu->data_field[3] = 0xFF;
+        pdu->data_field[4] = 0xFF;
+        pdu->data_field[5] = 0xFF;
+        pdu->data_field[6] = 0x31;
+        pdu->data_field[7] = 0xFF;
+printf("Calling volvo_xbr_warn_to_pdu: ");
+for(i=0; i<8; i++)
+	printf("%#hhx ", pdu->data_field[i]);
+printf("\n");
+}
 /** reverse also needed for logging to database */
 void
 pdu_to_exac (struct j1939_pdu *pdu, void *pdbv)
@@ -1832,6 +1935,101 @@ pdu_to_exac (struct j1939_pdu *pdu, void *pdbv)
 	exac->acc_internal_status = LONIBBLE(pdu->data_field[5]);
 	exac->undefined = pdu->data_field[6];
 	exac->checksum = pdu->data_field[7];
+}
+
+
+/** Volvo brake data */
+void
+pdu_to_volvo_xbr(struct j1939_pdu *pdu, void *pdbv)
+{
+
+	j1939_volvo_xbr_typ *volvo_xbr= (j1939_volvo_xbr_typ *)pdbv;
+	unsigned short data;
+	unsigned int byte;
+
+       	data = TWOBYTES(pdu->data_field[1], pdu->data_field[0]);
+	volvo_xbr->ExternalAccelerationDemand = (data * 0.000488281) - 15.687;
+	byte = (unsigned int) pdu->data_field[2];
+	volvo_xbr->XBREBIMode = BITS21(byte);
+	volvo_xbr->XBRPriority = BITS43(byte);
+	volvo_xbr->XBRControlMode = BITS65(byte);
+	volvo_xbr->XBRUrgency = pdu->data_field[3];
+	volvo_xbr->spare1 = pdu->data_field[4];
+	volvo_xbr->spare2 = pdu->data_field[5];
+	volvo_xbr->spare3 = pdu->data_field[6];
+	volvo_xbr->XBRMessageCounter = LONIBBLE(pdu->data_field[7]);
+	volvo_xbr->XBRMessageChecksum = HINIBBLE(pdu->data_field[7]) >> 4;
+}
+
+/** Volvo brake warning */
+void
+pdu_to_volvo_xbr_warn(struct j1939_pdu *pdu, void *pdbv)
+{
+
+	j1939_volvo_xbr_warn_typ *volvo_xbr_warn = (j1939_volvo_xbr_warn_typ *)pdbv;
+
+	volvo_xbr_warn->byte1= pdu->data_field[0];
+	volvo_xbr_warn->byte2= pdu->data_field[1];
+	volvo_xbr_warn->byte3= pdu->data_field[2];
+	volvo_xbr_warn->byte4= pdu->data_field[3];
+	volvo_xbr_warn->byte5= pdu->data_field[4];
+	volvo_xbr_warn->byte6= pdu->data_field[5];
+	volvo_xbr_warn->byte7= pdu->data_field[6];
+	volvo_xbr_warn->byte8= pdu->data_field[7];
+}
+
+void 
+print_volvo_xbr_warn(void *pdbv, FILE  *fp, int numeric)
+{
+	j1939_volvo_xbr_warn_typ *volvo_xbr_warn = (j1939_volvo_xbr_warn_typ *)pdbv;
+	fprintf(fp, "VOLVO XBR WARNING ");
+	print_timestamp(fp, &volvo_xbr_warn->timestamp);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte8);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte7);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte6);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte5);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte4);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte3);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte2);
+	fprintf(fp, "%hhx ", volvo_xbr_warn->byte1);
+	fprintf(fp,  "\n");	
+}
+
+void 
+print_volvo_xbr(void *pdbv, FILE  *fp, int numeric)
+{
+	j1939_volvo_xbr_typ *volvo_xbr = (j1939_volvo_xbr_typ *)pdbv;
+	fprintf(fp, "VOLVO XBR ");
+	print_timestamp(fp, &volvo_xbr->timestamp);
+	if (numeric) {
+		fprintf(fp, "%.3f ", volvo_xbr->ExternalAccelerationDemand);
+		fprintf(fp, "%d ", volvo_xbr->XBREBIMode);
+		fprintf(fp, "%d ", volvo_xbr->XBRPriority);
+		fprintf(fp, "%d ", volvo_xbr->XBRControlMode);
+		fprintf(fp, "%d ", volvo_xbr->XBRUrgency);
+		fprintf(fp, "%d ", volvo_xbr->spare1);
+		fprintf(fp, "%d ", volvo_xbr->spare2);
+		fprintf(fp, "%d ", volvo_xbr->spare3);
+		fprintf(fp, "%d ", volvo_xbr->XBRMessageCounter);
+		fprintf(fp, "%d ", volvo_xbr->XBRMessageChecksum);
+		fprintf(fp,  "\n");	
+	} else {
+		fprintf(fp, "XBR External Acceleration Demand %.3f\n",
+			volvo_xbr->ExternalAccelerationDemand);
+		fprintf(fp, "XBR EBI Mode %d\n",
+			volvo_xbr->XBREBIMode);
+		fprintf(fp, "XBR Priority %d\n",
+			volvo_xbr->XBRPriority);
+		fprintf(fp, "XBR Control Mode %d\n",
+			volvo_xbr->XBRControlMode);
+		fprintf(fp, "XBR Urgency %d\n",
+			volvo_xbr->XBRUrgency);
+		fprintf(fp, "XBR Message Counter %d\n",
+			volvo_xbr->XBRMessageCounter);
+		fprintf(fp, "Undefined %d %d %d", volvo_xbr->spare1, volvo_xbr->spare2, volvo_xbr->spare3);
+		fprintf(fp, "Checksum %d ", volvo_xbr->XBRMessageChecksum);
+		fprintf(fp,  "\n");	
+	}
 }
 
 void 
@@ -1875,6 +2073,78 @@ print_exac(void *pdbv, FILE  *fp, int numeric)
 		fprintf(fp,  "\n");	
 	}
 }
+
+/** Volvo target data */
+void
+pdu_to_volvo_target(struct j1939_pdu *pdu, void *pdbv)
+{
+
+	j1939_volvo_target_typ *volvo_target = (j1939_volvo_target_typ *)pdbv;
+	unsigned short data;
+       	data = TWOBYTES(pdu->data_field[1], pdu->data_field[0]);
+	volvo_target->TargetDist = data * 0.01;
+       	data = TWOBYTES(pdu->data_field[3], pdu->data_field[2]);
+	volvo_target->TargetVel = data * 0.01;
+       	data = TWOBYTES(pdu->data_field[5], pdu->data_field[4]);
+	volvo_target->TargetAcc = (data * 0.01) - 327.68;
+	volvo_target->TargetAvailable = pdu->data_field[6] & 1;
+}
+
+/** Volvo self data */
+void
+pdu_to_volvo_ego(struct j1939_pdu *pdu, void *pdbv)
+{
+
+	j1939_volvo_ego_typ *volvo_ego = (j1939_volvo_ego_typ *)pdbv;
+	unsigned short data;
+       	data = TWOBYTES(pdu->data_field[1], pdu->data_field[0]);
+	volvo_ego->EgoVel = data * 0.01;
+       	data = TWOBYTES(pdu->data_field[3], pdu->data_field[2]);
+	volvo_ego->EgoAcc = (data * 0.01) - 327.68;
+}
+
+void 
+print_volvo_target(void *pdbv, FILE  *fp, int numeric)
+{
+	j1939_volvo_target_typ *volvo_target = (j1939_volvo_target_typ *)pdbv;
+	fprintf(fp, "VOLVO_TARGET: ");
+	print_timestamp(fp, &volvo_target->timestamp);
+	if (numeric) {
+		fprintf(fp, "%.3f ", volvo_target->TargetDist);
+		fprintf(fp, "%.3f ", volvo_target->TargetVel);
+		fprintf(fp, "%.3f ", volvo_target->TargetAcc);
+		fprintf(fp, "%d ", volvo_target->TargetAvailable);
+		fprintf(fp, "\n");	
+	} else {
+		fprintf(fp, "Volvo target available %d\n",
+			 volvo_target->TargetAvailable);
+		fprintf(fp, "Volvo target distance %.3f\n",
+			 volvo_target->TargetDist);
+		fprintf(fp, "Volvo target velocity %.3f\n",
+			 volvo_target->TargetVel);
+		fprintf(fp, "Volvo target acceleration %.3f\n",
+			 volvo_target->TargetVel);
+	}
+}
+
+void 
+print_volvo_ego(void *pdbv, FILE  *fp, int numeric)
+{
+	j1939_volvo_ego_typ *volvo_ego = (j1939_volvo_ego_typ *)pdbv;
+	fprintf(fp, "VOLVO_EGO: ");
+	print_timestamp(fp, &volvo_ego->timestamp);
+	if (numeric) {
+		fprintf(fp, "%.3f ", volvo_ego->EgoVel);
+		fprintf(fp, "%.3f ", volvo_ego->EgoAcc);
+		fprintf(fp, "\n");	
+	} else {
+		fprintf(fp, "Volvo ego velocity %.3f\n",
+			 volvo_ego->EgoVel);
+		fprintf(fp, "Volvo ego acceleration %.3f\n",
+			 volvo_ego->EgoVel);
+	}
+}
+
 
 void
 pdu_to_ebc_acc (struct j1939_pdu *pdu, void *pdbv)

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Used to populate the driver-specific build directory with
+# common client source
+for i in $1/client/*.[ch]
+do
+	ln -s -f $i .
+done

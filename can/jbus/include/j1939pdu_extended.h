@@ -109,6 +109,8 @@ extern int check_timestamp(timestamp_t *raw);
 //					** be 10ms.
 #define EBC5	0xfdc4  /* (253, 196) ?????????????????????????*/
 #define MVS_X_E 0xfde5  /* (253, 229) Maximum Vehicle Speed Limit Status - Reports the possible maximum vehicle speed limits, one through seven, and the applied maximum vehicle speed limit*/
+#define VOLVO_TARGET 0xfe33  /* (254, 51) Volvo target data */ 
+#define VOLVO_EGO 0xfe34  /* (254, 52) Volvo self data */ 
 #define GFI2    0xfe81  /* (254, 129) gaseous fuel information 2 */ 
 #define EI      0xfe92  /* (254, 146) engine information */
 #define FD      0xfebd  /* (254, 189) fan drive */
@@ -134,10 +136,12 @@ extern int check_timestamp(timestamp_t *raw);
 #define VEP     0xfef7  /* (254, 247) vehicle electric power */
 #define TF      0xfef8  /* (254, 248) transmission fluids */
 #define RF      0xfefb  /* (254, 251) retarder fluids */
+#define VOLVO_XBR_WARN 0xff10  /* (255, 16) XBR Bendix proprietary warning message */
 #define VP39	0xff27  /* (255, 39)  Status of the buttons in the steering wheel. With key in 'Radio'-position: sent on state changes. With key in 'Ignition'-position: sent periodically and on state changes */
 #define EBC_ACC 0xff80  /* (255, 128) EBC to ACC WABCO proprietary */
 #define TPDT    0xebff  /* (235, 255) transfer protocol data transfer, global */
 #define TPCM    0xecff  /* (236, 255) transfer protocol connection message, global */
+#define VOLVO_XBR 0xef0b  /* (239, 11) XBR Bendix proprietary brake control */
 
 /* Values for the TSC1 override control mode priority field (J1939 standard) */
 #define TSC_HIGHEST	0
@@ -151,21 +155,19 @@ extern int check_timestamp(timestamp_t *raw);
 #define TSC_TORQUE_CONTROL	2
 #define TSC_SPEED_TORQUE_LIMIT	3
 
-/* Values for the EXAC external_deceleration_control_mode field */
+/* Values for the XBR external_deceleration_control_mode field */
 
-#define EXAC_NOT_ACTIVE	0
-#define EXAC_ACTIVE 1
+#define XBR_NOT_ACTIVE	0
+#define XBR_ACTIVE 	2
 
 /* Default reference values used for percent torque; taken from trucks */
 #define MAX_ENGINE_TORQUE 	1966
 #define MAX_RETARDER_TORQUE	1476
 
-extern void
-tsc1_to_pdu(struct j1939_pdu *pdu, void *pdbv);
-
-extern void
-exac_to_pdu(struct j1939_pdu *pdu, void *pdbv);
-
+extern void tsc1_to_pdu(struct j1939_pdu *pdu, void *pdbv);
+extern void exac_to_pdu(struct j1939_pdu *pdu, void *pdbv);
+extern void volvo_xbr_to_pdu(struct j1939_pdu *pdu, void *pdbv);
+extern void volvo_xbr_warn_to_pdu(struct j1939_pdu *pdu, void *pdbv);
 extern void pdu_to_pdu (struct j1939_pdu *pdu_in, void *pdbv_out);
 
 extern void pdu_to_erc1 (struct j1939_pdu *pdu, void *pdbv);
@@ -200,8 +202,10 @@ extern void pdu_to_vp_x (struct j1939_pdu *pdu, void *pdbv);
 extern void pdu_to_vdc2 (struct j1939_pdu *pdu, void *pdbv);
 extern void pdu_to_mvs_x_e (struct j1939_pdu *pdu, void *pdbv);
 extern void pdu_to_ebc5 (struct j1939_pdu *pdu, void *pdbv);
-extern void pdu_to_can1 (struct j1939_pdu *pdu, void *pdbv);
-extern void pdu_to_can2 (struct j1939_pdu *pdu, void *pdbv);
+extern void pdu_to_volvo_target (struct j1939_pdu *pdu, void *pdbv);
+extern void pdu_to_volvo_ego (struct j1939_pdu *pdu, void *pdbv);
+extern void pdu_to_volvo_xbr_warn(struct j1939_pdu *pdu, void *pdbv);
+extern void pdu_to_volvo_xbr(struct j1939_pdu *pdu, void *pdbv);
 
 
 extern void print_pdu (void *pdbv, FILE *fp, int numeric);
@@ -238,7 +242,9 @@ extern void print_vp_x (void *pdbv, FILE *fp, int numeric);
 extern void print_vdc2 (void *pdbv, FILE *fp, int numeric);
 extern void print_mvs_x_e (void *pdbv, FILE *fp, int numeric);
 extern void print_ebc5 (void *pdbv, FILE *fp, int numeric);
-extern void print_can1 (void *pdbv, FILE *fp, int numeric);
-extern void print_can2 (void *pdbv, FILE *fp, int numeric);
+extern void print_volvo_target(void *pdbv, FILE *fp, int numeric);
+extern void print_volvo_ego(void *pdbv, FILE *fp, int numeric);
+extern void print_volvo_xbr_warn(void *pdbv, FILE *fp, int numeric);
+extern void print_volvo_xbr(void *pdbv, FILE *fp, int numeric);
 
 #endif

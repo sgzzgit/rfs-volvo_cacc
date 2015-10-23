@@ -25,7 +25,7 @@
 #include "j1939db.h"
 #include <timing.h>
 #include "clt_vars.h"
-#include "vehicle.h"
+#include "veh_trk.h"
 
 #define MAX_PROFILE_LINE_LENGTH	256
 

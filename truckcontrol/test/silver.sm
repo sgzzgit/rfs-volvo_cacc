@@ -85,7 +85,6 @@ shell 'Start everything but longitudinal control and file writing'
 	# To start jbussend with debugging ON, add -d flag
 	$TEST_DIR/jbussend -c -e /dev/can1 -b /dev/can2 >/home/truckcontrol/test/jbussend.dbg &
 	sleep 1
-	ping -c 5 -w 500 10.0.1.7
 	$TEST_DIR/gpsrcv -n 202 -u 5050  >gpsrcv.dbg &
 	$TEST_DIR/veh_rcv -f $CONFIG_FILE -u 5051  -t Silvr >veh_rcv.dbg &
 	$TEST_DIR/veh_snd -i 20 -a $DSRC_IP -u 5052  -t Silvr >veh_snd.dbg &
@@ -96,10 +95,10 @@ shell 'Start everything but longitudinal control and file writing'
 	sleep 2
 	$TEST_DIR/evt300 -s "/dev/ser1" -r a -o 2 >evt300a.log &
 	sleep 1
-#	$TEST_DIR/rdlidar -o 2 < /dev/ser2 >densolidar.log &
-#	sleep 1
-	$TEST_DIR/mdl -o 2 < /dev/ser2 >mdl.log &
+	$TEST_DIR/rdlidar -o 2 < /dev/ser2 >densolidar.log &
 	sleep 1
+#	$TEST_DIR/mdl -o 2 < /dev/ser2 >mdl.log &
+#	sleep 1
 	$TEST_DIR/dmm32 >dmm32.log &
 	sleep 1
 	$TEST_DIR/trk_io -o2 >trk_io.log &

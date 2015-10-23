@@ -1,0 +1,2 @@
+M    drv_i82527/can_dev.c
+        Added broken can cable message to check of status register

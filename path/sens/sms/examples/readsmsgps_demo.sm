@@ -1,0 +1,177 @@
+#!/usr/local/bin/simple_menu
+#
+# This script can be used to run either Jeff's electronic eye
+# pedestrian detect demo or Chris's in-vehicle LTOP warning. 
+# One application uses DII_OUT, the other uses PED_IN to turn on the sign.
+#
+# To display the traffic signal countdown with Chris's in-vehicle
+# warning, you must also run test_asc.sm -- see the comments at
+# the start of that script.
+# 
+# This differs from idsdemo in using fieldctl in place of expctl.
+# There are no trials; alert are sent continuously in response
+# to detected threats.
+#
+# Variable definitions
+from-env "DOMAIN" = '/home/path/db/register/dbq' ;	
+from-env "WIRELESS" = 'wifi' ;
+from-env "HOSTIP" = '10.0.0.101' ;
+from-env "SENDIP" = '10.0.0.255' ;
+
+#This is the beginning of the main menu
+
+menu "MAIN_MENU"
+
+title 'PATH DEMO' 
+
+clear bold always-show
+
+skip ;
+
+do-menu "PARAMETER_SETUP" 'Set configuration'
+;
+
+shell 'Show configurations'
+%(
+	stty sane 
+	echo "Database Domain Name is $DOMAIN"
+	echo "Loop Detector Report Mode is $LOOPMODE"
+%)
+;
+
+skip ;
+
+shell 'Initialize database server'
+%(
+	stty sane 
+	/home/cicas/test/db_clean.sh
+	sleep 4	
+	/home/path/db/lnx/db_slv &
+	sleep 2
+	/home/cicas/test/cicas_create &
+%)
+;
+
+shell 'Stop database server'
+%(
+	stty sane 
+	killall -s TERM cicas_create
+	killall -s TERM db_slv
+	/home/cicas/test/db_clean.sh
+%)
+;
+
+skip ; 
+
+shell 'Start drivers' 
+%(
+	stty sane 
+	killall -s TERM optsens
+	sleep 1
+	/home/path/sens/optsens/lnx/optsens -o2 >optsens.log &
+	# Kill only our gpsrcv
+	if [[ `ps -ef|grep gpsrcv|grep "\-u 7020"|grep -v grep` ]] ; then
+		kill -s TERM `ps -ef|grep gpsrcv|grep "\-u 7020"|awk '{print $2}'`
+	fi
+        sleep 2
+        echo Starting gpsrcv...
+        /home/path/sens/gps/examples/lnx/gpsrcv -d -u 7020 &
+        sleep 1
+	killall -s TERM smsparse
+	sleep 1
+        echo Starting smsparse...
+        /home/path/sens/sms/src/lnx/smsparse -o3 &
+
+%)
+;
+
+shell 'Start drivers (SMS simulation mode)' 
+%(
+	stty sane 
+	killall -s TERM optsens
+	sleep 1
+	/home/path/sens/optsens/lnx/optsens -o2 >optsens.log &
+	# Kill only our gpsrcv
+	if [[ `ps -ef|grep gpsrcv|grep "\-u 7020"|grep -v grep` ]] ; then
+		kill -s TERM `ps -ef|grep gpsrcv|grep "\-u 7020"|awk '{print $2}'`
+	fi
+        sleep 2
+        echo Starting gpsrcv...
+        /home/path/sens/gps/examples/lnx/gpsrcv -d -u 7020 &
+        sleep 1
+	killall -s TERM smsparse
+	sleep 1
+        echo Starting smsparse...
+        /home/path/sens/sms/src/lnx/smsparse -s -o2 &
+
+%)
+;
+
+shell 'Stop drivers'
+%(
+	stty sane 
+	killall -s TERM optsens
+	# Kill only our gpsrcv
+	if [[ `ps -ef|grep gpsrcv|grep "\-u 7020"|grep -v grep` ]] ; then
+		kill -s TERM `ps -ef|grep gpsrcv|grep "\-u 7020"|awk '{print $2}'`
+	fi
+	killall -s TERM smsparse
+%)
+;
+
+skip ;
+
+shell 'Start readsmsgps'
+%(
+	stty sane 
+	killall -s TERM readsmsgps
+	sleep 1
+	echo Starting readsmsgps...
+	/home/path/sens/sms/examples/lnx/readsmsgps -o2 &
+
+%)
+;
+
+shell 'Stop readsmsgps'
+%(
+	stty sane 
+	killall -s TERM readsmsgps
+%)
+;
+
+skip ;
+
+
+shell 'Start sens_dtc'
+%(
+	stty sane 
+	killall -s TERM sens_dtc
+	sleep 1
+	echo Starting sens_dtc...
+	/home/cicas/fusion/lnx/sens_dtc >sens_dtc.log &
+
+%)
+;
+
+shell 'Stop sens_dtc'
+%(
+	stty sane 
+	killall -s TERM sens_dtc
+%)
+;
+
+skip ;
+
+menu "PARAMETER_SETUP"
+
+title 'Setup parameters'
+
+clear bold always-show
+
+skip ;
+
+reset-global 'Set Database Domain Name'
+from-user "DOMAIN" 'Database Domain Name ? '
+;
+
+skip ;

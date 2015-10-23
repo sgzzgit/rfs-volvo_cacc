@@ -1,0 +1,4 @@
+rcvseq	44	sequence number of receive message
+rcvtyp	45	receive message type
+sndseq	46	sequence number of send message
+sndtyp	47	send message type

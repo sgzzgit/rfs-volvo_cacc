@@ -1,0 +1,11 @@
+10:38:36.372 last_brake1 0 -> brake1 1 brakectr 1
+10:38:45.971 Auto/Manual switch error: manual1 0 manual2 0 auto1 1 auto2 0 port A input 0x2c
+10:38:45.971 last_auto1 0 -> auto1 1 autoctr 961
+10:38:46.161 last_auto1 1 -> auto1 0 autoctr 19
+10:38:46.341 last_auto1 0 -> auto1 1 autoctr 18
+10:38:46.501 last_auto1 1 -> auto1 0 autoctr 16
+10:38:46.721 last_auto1 0 -> auto1 1 autoctr 22
+10:38:46.871 Auto/Manual switch error: manual1 0 manual2 0 auto1 1 auto2 0 port A input 0x2c
+10:38:46.881 last_auto1 1 -> auto1 0 autoctr 16
+10:38:47.041 last_auto1 0 -> auto1 1 autoctr 16
+10:38:47.211 last_auto1 1 -> auto1 0 autoctr 17

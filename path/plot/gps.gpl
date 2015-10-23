@@ -1,0 +1,8 @@
+# Use to plot GPS coordinates in columns 38, 39 over a reasonable range
+# for Richmond Field Station 
+set grid
+set xlabel "Latitude"
+set ylabel "Longitude"
+set xrange [3754.86:3754.97]
+set yrange [-12220.13:-12220.07]
+#plot "test.dat" using 38:39

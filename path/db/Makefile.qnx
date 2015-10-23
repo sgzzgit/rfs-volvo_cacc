@@ -1,0 +1,67 @@
+# Makefile tested on QNX6
+#
+# Not yet tested whether the new Makefile that includes the definitions
+# works on QNX6.
+#
+# Copyright (c) 2006   Regents of the University of California
+#
+
+DISTRIB_DIR = ..
+
+LOCAL_DIR = $(DISTRIB_DIR)/local
+
+ifndef PATH_CC
+PATH_CC = gcc
+endif
+
+PATH_CFLAGS += -c -D_GNU_SOURCE
+PATH_CFLAGS += -I. -I$(LOCAL_DIR) 
+PATH_CFLAGS += -g
+
+ifndef PATH_AR
+PATH_AR = ar
+endif
+
+AR_FLAGS += rv
+
+ifndef PATH_LINK
+PATH_LINK = gcc
+endif
+
+PATH_LDFLAGS += -L$(LOCAL_DIR)  -L. 
+
+
+ifeq ($(SYSNAME),nto)
+LIBS = -llocals -ldb_clts
+else
+LIBS = -llocals -ldb_clts -lrt
+endif
+
+DB_HDRS = db_lib.h db_slv.h db_comm.h db_clt.h db_utils.h path_datahub.h
+DB_OBJS = db_clt.o db_lib.o db_comm.o db_utils.o
+DB_CPP_OBJS = path_datahub.o
+
+EXEC = libdb_clts.a  db_slv libpathcpp.a
+
+.c.o:	$(DB_HDRS)
+	$(PATH_CC) $(CFLAGS) $(PATH_CFLAGS) $*.c -o $*.o 
+
+.cpp.o:   $(DB_HDRS) $(CPP_HDRS)
+	$(PATH_CC) $(CFLAGS) $(PATH_CFLAGS) -c $*.cpp -o $*.o
+
+.o:
+	$(PATH_LINK) $(PATH_LDFLAGS) -o $@ $@.o $(LIBS) 
+
+all: $(EXEC)
+
+db_slv:	db_slv.o libdb_clts.a 
+libdb_clts.a: db_clt.o db_lib.o db_comm.o db_utils.o
+	$(PATH_AR) $(AR_FLAGS)  $@ $(DB_OBJS) 
+libpathcpp.a: $(DB_CPP_OBJS) 
+	$(PATH_AR) $(AR_FLAGS)  $@ $(DB_CPP_OBJS) 
+
+
+install:
+	cp db_slv $(DISTRIB_DIR)/test
+clean:
+	rm -f *.o *.err *.a $(EXEC)

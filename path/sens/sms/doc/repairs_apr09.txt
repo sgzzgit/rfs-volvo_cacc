@@ -1,0 +1,306 @@
+From: "Bernd Waldmann" <bernd.waldmann@smartmicro.de>
+To: "'John Spring'" <jspring@path.berkeley.edu>
+Cc: "'Thomas Zietz'" <thomas.zietz@smartmicro.de>,
+        "'Dr. Ralph Mende'" <ralph.mende@smartmicro.de>
+Date: Mon, 6 Apr 2009 12:09:14 +0200
+
+Hi John,
+
+the Binder connectors are IP67 rated which is absolutely water sealed for
+outisde environment. Even temporary immersion in water up to 3ft is allowed
+for this protection grade.
+Therefore, I would rather believe the joint between cable stump and
+supporting cable may have become leaky. We seal those joints with heat
+shrink tube with inboard hot glue to achieve good sealing.
+
+Also, as the short circuit did not appear on the connector itself speaks
+against a leaky connecor. The short circuit would have affected the cable
+directly at the connector end then.
+
+As there is a hole in the cable it is likeley that water distributed over
+the cable so water may be found at the connector as well as some feet away
+in the cable.
+
+If water reached the connector, it may have shortened Vcc against the debug
+pins which gives word why the DSPs have been affected.
+
+I would ask you have all cable ends checked. Maybe it is a better solution
+to directly connect your cable to the Binder connectors to eliminate the
+cable joint. This thought should be taken into consideration for the PAWS
+installation as well.
+
+As said before, we exchange the DSP boards of the three UMRR units. The
+hardware is almost identical but has additional drivers for the debug pins.
+Future repairs on hardware of this project may be connected to repair cost.
+
+Planned shipment date for the repaired & tested hardware is tomorrow. I'll
+tell you the tracking number as soon as it becomes available.
+
+
+Bernd
+
+ 
+ 
+Best Regards,
+
+Bernd Waldmann
+
+
+s.m.s smart microwave sensors GmbH
+Mittelweg 7
+38106 Braunschweig - Germany
+
+Contact:
+Phone:    +49 (531) 39023-21
+FAX:       +49 (531) 39023-58
+Email:    mailto:Bernd.Waldmann@smartmicro.de
+
+Firmensitz: Braunschweig
+Handelsregister: Amtsgericht Braunschweig, HRB-Nr. 4525
+Geschäftsführer: Dr. Ing. Ralph Mende
+
+
+Visit our Webpage: http://www.smartmicro.de
+
+
+
+-----Ursprüngliche Nachricht-----
+Von: John Spring [mailto:jspring@path.berkeley.edu] 
+Gesendet: Donnerstag, 2. April 2009 22:32
+An: Bernd Waldmann
+Cc: 'Thomas Zietz'
+Betreff: Re: AW: Status of the Radars
+
+Hi Bernd:
+
+I checked with the technician who did the wiring on the radars, and he 
+told me that he wired only four wires to pins on the female connector: 
+green and yellow carry the signal, and blue and red carry power.
+
+Now, I have some new information. The cable to ID1 burned. The 
+insulation on the wires carrying power melted. I am sending some 
+pictures of the cable end. The technician told me that when he 
+disconnected the cable from ID1 and let it hang down, that water drained 
+out of the connector. He also said there was no power coming into the 
+connector; after cutting off the cable end, he measured ~13 VDC on the 
+severed power wires. I have attached some pictures of the cable end, 
+which has been cut from the rest of the cable.
+
+Cable6.jpg is a picture of the cable end. I am holding the cable and 
+pointing to two features with my index fingers. With my right index 
+finger I am pointing to the burned power wires; with my left index 
+finger I am pointing to a burn hole in the outer insulation. Other 
+pictures contain close-up pictures of these two features. In Cable5.jpg, 
+it is apparent that the power wires have burned, that the outer shield 
+is discolored from the burned insulation, and that the green and yellow 
+signal wires are not affected. Cable3 is a close-up of the connector, 
+showing some greenish oxidation around pins 6, 5, 8, and 2.
+
+My conclusion is that water from rain got into the connector and shorted 
+the power wires, causing the insulation to burn and the wires to break. 
+How could this have affected the CAN or DSP chips?
+
+John
+
+Bernd Waldmann wrote:
+> John,
+>
+> rain is no problem. The units are rated IP67 protection grade and the same
+> units are used on cars, in building security and others and we have
+repairs
+> very rarely - and if, they address the microwave circuit.  
+> What is more, the units are here for repair are in good shape looking at
+the
+> mechanics,
+>
+> For the units here for repair, we will exchange the DSP board and sent the
+> units back. 
+>
+> My concerns are that we don't run into similar problems again. That is why
+I
+> ask you to verify that only the needed connector pins are connected to the
+> cables. 
+> As said before, the PAWS hardware already has further protection on the
+> debug pins.
+>
+> Bernd
+>  
+>  
+> Best Regards,
+>
+> Bernd Waldmann
+>
+>
+> s.m.s smart microwave sensors GmbH
+> Mittelweg 7
+> 38106 Braunschweig - Germany
+>
+> Contact:
+> Phone:    +49 (531) 39023-21
+> FAX:       +49 (531) 39023-58
+> Email:    mailto:Bernd.Waldmann@smartmicro.de
+>
+> Firmensitz: Braunschweig
+> Handelsregister: Amtsgericht Braunschweig, HRB-Nr. 4525
+> Geschäftsführer: Dr. Ing. Ralph Mende
+>
+>
+> Visit our Webpage: http://www.smartmicro.de
+>
+>
+>
+> -----Ursprüngliche Nachricht-----
+> Von: John Spring [mailto:jspring@path.berkeley.edu] 
+> Gesendet: Mittwoch, 1. April 2009 19:40
+> An: Bernd Waldmann
+> Cc: 'Thomas Zietz'
+> Betreff: Re: Status of the Radars
+>
+> Hi Bernd:
+>
+> Well. Hm. All units are now disconnected. I will have to talk to the 
+> hardware people here about cabling.
+>
+> I am taking the (remote) possibility of lightning seriously, too. We did 
+> have rain during and after the holidays, but rarely get lightning in the 
+> Bay Area. Going forward, rain is infrequent until next winter.
+>
+> John
+>
+> Bernd Waldmann wrote:
+>   
+>> Hi John,
+>>
+>> we received and analyzed the hardware.
+>>
+>> 1) On the Bumper unit, the CAN chip was defective. Same with one of 
+>> the sensors.
+>>
+>> 2) On the other two sensors, the DSP fails.
+>>
+>> 1) It is not easy to kill a CAN chip. The chip is rated for permanent 
+>> 40V DC or electro static discharge of 4kV. I am wondering what may 
+>> have happened. I guess you would have told us if RFS had had direct 
+>> impact of lightning.
+>>
+>> 2) May I ask you if your cabling has other connections than given in 
+>> the table below:
+>>
+>> *Pin*
+>>
+>> 	
+>>
+>> *UMRR-yyxx*
+>>
+>> 	
+>>
+>> *Color *
+>>
+>> 1
+>>
+>> 	
+>>
+>> Internal
+>>
+>> 	
+>>
+>> 2
+>>
+>> 	
+>>
+>> GND
+>>
+>> 	
+>>
+>> Blue = GND
+>>
+>> 3
+>>
+>> 	
+>>
+>> Internal
+>>
+>> 	
+>>
+>> 4
+>>
+>> 	
+>>
+>> CAN_L
+>>
+>> 	
+>>
+>> Yellow = CAN_L
+>>
+>> 5
+>>
+>> 	
+>>
+>> CAN_H
+>>
+>> 	
+>>
+>> Green = CAN_H
+>>
+>> 6
+>>
+>> 	
+>>
+>> Internal
+>>
+>> 	
+>>
+>> 7
+>>
+>> 	
+>>
+>> +7V…+33V
+>>
+>> 	
+>>
+>> Red = +7V…+33V
+>>
+>> 8
+>>
+>> 	
+>>
+>> Internal
+>>
+>> 	
+>>
+>> *Table *2: Sensor Connector Pinout
+>>
+>> The RFS and Albany sensors have a debug interface at pins 1 and 3. 
+>> Those are not intended for connection. The PAWS units already have 
+>> extended protection of these pins.
+>>
+>> We are going to exchange the DSP boards of the sensors and re-run 
+>> sensor calibration. I’ll come back to you when a shipment date is set.
+>>
+>> Bernd
+>>
+>> Best Regards,
+>>
+>> Bernd Waldmann
+>>
+>>
+>> s.m.s smart microwave sensors GmbH
+>> Mittelweg 7
+>> 38106 Braunschweig - Germany
+>>
+>> Contact:
+>> Phone: +49 (531) 39023-21
+>> FAX: +49 (531) 39023-58
+>> Email: mailto:Bernd.Waldmann@smartmicro.de
+>>
+>> Firmensitz: Braunschweig
+>> Handelsregister: Amtsgericht Braunschweig, HRB-Nr. 4525
+>> Geschäftsführer: Dr. Ing. Ralph Mende
+>>
+>>
+>> Visit our Webpage: http://www.smartmicro.de <http://www.smartmicro.de/>
+>>
+>>     
+>
+>   
+

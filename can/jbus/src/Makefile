@@ -12,10 +12,9 @@ include $(CAPATH_MK_DEFS)
 # In this directory, can specify 
 # make DRIVER_NAME=path_can
 # or uncomment one of the two choices.
-CAN_DIR = ../..
+
 CLIENT_DIR=$(CAN_DIR)/client/
 JBUS_DIR = $(CAN_DIR)/jbus
-OBJDIR = qnx
 
 JBUS_INCLUDE_DIR = $(JBUS_DIR)/include
 

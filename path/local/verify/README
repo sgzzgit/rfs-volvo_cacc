@@ -1,0 +1,7 @@
+This directory contains test code that was #ifdef'd at the end of
+the corresponding library function files on QNX4. When we get a chance
+we should make a Makefile for building these programs and some
+scripts for running them so that it is easy to test for correctness
+if we make changes in the library function files.
+
+Sue Dickey 2006

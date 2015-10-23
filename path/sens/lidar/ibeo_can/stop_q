@@ -1,0 +1,3 @@
+slay -f qserve
+slay -f nserve
+slay -f datahub

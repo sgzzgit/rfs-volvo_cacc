@@ -1,0 +1,113 @@
+;	SERWPL.INF - INF file for USB-to-Serial Device
+;	Copyright (C) 2001, Prolific Technology Inc.
+;
+;	03/14/2001
+[Manufacturer]
+%Pro%=Pro
+
+[Pro]
+%DeviceDesc%=ComPort, USB\VID_067B&PID_2303
+
+[SourceDisksNames]
+1=%Pro.Disk%,,,
+
+[SourceDisksFiles]
+SER9PL.SYS=1,Win98_ME
+SERSPL.VXD=1,Win98_ME
+SERSPL.INF=1,Win98_ME
+SERWPL.INF=1
+
+[SourceDisksFiles.x86]
+ser2pl.sys=1,Win2K
+
+[DestinationDirs]
+USB2SER.Files.Ext = 11
+USB2SER.Files.Inf = 10,INF
+DefaultDestDir=12
+ComPort.NT.Copy=12
+
+[ComPort_install]
+;Windows98_ME
+
+[Version]
+Signature="$Windows 95$"
+Class=USB
+provider=%Pro%
+
+[PreCopySection]
+HKR,,NoSetupUI,,1
+
+[ComPort]
+CopyFiles=USB2SER.Files.Ext, USB2SER.Files.Inf
+AddReg=USB2SER.AddReg
+
+[USB2SER.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,SER9PL.SYS
+
+[USB2SER.Files.Ext]
+SER9PL.SYS
+SERSPL.VXD
+
+[USB2SER.Files.Inf]
+SERWPL.INF
+SERSPL.INF
+
+;========================================================================
+;
+;========================================================================
+[ComPort_Install.NTx86]
+;Windows2000
+
+[Version]
+Signature="$Windows NT$"
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider=%Pro%
+LayoutFile=layout.inf
+DriverVer=03/29/2001,1.4.0.0
+
+[ComPort.NT]
+CopyFiles=ComPort.NT.Copy
+AddReg=ComPort.NT.AddReg
+
+[ComPort.NT.HW]
+AddReg=ComPort.NT.HW.AddReg
+
+[ComPort.NT.Copy]
+ser2pl.sys
+
+[ComPort.NT.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,ser2pl.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+[ComPort.NT.HW.AddReg]
+HKR,,"UpperFilters",0x00010000,"serenum"
+
+[ComPort.NT.Services]
+AddService = Ser2pl, 0x00000002, Serial_Service_Inst
+AddService = Serenum,,Serenum_Service_Inst
+
+[Serial_Service_Inst]
+DisplayName    = %Serial.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_SYSTEM_START (this driver may do detection)
+ErrorControl   = 1               ; SERVICE_ERROR_IGNORE
+ServiceBinary  = %12%\ser2pl.sys
+LoadOrderGroup = Base
+
+[Serenum_Service_Inst]
+DisplayName    = %Serenum.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\serenum.sys
+LoadOrderGroup = PNP Filter
+
+[Strings]
+Pro = "Prolific"
+Pro.Disk = "USB-Serial Cable Diskete"
+DeviceDesc = "Prolific USB-to-Serial Comm Port"
+Serial.SVCDESC   = "Prolific Serial port driver"
+Serenum.SVCDESC = "Serenum Filter Driver"

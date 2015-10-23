@@ -1,12 +1,19 @@
-/* FILE
- *   long_trk.h
+/* Structures and includes for command testing control programs
  *
- * Structures and includes for command testing control programs
+ * static char rcsid[] = "$Id: cmdtasks.h,v 1.1.1.1 2003/01/22 19:18:56 dickey Exp $"
  *
+ * "$Log: cmdtasks.h,v $
+ * "Revision 1.1.1.1  2003/01/22 19:18:56  dickey
+ * "Longitudinal shared code
+ * "
+ * "Revision 1.0  2002/12/20 23:57:56  dickey
+ * "Initial revision
+ * ""
  */
 
 #ifndef LONG_TRK_H
 #define LONG_TRK_H
+#define MAX_TRUCK	1028
 
 /**
  * private_params 
@@ -79,15 +86,11 @@ typedef struct {
   char adhoc[80];
 } buffer_item;
 
-#define MAX_TRUCK	5
 
 /* constant definitions for cmdtest, later move these and corresponding
  * entries from params to cmdtasks.h?  */
 #define LOW_VEHICLE_SPEED 0.5
 #define MAX_EBS_DECELERATION 1.99
-#define OFF     0
-#define ON      1
-
 
 /* Execution states */
 #define ISSUE_CONSTANT_COMMAND	1
@@ -109,4 +112,4 @@ typedef struct {
 #define TRANS_RTDR_SINUSOIDAL	6
 
 
-#endif /* LONG_TRK_H */
+#endif

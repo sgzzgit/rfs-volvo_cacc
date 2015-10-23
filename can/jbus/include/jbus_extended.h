@@ -72,25 +72,25 @@ typedef struct {
 /** PDU TSC1 (Torque/Speed Control) doc. in J1939 - 71, p149 */
 typedef struct {
 	timestamp_t timestamp;
-	unsigned char TSC1_EMS_ACC_EnOvrdCtrlMPr;
-	unsigned char TSC1_EMS_ACC_EnRSpdCtrlC;
-	unsigned char TSC1_EMS_ACC_EnOvrdCtrlM;
-	float TSC1_EMS_ACC_EnRSpdSpdLm;		/// RPM 
-	float TSC1_EMS_ACC_EnRTrqTrqLm;		/// percent reference torque 
-	int TSC1_EMS_ACC_destination_address;	/// engine or retarder 
-	int TSC1_EMS_ACC_src_address;		/// sent in header, important for logging 
+	unsigned char EnOvrdCtrlMPr;
+	unsigned char EnRSpdCtrlC;
+	unsigned char EnOvrdCtrlM;
+	float EnRSpdSpdLm;		/// RPM 
+	float EnRTrqTrqLm;		/// percent reference torque 
+	int destination_address;	/// engine or retarder 
+	int src_address;		/// sent in header, important for logging 
 } IS_PACKED j1939_tsc1_e_acc_typ;
 
 /** PDU TSC1 (Torque/Speed Control) doc. in J1939 - 71, p149 */
 typedef struct {
 	timestamp_t timestamp;
-	unsigned char TSC1_ER_ACC_EnOvrdCtrlMPr;
-	unsigned char TSC1_ER_ACC_EnRSpdCtrlC;
-	unsigned char TSC1_ER_ACC_EnOvrdCtrlM;
-	float TSC1_ER_ACC_EnRSpdSpdLm;		/// RPM 
-	float TSC1_ER_ACC_EnRTrqTrqLm;		/// percent reference torque 
-	int TSC1_ER_ACC_destination_address;	/// engine or retarder 
-	int TSC1_ER_ACC_src_address;		/// sent in header, important for logging 
+	unsigned char EnOvrdCtrlMPr;
+	unsigned char EnRSpdCtrlC;
+	unsigned char EnOvrdCtrlM;
+	float EnRSpdSpdLm;		/// RPM 
+	float EnRTrqTrqLm;		/// percent reference torque 
+	int destination_address;	/// engine or retarder 
+	int src_address;		/// sent in header, important for logging 
 } IS_PACKED j1939_tsc1_er_acc_typ;
 
 /** PDU TC1 (Torque/Speed Control) doc. in J1939 - 71, p149 */
@@ -451,6 +451,41 @@ typedef struct {
 	unsigned char src_address;
 } IS_PACKED j1939_exac_typ;
 
+
+///** PDU VOLVO_XBR(Volvo brake message)*/
+typedef struct {
+	timestamp_t timestamp;
+	float ExternalAccelerationDemand;	///
+	unsigned char src_address;
+	unsigned char destination_address;
+	unsigned char pdu_format;
+	unsigned char XBREBIMode;	/// 
+	unsigned char XBRPriority;	/// 
+	unsigned char XBRControlMode;	/// 
+	unsigned char XBRUrgency;	/// 
+	unsigned char spare1;		/// 0xFF
+	unsigned char spare2;		/// 0xFF
+	unsigned char spare3;		/// 0xFF
+	unsigned char XBRMessageCounter;/// 
+	unsigned char XBRMessageChecksum;/// 
+} IS_PACKED j1939_volvo_xbr_typ;
+
+/** PDU VOLVO_XBR_WARN (Volvo brake message)*/
+typedef struct {
+	timestamp_t timestamp;
+	unsigned char src_address;
+	unsigned char destination_address;
+	unsigned char pdu_format;
+	unsigned char byte1;///  0xFF
+	unsigned char byte2;///  0x31
+	unsigned char byte3;///  0xFF
+	unsigned char byte4;///  0xFF
+	unsigned char byte5;///  0xFF
+	unsigned char byte6;///  0xFF
+	unsigned char byte7;///  0xFF
+	unsigned char byte8;///  0xFF
+} IS_PACKED j1939_volvo_xbr_warn_typ;
+
 /** PDU EBC_ACC (Electronic Brake Control for ACC), WABCO proprietary */
 typedef struct {
 	timestamp_t timestamp;
@@ -466,6 +501,22 @@ typedef struct {
 	float fuel_valve1_position;	/// 0 to 100% 
 	float fuel_valve2_position;	/// 0 to 100% 
 } IS_PACKED j1939_gfi2_typ;
+
+/** PDU VOLVO_TARGET(Volvo target data)*/
+typedef struct {
+	timestamp_t timestamp;
+	float TargetDist;	/// 0-655.35 m
+	float TargetVel;	/// 0-655.35 m/sec
+	float TargetAcc;	/// -327.68-327.67 m/sec/sec
+	unsigned char TargetAvailable; ///0=no target, 1=target
+} IS_PACKED j1939_volvo_target_typ;
+
+/** PDU VOLVO_EGO(Volvo self data)*/
+typedef struct {
+	timestamp_t timestamp;
+	float EgoVel;	/// 0-655.35 m/sec
+	float EgoAcc;	/// -327.68-327.67 m/sec/sec
+} IS_PACKED j1939_volvo_ego_typ;
 
 /** PDU EI (Engine Information), J1939-71, sec 5.3.105 */
 typedef struct {

@@ -85,8 +85,8 @@ shell 'Start everything but longitudinal control and file writing'
 	$TEST_DIR/jbussend -c -e /dev/can1 -b /dev/can2 >/home/truckcontrol/test/jbussend.dbg &
 	sleep 1
 	$TEST_DIR/gpsrcv -n 202 -u 5050  >gpsrcv.dbg &
-	$TEST_DIR/veh_rcv -f $CONFIG_FILE -u 5051  -t Blue >veh_rcv.dbg &
-	$TEST_DIR/veh_snd -i 50 -a $DSRC_IP -u 5052  -t Blue >veh_snd.dbg &
+	$TEST_DIR/veh_rcv -v -f $CONFIG_FILE -u 5051  -t Blue >veh_rcv.dbg &
+	$TEST_DIR/veh_snd -b -i 20 -a 10.0.1.255 -u 5052  -t Blue >veh_snd.dbg &
 	sleep 1
 	$CAN_CLIENT_DIR/rdj1939 -c -f /dev/can1 >j1939_eng.dbg &
 	sleep 2

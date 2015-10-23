@@ -1,0 +1,9 @@
+M    test/realtime.ini
+	Added Mass_SW=5, HandleFaults=TRUE, Task=0, Run=0	
+M    test/silver.sm
+	Added ping of sobu before starting up db clients (it's been slow to answer, thus 
+	delaying startup).
+M    test/test_velocity_and_brake.sh
+	Added sleeps and kills of long_out to test both engine speed and brake
+M    test/test_can.sh
+	Added test for can_man running (i.e. in memory)

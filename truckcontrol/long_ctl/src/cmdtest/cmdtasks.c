@@ -100,7 +100,7 @@ int brake_tasks(long_ctrl *pctrl, long_output_typ *pcmd)
 		ppriv->cmd_trtdr_val = 0.0;
 		pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->trans_retarder_command_mode = TSC_OVERRIDE_DISABLED;
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE;
 		break;
 	case EBS_CONSTANT:
 		if (ppriv->ebs_brk_t  < max_braking_time)
@@ -109,7 +109,7 @@ int brake_tasks(long_ctrl *pctrl, long_output_typ *pcmd)
 		    ppriv->cmd_ebs_dcc = 0.0;
 		if (current_speed < LOW_VEHICLE_SPEED) 
 			ppriv->cmd_ebs_dcc = MAX_EBS_DECELERATION;
-		pcmd->brake_command_mode = EXAC_ACTIVE;
+		pcmd->brake_command_mode = XBR_ACTIVE;
 		if (ppriv->ebs_brk_t > max_braking_time)
 			return 0;
 		else
@@ -121,7 +121,7 @@ int brake_tasks(long_ctrl *pctrl, long_output_typ *pcmd)
 		if (ppriv->ebs_brk_t < stop_period) {
 			ppriv->cmd_ebs_dcc = sinusoidal(ppriv->ebs_brk_t,
 						stop_period, max_deceleration);
-			pcmd->brake_command_mode = EXAC_ACTIVE;
+			pcmd->brake_command_mode = XBR_ACTIVE;
 			return 1;
 		}
 		else {
@@ -131,7 +131,7 @@ int brake_tasks(long_ctrl *pctrl, long_output_typ *pcmd)
 		
 		break;
 	case ENG_RTDR_CONSTANT:
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE;
 		pcmd->trans_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;
 		if (ppriv->ebs_brk_t  < max_braking_time)
@@ -140,7 +140,7 @@ int brake_tasks(long_ctrl *pctrl, long_output_typ *pcmd)
 		    ppriv->cmd_rtdr_trq = 0.0;;
 		break;
 	case ENG_RTDR_SINUSOIDAL:
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE;
 		pcmd->trans_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;
 
@@ -159,7 +159,7 @@ int brake_tasks(long_ctrl *pctrl, long_output_typ *pcmd)
 		}
 		break;
 	case TRANS_RTDR_CONSTANT:
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE;
 		pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->trans_retarder_command_mode = TSC_TORQUE_CONTROL;
 		if (ppriv->ebs_brk_t  < max_braking_time)
@@ -168,7 +168,7 @@ int brake_tasks(long_ctrl *pctrl, long_output_typ *pcmd)
 		    ppriv->cmd_trtdr_val = 0.0;;
 		break;
 	case TRANS_RTDR_SINUSOIDAL:
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE;
 		pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->trans_retarder_command_mode = TSC_TORQUE_CONTROL;
 		stop_period = (100/trans_retarder_value) * (ppriv->v_init_brk);
@@ -329,7 +329,7 @@ printf("cmdtasks.c:init_tasks:Got to 4\n");
 	pctrl->plong_private = &cmd_private;
 
 	pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED;
-	pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
+	pcmd->brake_command_mode = XBR_NOT_ACTIVE;
 	pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 	pcmd->trans_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 
@@ -426,7 +426,7 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 		pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->trans_retarder_command_mode = TSC_OVERRIDE_DISABLED;
-		pcmd->brake_command_mode = EXAC_ACTIVE; 
+		pcmd->brake_command_mode = XBR_ACTIVE; 
 		ppriv->cmd_ebs_dcc = MAX_EBS_DECELERATION;
 
 		if (ppriv->trq_cmd_t  > pcparams->initial_stop_time) {
@@ -438,7 +438,7 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 		pcmd->engine_command_mode = TSC_TORQUE_CONTROL;
 		pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
 		pcmd->trans_retarder_command_mode = TSC_OVERRIDE_DISABLED;
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE; 
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE; 
 		ppriv->cmd_ebs_dcc = 0.0;
 
 		if (current_speed < desired_vehicle_speed)
@@ -469,7 +469,7 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 
 		pcmd->engine_command_mode = TSC_TORQUE_CONTROL;
 		pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
-		pcmd->brake_command_mode = EXAC_NOT_ACTIVE;	
+		pcmd->brake_command_mode = XBR_NOT_ACTIVE;	
 		ppriv->cmd_ebs_dcc = 0.0;
 
 		if (ppriv->run_dist >= stop_distance) { 
@@ -536,7 +536,7 @@ static long_output_typ inactive_ctrl = {
         TSC_OVERRIDE_DISABLED,  /* engine retarder command mode */
          0.0,   /* accelerator pedal voltage -- not used by jbussend */
          0.0,   /* ebs deceleration */
-        EXAC_NOT_ACTIVE,        /* brake command mode */
+        XBR_NOT_ACTIVE,        /* brake command mode */
          0.0,   /* percent of maximum transmission retarder activation */
         TSC_OVERRIDE_DISABLED,  /* transmission retarder command mode */
 };

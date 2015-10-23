@@ -1,0 +1,574 @@
+-- ASN.1 Compiler, v0.9.22
+-- Copyright (c) 2003, 2004, 2005, 2006 Lev Walkin <vlm@lionet.info>
+Compiled AlaCarte.c
+Compiled AlaCarte.h
+Compiled BasicSafetyMessage.c
+Compiled BasicSafetyMessage.h
+Compiled BasicSafetyMessageVerbose.c
+Compiled BasicSafetyMessageVerbose.h
+Compiled CommonSafetyRequest.c
+Compiled CommonSafetyRequest.h
+Compiled EmergencyVehicleAlert.c
+Compiled EmergencyVehicleAlert.h
+Compiled IntersectionCollision.c
+Compiled IntersectionCollision.h
+Compiled MapData.c
+Compiled MapData.h
+Compiled NMEA-Corrections.c
+Compiled NMEA-Corrections.h
+Compiled ProbeDataManagement.c
+Compiled ProbeDataManagement.h
+Compiled ProbeVehicleData.c
+Compiled ProbeVehicleData.h
+Compiled RoadSideAlert.c
+Compiled RoadSideAlert.h
+Compiled RTCM-Corrections.c
+Compiled RTCM-Corrections.h
+Compiled SignalRequestMsg.c
+Compiled SignalRequestMsg.h
+Compiled SignalStatusMessage.c
+Compiled SignalStatusMessage.h
+Compiled SPAT.c
+Compiled SPAT.h
+Compiled TravelerInformation.c
+Compiled TravelerInformation.h
+Compiled AccelerationSet4Way.c
+Compiled AccelerationSet4Way.h
+Compiled AccelSteerYawRateConfidence.c
+Compiled AccelSteerYawRateConfidence.h
+Compiled AllInclusive.c
+Compiled AllInclusive.h
+Compiled AntennaOffsetSet.c
+Compiled AntennaOffsetSet.h
+Compiled Approach.c
+Compiled Approach.h
+Compiled ApproachObject.c
+Compiled ApproachObject.h
+Compiled BarrierLane.c
+Compiled BarrierLane.h
+Compiled BrakeSystemStatus.c
+Compiled BrakeSystemStatus.h
+Compiled BSMblob.c
+Compiled BSMblob.h
+Compiled BumperHeights.c
+Compiled BumperHeights.h
+Compiled Circle.c
+Compiled Circle.h
+Compiled ConfidenceSet.c
+Compiled ConfidenceSet.h
+Compiled ConnectsTo.c
+Compiled ConnectsTo.h
+Compiled CrosswalkLane.c
+Compiled CrosswalkLane.h
+Compiled DataParameters.c
+Compiled DataParameters.h
+Compiled DDate.c
+Compiled DDate.h
+Compiled DDateTime.c
+Compiled DDateTime.h
+Compiled DFullTime.c
+Compiled DFullTime.h
+Compiled DMonthDay.c
+Compiled DMonthDay.h
+Compiled DTime.c
+Compiled DTime.h
+Compiled DYearMonth.c
+Compiled DYearMonth.h
+Compiled ExitService.c
+Compiled ExitService.h
+Compiled FullPositionVector.c
+Compiled FullPositionVector.h
+Compiled GenericSignage.c
+Compiled GenericSignage.h
+Compiled Intersection.c
+Compiled Intersection.h
+Compiled IntersectionState.c
+Compiled IntersectionState.h
+Compiled J1939data.c
+Compiled J1939data.h
+Compiled MovementState.c
+Compiled MovementState.h
+Compiled NodeList.c
+Compiled NodeList.h
+Compiled Offsets.c
+Compiled Offsets.h
+Compiled PathHistory.c
+Compiled PathHistory.h
+Compiled PathHistoryPointType-01.c
+Compiled PathHistoryPointType-01.h
+Compiled PathHistoryPointType-02.c
+Compiled PathHistoryPointType-02.h
+Compiled PathHistoryPointType-03.c
+Compiled PathHistoryPointType-03.h
+Compiled PathHistoryPointType-04.c
+Compiled PathHistoryPointType-04.h
+Compiled PathHistoryPointType-05.c
+Compiled PathHistoryPointType-05.h
+Compiled PathHistoryPointType-06.c
+Compiled PathHistoryPointType-06.h
+Compiled PathHistoryPointType-07.c
+Compiled PathHistoryPointType-07.h
+Compiled PathHistoryPointType-08.c
+Compiled PathHistoryPointType-08.h
+Compiled PathHistoryPointType-09.c
+Compiled PathHistoryPointType-09.h
+Compiled PathHistoryPointType-10.c
+Compiled PathHistoryPointType-10.h
+Compiled PathPrediction.c
+Compiled PathPrediction.h
+Compiled Position3D.c
+Compiled Position3D.h
+Compiled PositionalAccuracy.c
+Compiled PositionalAccuracy.h
+Compiled PositionConfidenceSet.c
+Compiled PositionConfidenceSet.h
+Compiled RegionList.c
+Compiled RegionList.h
+Compiled RegionOffsets.c
+Compiled RegionOffsets.h
+Compiled RegionPointSet.c
+Compiled RegionPointSet.h
+Compiled RoadSignID.c
+Compiled RoadSignID.h
+Compiled RTCMHeader.c
+Compiled RTCMHeader.h
+Compiled RTCMmsg.c
+Compiled RTCMmsg.h
+Compiled RTCMPackage.c
+Compiled RTCMPackage.h
+Compiled Sample.c
+Compiled Sample.h
+Compiled ShapePointSet.c
+Compiled ShapePointSet.h
+Compiled SignalControlZone.c
+Compiled SignalControlZone.h
+Compiled SignalRequest.c
+Compiled SignalRequest.h
+Compiled Snapshot.c
+Compiled Snapshot.h
+Compiled SnapshotDistance.c
+Compiled SnapshotDistance.h
+Compiled SnapshotTime.c
+Compiled SnapshotTime.h
+Compiled SpecialLane.c
+Compiled SpecialLane.h
+Compiled SpeedandHeadingandThrottleConfidence.c
+Compiled SpeedandHeadingandThrottleConfidence.h
+Compiled SpeedLimit.c
+Compiled SpeedLimit.h
+Compiled TransmissionAndSpeed.c
+Compiled TransmissionAndSpeed.h
+Compiled ValidRegion.c
+Compiled ValidRegion.h
+Compiled VehicleComputedLane.c
+Compiled VehicleComputedLane.h
+Compiled VehicleIdent.c
+Compiled VehicleIdent.h
+Compiled VehicleReferenceLane.c
+Compiled VehicleReferenceLane.h
+Compiled VehicleSafetyExtension.c
+Compiled VehicleSafetyExtension.h
+Compiled VehicleSize.c
+Compiled VehicleSize.h
+Compiled VehicleStatus.c
+Compiled VehicleStatus.h
+Compiled VehicleStatusRequest.c
+Compiled VehicleStatusRequest.h
+Compiled WiperStatus.c
+Compiled WiperStatus.h
+Compiled WorkZone.c
+Compiled WorkZone.h
+Compiled DataFrame.c
+Compiled DataFrame.h
+Compiled TireState.c
+Compiled TireState.h
+Compiled AxleState.c
+Compiled AxleState.h
+Compiled ZoneState.c
+Compiled ZoneState.h
+Compiled ITISCodesChoice.c
+Compiled ITISCodesChoice.h
+Compiled Acceleration.c
+Compiled Acceleration.h
+Compiled AccelerationConfidence.c
+Compiled AccelerationConfidence.h
+Compiled AmbientAirPressure.c
+Compiled AmbientAirPressure.h
+Compiled AmbientAirTemperature.c
+Compiled AmbientAirTemperature.h
+Compiled AntiLockBrakeStatus.c
+Compiled AntiLockBrakeStatus.h
+Compiled ApproachNumber.c
+Compiled ApproachNumber.h
+Compiled AuxiliaryBrakeStatus.c
+Compiled AuxiliaryBrakeStatus.h
+Compiled AxleLocation.c
+Compiled AxleLocation.h
+Compiled AxleWeight.c
+Compiled AxleWeight.h
+Compiled BarrierAttributes.c
+Compiled BarrierAttributes.h
+Compiled BrakeAppliedPressure.c
+Compiled BrakeAppliedPressure.h
+Compiled BrakeAppliedStatus.c
+Compiled BrakeAppliedStatus.h
+Compiled BrakeBoostApplied.c
+Compiled BrakeBoostApplied.h
+Compiled BumperHeightFront.c
+Compiled BumperHeightFront.h
+Compiled BumperHeightRear.c
+Compiled BumperHeightRear.h
+Compiled CargoWeight.c
+Compiled CargoWeight.h
+Compiled CodeWord.c
+Compiled CodeWord.h
+Compiled CoefficientOfFriction.c
+Compiled CoefficientOfFriction.h
+Compiled ColorState.c
+Compiled ColorState.h
+Compiled Count.c
+Compiled Count.h
+Compiled CrosswalkLaneAttributes.c
+Compiled CrosswalkLaneAttributes.h
+Compiled DDay.c
+Compiled DDay.h
+Compiled DescriptiveName.c
+Compiled DescriptiveName.h
+Compiled DHour.c
+Compiled DHour.h
+Compiled DirectionOfUse.c
+Compiled DirectionOfUse.h
+Compiled DMinute.c
+Compiled DMinute.h
+Compiled DMonth.c
+Compiled DMonth.h
+Compiled DOffset.c
+Compiled DOffset.h
+Compiled DriveAxleLiftAirPressure.c
+Compiled DriveAxleLiftAirPressure.h
+Compiled DriveAxleLocation.c
+Compiled DriveAxleLocation.h
+Compiled DriveAxleLubePressure.c
+Compiled DriveAxleLubePressure.h
+Compiled DriveAxleTemperature.c
+Compiled DriveAxleTemperature.h
+Compiled DrivenLineOffset.c
+Compiled DrivenLineOffset.h
+Compiled DrivingWheelAngle.c
+Compiled DrivingWheelAngle.h
+Compiled DSecond.c
+Compiled DSecond.h
+Compiled DSignalSeconds.c
+Compiled DSignalSeconds.h
+Compiled DSRCmsgID.c
+Compiled DSRCmsgID.h
+Compiled DYear.c
+Compiled DYear.h
+Compiled Elevation.c
+Compiled Elevation.h
+Compiled ElevationConfidence.c
+Compiled ElevationConfidence.h
+Compiled EmergencyDetails.c
+Compiled EmergencyDetails.h
+Compiled EventFlags.c
+Compiled EventFlags.h
+Compiled Extent.c
+Compiled Extent.h
+Compiled ExteriorLights.c
+Compiled ExteriorLights.h
+Compiled FurtherInfoID.c
+Compiled FurtherInfoID.h
+Compiled GPSstatus.c
+Compiled GPSstatus.h
+Compiled Heading.c
+Compiled Heading.h
+Compiled HeadingConfidence.c
+Compiled HeadingConfidence.h
+Compiled HeadingSlice.c
+Compiled HeadingSlice.h
+Compiled IntersectionID.c
+Compiled IntersectionID.h
+Compiled IntersectionStatusObject.c
+Compiled IntersectionStatusObject.h
+Compiled LaneCount.c
+Compiled LaneCount.h
+Compiled LaneManeuverCode.c
+Compiled LaneManeuverCode.h
+Compiled LaneNumber.c
+Compiled LaneNumber.h
+Compiled LaneSet.c
+Compiled LaneSet.h
+Compiled LaneWidth.c
+Compiled LaneWidth.h
+Compiled Latitude.c
+Compiled Latitude.h
+Compiled LayerID.c
+Compiled LayerID.h
+Compiled LayerType.c
+Compiled LayerType.h
+Compiled LightbarInUse.c
+Compiled LightbarInUse.h
+Compiled Location-quality.c
+Compiled Location-quality.h
+Compiled Location-tech.c
+Compiled Location-tech.h
+Compiled Longitude.c
+Compiled Longitude.h
+Compiled MinuteOfTheYear.c
+Compiled MinuteOfTheYear.h
+Compiled MinutesDuration.c
+Compiled MinutesDuration.h
+Compiled MsgCount.c
+Compiled MsgCount.h
+Compiled MsgCRC.c
+Compiled MsgCRC.h
+Compiled MultiVehicleResponse.c
+Compiled MultiVehicleResponse.h
+Compiled MUTCDCode.c
+Compiled MUTCDCode.h
+Compiled NMEA-MsgType.c
+Compiled NMEA-MsgType.h
+Compiled NMEA-Payload.c
+Compiled NMEA-Payload.h
+Compiled NMEA-Revision.c
+Compiled NMEA-Revision.h
+Compiled NTCIPVehicleclass.c
+Compiled NTCIPVehicleclass.h
+Compiled ObjectCount.c
+Compiled ObjectCount.h
+Compiled ObstacleDirection.c
+Compiled ObstacleDirection.h
+Compiled ObstacleDistance.c
+Compiled ObstacleDistance.h
+Compiled Payload.c
+Compiled Payload.h
+Compiled PayloadData.c
+Compiled PayloadData.h
+Compiled PedestrianDetect.c
+Compiled PedestrianDetect.h
+Compiled PedestrianSignalState.c
+Compiled PedestrianSignalState.h
+Compiled PositionConfidence.c
+Compiled PositionConfidence.h
+Compiled PreemptState.c
+Compiled PreemptState.h
+Compiled Priority.c
+Compiled Priority.h
+Compiled PriorityState.c
+Compiled PriorityState.h
+Compiled ProbeSegmentNumber.c
+Compiled ProbeSegmentNumber.h
+Compiled RainSensor.c
+Compiled RainSensor.h
+Compiled RequestedItem.c
+Compiled RequestedItem.h
+Compiled ResponseType.c
+Compiled ResponseType.h
+Compiled RTCM-ID.c
+Compiled RTCM-ID.h
+Compiled RTCM-Payload.c
+Compiled RTCM-Payload.h
+Compiled RTCM-Revision.c
+Compiled RTCM-Revision.h
+Compiled SignalLightState.c
+Compiled SignalLightState.h
+Compiled SignalReqScheme.c
+Compiled SignalReqScheme.h
+Compiled SignalState.c
+Compiled SignalState.h
+Compiled SignPrority.c
+Compiled SignPrority.h
+Compiled SirenInUse.c
+Compiled SirenInUse.h
+Compiled SpecialLaneAttributes.c
+Compiled SpecialLaneAttributes.h
+Compiled SpecialSignalState.c
+Compiled SpecialSignalState.h
+Compiled Speed.c
+Compiled Speed.h
+Compiled SpeedConfidence.c
+Compiled SpeedConfidence.h
+Compiled StabilityControlStatus.c
+Compiled StabilityControlStatus.h
+Compiled StateConfidence.c
+Compiled StateConfidence.h
+Compiled SteeringAxleLubePressure.c
+Compiled SteeringAxleLubePressure.h
+Compiled SteeringAxleTemperature.c
+Compiled SteeringAxleTemperature.h
+Compiled SteeringWheelAngle.c
+Compiled SteeringWheelAngle.h
+Compiled SteeringWheelAngleConfidence.c
+Compiled SteeringWheelAngleConfidence.h
+Compiled SteeringWheelAngleRateOfChange.c
+Compiled SteeringWheelAngleRateOfChange.h
+Compiled SunSensor.c
+Compiled SunSensor.h
+Compiled TemporaryID.c
+Compiled TemporaryID.h
+Compiled TermDistance.c
+Compiled TermDistance.h
+Compiled TermTime.c
+Compiled TermTime.h
+Compiled ThrottleConfidence.c
+Compiled ThrottleConfidence.h
+Compiled ThrottlePosition.c
+Compiled ThrottlePosition.h
+Compiled TimeConfidence.c
+Compiled TimeConfidence.h
+Compiled TimeMark.c
+Compiled TimeMark.h
+Compiled TireLeakageRate.c
+Compiled TireLeakageRate.h
+Compiled TireLocation.c
+Compiled TireLocation.h
+Compiled TirePressure.c
+Compiled TirePressure.h
+Compiled TirePressureThresholdDetection.c
+Compiled TirePressureThresholdDetection.h
+Compiled TireTemp.c
+Compiled TireTemp.h
+Compiled TractionControlState.c
+Compiled TractionControlState.h
+Compiled TrailerWeight.c
+Compiled TrailerWeight.h
+Compiled TransitPreEmptionRequest.c
+Compiled TransitPreEmptionRequest.h
+Compiled TransitStatus.c
+Compiled TransitStatus.h
+Compiled TransmissionState.c
+Compiled TransmissionState.h
+Compiled TravelerInfoType.c
+Compiled TravelerInfoType.h
+Compiled TxTime.c
+Compiled TxTime.h
+Compiled UniqueMSGID.c
+Compiled UniqueMSGID.h
+Compiled URL-Base.c
+Compiled URL-Base.h
+Compiled URL-Link.c
+Compiled URL-Link.h
+Compiled URL-Short.c
+Compiled URL-Short.h
+Compiled VehicleHeight.c
+Compiled VehicleHeight.h
+Compiled VehicleLaneAttributes.c
+Compiled VehicleLaneAttributes.h
+Compiled VehicleLength.c
+Compiled VehicleLength.h
+Compiled VehicleMass.c
+Compiled VehicleMass.h
+Compiled VehicleRequestStatus.c
+Compiled VehicleRequestStatus.h
+Compiled VehicleStatusDeviceTypeTag.c
+Compiled VehicleStatusDeviceTypeTag.h
+Compiled VehicleType.c
+Compiled VehicleType.h
+Compiled VehicleWidth.c
+Compiled VehicleWidth.h
+Compiled VerticalAcceleration.c
+Compiled VerticalAcceleration.h
+Compiled VerticalAccelerationThreshold.c
+Compiled VerticalAccelerationThreshold.h
+Compiled VINstring.c
+Compiled VINstring.h
+Compiled WheelEndElectFault.c
+Compiled WheelEndElectFault.h
+Compiled WheelSensorStatus.c
+Compiled WheelSensorStatus.h
+Compiled WiperRate.c
+Compiled WiperRate.h
+Compiled WiperStatusFront.c
+Compiled WiperStatusFront.h
+Compiled WiperStatusRear.c
+Compiled WiperStatusRear.h
+Compiled YawRate.c
+Compiled YawRate.h
+Compiled YawRateConfidence.c
+Compiled YawRateConfidence.h
+Compiled EssMobileFriction.c
+Compiled EssMobileFriction.h
+Compiled EssPrecipRate.c
+Compiled EssPrecipRate.h
+Compiled EssPrecipSituation.c
+Compiled EssPrecipSituation.h
+Compiled EssPrecipYesNo.c
+Compiled EssPrecipYesNo.h
+Compiled EssSolarRadiation.c
+Compiled EssSolarRadiation.h
+Compiled IncidentResponseEquipment.c
+Compiled IncidentResponseEquipment.h
+Compiled ITIScodes.c
+Compiled ITIScodes.h
+Compiled ITIScodesAndTextChoice.c
+Compiled ITIScodesAndTextChoice.h
+Compiled ITIScodesAndText.c
+Compiled ITIScodesAndText.h
+Compiled ITIStext.c
+Compiled ITIStext.h
+Compiled ResponderGroupAffected.c
+Compiled ResponderGroupAffected.h
+Compiled VehicleGroupAffected.c
+Compiled VehicleGroupAffected.h
+Symlinked /skeletons/BOOLEAN.h	-> BOOLEAN.h
+Symlinked /skeletons/BOOLEAN.c	-> BOOLEAN.c
+Symlinked /skeletons/ENUMERATED.h	-> ENUMERATED.h
+Symlinked /skeletons/ENUMERATED.c	-> ENUMERATED.c
+Symlinked /skeletons/INTEGER.h	-> INTEGER.h
+Symlinked /skeletons/NativeEnumerated.h	-> NativeEnumerated.h
+Symlinked /skeletons/IA5String.h	-> IA5String.h
+Symlinked /skeletons/IA5String.c	-> IA5String.c
+Symlinked /skeletons/INTEGER.c	-> INTEGER.c
+Symlinked /skeletons/NativeEnumerated.c	-> NativeEnumerated.c
+Symlinked /skeletons/NativeInteger.h	-> NativeInteger.h
+Symlinked /skeletons/NativeInteger.c	-> NativeInteger.c
+Symlinked /skeletons/asn_SEQUENCE_OF.h	-> asn_SEQUENCE_OF.h
+Symlinked /skeletons/asn_SEQUENCE_OF.c	-> asn_SEQUENCE_OF.c
+Symlinked /skeletons/asn_SET_OF.h	-> asn_SET_OF.h
+Symlinked /skeletons/asn_SET_OF.c	-> asn_SET_OF.c
+Symlinked /skeletons/constr_CHOICE.h	-> constr_CHOICE.h
+Symlinked /skeletons/constr_CHOICE.c	-> constr_CHOICE.c
+Symlinked /skeletons/constr_SEQUENCE.h	-> constr_SEQUENCE.h
+Symlinked /skeletons/constr_SEQUENCE.c	-> constr_SEQUENCE.c
+Symlinked /skeletons/constr_SEQUENCE_OF.h	-> constr_SEQUENCE_OF.h
+Symlinked /skeletons/constr_SEQUENCE_OF.c	-> constr_SEQUENCE_OF.c
+Symlinked /skeletons/constr_SET_OF.h	-> constr_SET_OF.h
+Symlinked /skeletons/constr_SET_OF.c	-> constr_SET_OF.c
+Symlinked /skeletons/asn_application.h	-> asn_application.h
+Symlinked /skeletons/asn_system.h	-> asn_system.h
+Symlinked /skeletons/asn_codecs.h	-> asn_codecs.h
+Symlinked /skeletons/asn_internal.h	-> asn_internal.h
+Symlinked /skeletons/OCTET_STRING.h	-> OCTET_STRING.h
+Symlinked /skeletons/OCTET_STRING.c	-> OCTET_STRING.c
+Symlinked /skeletons/BIT_STRING.h	-> BIT_STRING.h
+Symlinked /skeletons/BIT_STRING.c	-> BIT_STRING.c
+Symlinked /skeletons/asn_codecs_prim.c	-> asn_codecs_prim.c
+Symlinked /skeletons/asn_codecs_prim.h	-> asn_codecs_prim.h
+Symlinked /skeletons/ber_tlv_length.h	-> ber_tlv_length.h
+Symlinked /skeletons/ber_tlv_length.c	-> ber_tlv_length.c
+Symlinked /skeletons/ber_tlv_tag.h	-> ber_tlv_tag.h
+Symlinked /skeletons/ber_tlv_tag.c	-> ber_tlv_tag.c
+Symlinked /skeletons/ber_decoder.h	-> ber_decoder.h
+Symlinked /skeletons/ber_decoder.c	-> ber_decoder.c
+Symlinked /skeletons/der_encoder.h	-> der_encoder.h
+Symlinked /skeletons/der_encoder.c	-> der_encoder.c
+Symlinked /skeletons/constr_TYPE.h	-> constr_TYPE.h
+Symlinked /skeletons/constr_TYPE.c	-> constr_TYPE.c
+Symlinked /skeletons/constraints.h	-> constraints.h
+Symlinked /skeletons/constraints.c	-> constraints.c
+Symlinked /skeletons/xer_support.h	-> xer_support.h
+Symlinked /skeletons/xer_support.c	-> xer_support.c
+Symlinked /skeletons/xer_decoder.h	-> xer_decoder.h
+Symlinked /skeletons/xer_decoder.c	-> xer_decoder.c
+Symlinked /skeletons/xer_encoder.h	-> xer_encoder.h
+Symlinked /skeletons/xer_encoder.c	-> xer_encoder.c
+Symlinked /skeletons/per_support.h	-> per_support.h
+Symlinked /skeletons/per_support.c	-> per_support.c
+Symlinked /skeletons/per_decoder.h	-> per_decoder.h
+Symlinked /skeletons/per_decoder.c	-> per_decoder.c
+Symlinked /skeletons/per_encoder.h	-> per_encoder.h
+Symlinked /skeletons/per_encoder.c	-> per_encoder.c
+Symlinked /skeletons/per_opentype.h	-> per_opentype.h
+Symlinked /skeletons/per_opentype.c	-> per_opentype.c
+Symlinked /skeletons/converter-sample.c	-> converter-sample.c
+Generated Makefile.am.sample

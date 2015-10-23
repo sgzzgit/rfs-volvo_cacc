@@ -1,0 +1,3 @@
+fixtime.sh x.dat
+fixutc.sh x.plt
+(creates x.plt2)

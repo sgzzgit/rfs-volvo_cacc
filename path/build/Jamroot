@@ -1,0 +1,55 @@
+#  Jam file for the demo project
+project pathdatahub 
+	: source-location .  ../db ../clt ../local
+	:  requirements
+	<include>"../db"
+	<include>"../clt"
+	<include>"../local"
+	<include>.
+	<threading>multi 
+	: build-dir ../bin
+	:  default-build release 
+	;
+
+exe db_slv  : 
+	db_slv.c
+	liblocals
+	libdb_clts
+	libpathcpp
+	: 
+	<define>__QNXNTO__
+	<link>static  ;
+
+
+lib libdb_clts  : 
+	db_clt.c db_lib.c db_comm.c db_utils.c
+	liblocals
+	libpathcpp
+	:
+	<define>_GNU_SOURCE
+	<link>static
+	 ; 
+lib libpathcpp :
+	path_datahub.cpp
+	:
+	
+	<link>static ;
+
+lib liblocals :	
+	data_log.c pack.c st.c sys_arg.c sys_arma.c 
+	sys_buff.c sys_fifo.c sys_ini.c sys_lib.c 
+	sys_list.c sys_rt.c sys_str.c sys_tok.c
+	sys_time.c sys_trk.c timing.c 
+	timestamp.c util.c udp_utils.c xytransform.c
+	:
+	<link>static ;
+	
+
+	install distexe : db_slv libdb_clts libpathcpp
+		: <variant>debug:<location>../dist/debug
+			<variant>release:<location>../dist/release
+		<install-dependencies>on <install-type>EXE
+		 ;	
+
+explicit distexe ;	
+		

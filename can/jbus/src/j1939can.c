@@ -12,7 +12,7 @@
 #include "std_jbus_extended.h"
 #include "can_client.h"
 
-#undef DEBUG
+#define DEBUG
 
 /** 
  *	Calls can_open. If flags are RDONLY, can_open will arm the
@@ -40,11 +40,12 @@ int send_can (int fd, struct j1939_pdu *pdu, int slot)
 	unsigned long id = PATH_CAN_ID(pdu); 
 #ifdef DEBUG
 	int i;
-	printf("send_can: PATH_CAN_ID 0x%x, numbytes %d ", id, pdu->numbytes);
+	printf("send_can: PATH_CAN_ID 0x%x, numbytes %d src_address %#x ", id, pdu->numbytes, pdu->src_address);
 	for (i = 0; i < 8; i++)
 		printf("%d ", pdu->data_field[i]);
 	printf("\n");
 #endif
+	pdu->src_address = (0x2A & 0xFF);
 	if (can_write(fd, id, 1, &pdu->data_field,
 		 (unsigned char) (pdu->numbytes & 0xff)) == -1) { 
 		fprintf(stderr, "send_can: can_write failed\n");

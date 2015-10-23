@@ -1,0 +1,196 @@
+#!/usr/local/bin/simple_menu
+#
+# Script to run device drivers and longitudinal control code
+# for BAA project 2008-10 
+
+from-env "AVCS_POSITION" = '3' ;
+from-env "AVCS_VEHICLE" = 'Silvr' ;
+
+global "CONFIG_FILE" = '/home/truckcontrol/test/realtime.ini' ;
+global "PLATOON_SIZE" = '1' ;
+global "STEERING" = 'trk_lat' ;
+global "LONGITUDINAL" = 'long_trk' ;
+global "LONG_DIR" = '/home/truckcontrol/test/' ;
+global "TEST_DIR" = '/home/truckcontrol/test' ;
+global "CAN_CLIENT_DIR" = '/home/can/client/path_can/qnx' ;
+global "CAN_DRIVER_DIR" = '/home/can/drv_i82527/qnx' ;
+global "LONG_CFG_FILE" = 'realtime' ;
+global "LONG_PLOT" = '/home/truckcontrol/plot/trkplot' ;
+global "COMMAND_TEST" = '1' ;
+global "LAPTOP_IP" = '128.32.235.133' ;
+global "DSRC_IP" = '10.0.1.7' ;
+global "DATAFILE" = '/big/data/trk_wr.dat' ;
+global "USER" = 'jspring' ;
+global "PLOT_DIR" = '/home/jspring/plot' ;
+
+#This is the beginning of the main menu
+
+menu "MAIN_MENU"
+
+title 'Truck Longitudinal Control Test'
+
+clear bold always-show
+
+skip ;
+
+shell 'Show configurations'
+%(
+	echo
+	echo Vehicle is $AVCS_VEHICLE.
+	echo Vehicle in position $AVCS_POSITION of platoon size $PLATOON_SIZE.
+	echo Configuration file is $CONFIG_FILE.
+	echo Lateral controller is $STEERING.
+	echo Longitudinal controller is $LONGITUDINAL.
+	echo Longitudinal directory is $LONG_DIR.
+	echo Longitudinal configuration file is $LONG_DIR$LONG_CFG_FILE.ini
+	echo Command test number is $COMMAND_TEST 
+	echo Longitudinal output file name is /big/data/$LONG_CFG_FILE
+	echo LAPTOP_IP  $LAPTOP_IP
+	echo DSRC_IP  $DSRC_IP
+	echo DATAFILE  $DATAFILE
+	echo USER  $USER
+	echo PLOT_DIR  $PLOT_DIR
+
+	echo
+	echo
+%)
+;
+
+skip ;
+
+shell 'Start everything but longitudinal control and file writing'
+%(
+	slay  -f -Q -s TERM trk_io
+	slay  -f -Q -s TERM dmm32
+#	slay  -f -Q -s TERM mdl
+	slay  -f -Q -s TERM evt300
+	slay  -f -Q -s TERM rdj1939
+#	slay  -f -Q -s TERM rdj1587
+	slay  -f -Q -s TERM veh_snd
+	slay  -f -Q -s TERM veh_rcv
+	slay  -f -Q -s TERM gpsrcv
+	slay  -f -Q -s TERM jbussend
+	slay  -f -Q -s TERM can_man
+	slay  -f -Q -s TERM trk_cr
+	slay  -f -Q -s TERM db_slv
+	$TEST_DIR/db_slv -Q -S `hostname` &
+	sleep 1
+	$TEST_DIR/trk_cr -t 1000 2>long_input.dbg &
+	sleep 1
+	$CAN_DRIVER_DIR/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 >/home/truckcontrol/test/can1.log &
+	sleep 1
+	$CAN_DRIVER_DIR/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 >/home/truckcontrol/test/can2.log &
+	sleep 1
+	# To start jbussend with debugging ON, add -d flag
+	$TEST_DIR/jbussend -c -e /dev/can1 -b /dev/can2 >/home/truckcontrol/test/jbussend.dbg &
+	sleep 1
+	$TEST_DIR/gpsrcv -n 202 -u 5050  >gpsrcv.dbg &
+	$TEST_DIR/veh_rcv -f $CONFIG_FILE -u 5051  -t Silvr >veh_rcv.dbg &
+	$TEST_DIR/veh_snd -i 20 -a $DSRC_IP -u 5052  -t Silvr >veh_snd.dbg &
+	sleep 1
+	$CAN_CLIENT_DIR/rdj1939 -c -f /dev/can1 >j1939_eng.dbg &
+	sleep 2
+	$CAN_CLIENT_DIR/rdj1939 -c -f /dev/can2 >j1939_brake.dbg &
+	sleep 2
+	$TEST_DIR/evt300 -s "/dev/ser1" -r a -o 2 >evt300a.log &
+	sleep 1
+	/bin/stty raw baud=19200 </dev/ser2
+	$TEST_DIR/rdlidar -o 2 < /dev/ser2 >densolidar.log &
+#	sleep 1
+#	$TEST_DIR/mdl -o 2 < /dev/ser2 >mdl.log &
+	sleep 1
+	$TEST_DIR/dmm32 >dmm32.log &
+	sleep 1
+	$TEST_DIR/trk_io -o2 >trk_io.log &
+%)
+;
+
+shell 'Stop everything'
+%(
+	slay  -f -Q -s TERM trk_wr
+	slay  -f -Q -s TERM trk_io
+	slay  -f -Q -s TERM dmm32
+	slay  -f -Q -s TERM rdlidar
+#	slay  -f -Q -s TERM mdl
+	slay  -f -Q -s TERM evt300
+	slay  -f -Q -s TERM rdj1939
+#	slay  -f -Q -s TERM rdj1587
+	slay  -f -Q -s TERM veh_snd
+	slay  -f -Q -s TERM veh_rcv
+	slay  -f -Q -s TERM gpsrcv
+	slay  -f -Q -s TERM jbussend
+	slay  -f -Q -s TERM can_man
+	slay  -f -Q -s TERM trk_cr
+	slay  -f -Q -s TERM db_slv
+%)
+;
+skip ;
+
+shell 'Run longitudinal control'
+%(
+	slay  -f -Q -s TERM $LONGITUDINAL
+	/home/truckcontrol/test/$LONGITUDINAL -v Gold -f $LONG_DIR$LONG_CFG_FILE.ini -o /big/data/$LONG_CFG_FILE -r $COMMAND_TEST >$LONG_CFG_FILE$COMMAND_TEST.log &
+%)
+;
+shell 'Stop longitudinal control'
+%(
+	slay  -f -Q -s TERM $LONGITUDINAL
+%)
+;
+skip ;
+
+shell 'Start trace file'
+%(
+	$TEST_DIR/trk_wr -t 50 1>$DATAFILE 2>long_input.dbg &
+%)
+;
+shell 'Stop trace file'
+%(
+	slay -f -Q -s TERM trk_wr
+%)
+;
+skip ;
+shell 'Copy files to laptop'
+%(
+	scp $DATAFILE $USER@$LAPTOP_IP:$PLOT_DIR
+	scp /big/data/test.dat $USER@$LAPTOP_IP:$PLOT_DIR
+%)
+;
+skip ;
+
+reset-global 'Set longitudinal test number'
+from-user "COMMAND_TEST" 'Longitudinal command test number?'
+;
+
+skip ;
+
+reset-global 'Set longitudinal config file name'
+from-user "LONG_CFG_FILE" 'Longitudinal config file name?'
+;
+
+skip ;
+
+do-menu "VEHICLE_MENU" 'Vehicle -->MENU'
+;
+
+skip ;
+menu "VEHICLE_MENU"
+title 'Vehicle Configuration'
+clear bold always-show
+skip ;
+reset-global 'Set vehicle'
+from-user "AVCS_VEHICLE" 'Vehicle (Blue, Gold, or Silver)'
+;
+
+skip ;
+
+reset-global 'Set following position, OR'
+from-user "AVCS_POSITION" 'Following position [2-3]'
+;
+
+reset-global 'Set leader and platoon size'
+from-user "PLATOON_SIZE" 'Platoon size'
+global "AVCS_POSITION" = '1'
+;
+
+skip ;

@@ -151,7 +151,6 @@ int control( float step_t, float time_flt, int vehic_id, int manuv_id[2], sens_r
     static control_config_typ* config_pt;
 
     //*** Function declaration
-
      float eng_map( float, float, int, int, int*);  
      
      float pm_filt(float);
@@ -162,7 +161,6 @@ int control( float step_t, float time_flt, int vehic_id, int manuv_id[2], sens_r
     //float svg3a(float);
     //float svg3b(float);
     //float sign(float);
-    
      sw_pt = sw_pt_tmp;
      output_pt = output_pt_tmp;
      con_state_pt=con_state_pt_tmp;  

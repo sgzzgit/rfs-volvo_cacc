@@ -1,0 +1,377 @@
+     pid tid name                                                       
+       1   1 boot/procnto-instr 
+		0       0x80000000    0 --- @0xf0056d60:0x0 
+		1                0    0 -P- @0xf00546d0:0x0 
+       1   2 boot/procnto-instr 
+       1   3 boot/procnto-instr 
+       1   5 boot/procnto-instr 
+       1   6 boot/procnto-instr 
+       1   7 boot/procnto-instr 
+       1   8 boot/procnto-instr 
+       1   9 boot/procnto-instr 
+       1  10 boot/procnto-instr 
+       1  11 boot/procnto-instr 
+       1  12 boot/procnto-instr 
+       1  14 boot/procnto-instr 
+       2   1 sbin/tinit         
+    4099   1 proc/boot/pci-bios 
+    4100   1 proc/boot/slogger  
+    4101   1 proc/boot/io-usb   
+		2              0xb    0 TP- =PULSE 0x40000005:21 0:0
+		3              0x9    0 TP- =PULSE 0x40000008:21 0:0
+		4              0xb    0 TP- =PULSE 0x4000000b:21 0:0
+		5              0xf    0 TP- =PULSE 0x4000000e:21 0:0
+    4101   2 proc/boot/io-usb   
+    4101   3 proc/boot/io-usb   
+    4101   4 proc/boot/io-usb   
+    4101   5 proc/boot/io-usb   
+    4101   6 proc/boot/io-usb   
+    4101   7 proc/boot/io-usb   
+    4101   8 proc/boot/io-usb   
+    4101   9 proc/boot/io-usb   
+    4102   1 proc/boot/io-hid   
+    4102   2 proc/boot/io-hid   
+    4102   3 proc/boot/io-hid   
+		14              0xc    0 TP- @0xb820f3e3:0xb8213920 
+    4102   4 proc/boot/io-hid   
+		6              0x1    0 TP- @0xb820f3e3:0xb8213920 
+    4102   5 proc/boot/io-hid   
+    4102   6 proc/boot/io-hid   
+    4102   7 proc/boot/io-hid   
+    4103   1 /boot/devc-con-hid 
+    4103   2 /boot/devc-con-hid 
+    8200   1 roc/boot/devb-eide 
+    8200   2 roc/boot/devb-eide 
+		7              0xe    0 TP- =PULSE 0x40000002:21 0x2:0
+    8200   3 roc/boot/devb-eide 
+    8200   4 roc/boot/devb-eide 
+    8200   5 roc/boot/devb-eide 
+    8200   6 roc/boot/devb-eide 
+    8200   8 roc/boot/devb-eide 
+    8200   9 roc/boot/devb-eide 
+   20489   1 sbin/pipe          
+   20489   2 sbin/pipe          
+   20489   4 sbin/pipe          
+   20489   5 sbin/pipe          
+   20489   6 sbin/pipe          
+   24586   1 sbin/mqueue        
+   53259   1 usr/sbin/mcd       
+   53259   2 usr/sbin/mcd       
+   53259   3 usr/sbin/mcd       
+   53259   5 usr/sbin/mcd       
+   53259   6 usr/sbin/mcd       
+   53259   7 usr/sbin/mcd       
+   57356   1 usr/sbin/random    
+   57356   2 usr/sbin/random    
+   57356   3 usr/sbin/random    
+   61453   1 sbin/enum-devices  
+   77840   1 sbin/enum-usb      
+   77840   2 sbin/enum-usb      
+   90126   1 sbin/io-audio      
+   90126   2 sbin/io-audio      
+   90126   3 sbin/io-audio      
+   90126   4 sbin/io-audio      
+   90126   5 sbin/io-audio      
+		8              0x9    0 T-- =INTR 
+   90126   6 sbin/io-audio      
+  106513   1 sbin/devc-ser8250  
+		9              0x4    0 --- @0x804a63b:0x8064098 
+		10              0x3    0 --- @0x804a63b:0x80640b0 
+  106516   1 sbin/devc-par      
+  106516   2 sbin/devc-par      
+  110614   1 sbin/io-display    
+  110614   2 sbin/io-display    
+  110614   3 sbin/io-display    
+		13              0xb    0 TPE @0xb820b45c:0x805d188 
+  110614   4 sbin/io-display    
+  110614   5 sbin/io-display    
+  126999   1 sbin/io-pkt-v4-hc  
+  126999   2 sbin/io-pkt-v4-hc  
+		11                0    0 T-- @0x80b7334:0x812a060 
+		12              0xf    0 T-- @0xb820627c:0x8153380 
+  163855   1 sbin/devc-pty      
+  176146   1 usr/sbin/dumper    
+  184341   1 usr/sbin/sshd      
+  270355   1 bin/login          
+  270360   1 bin/login          
+  270361   1 bin/login          
+  299036   1 /photon/bin/Photon 
+  319517   1 on/bin/io-graphics 
+  319517   2 on/bin/io-graphics 
+  319517   3 on/bin/io-graphics 
+  335904   1 hoton/bin/devi-hid 
+  335904   2 hoton/bin/devi-hid 
+  335904   3 hoton/bin/devi-hid 
+  335904   5 hoton/bin/devi-hid 
+  348186   1 bin/login          
+  765983   1 usr/photon/bin/pwm 
+  794657   1 r/photon/bin/shelf 
+  794657   2 r/photon/bin/shelf 
+  815138   1 photon/bin/bkgdmgr 
+  815139   1 hoton/bin/wmswitch 
+  815140   1 r/photon/bin/saver 
+  851995   1 r/photon/bin/pterm 
+  851998   1 bin/sh             
+ 3620901   1 usr/bin/ssh        
+ 3624998   1 usr/sbin/sshd      
+ 3633191   1 usr/sbin/sshd      
+ 3633192   1 bin/sh             
+ 3825705   1 bin/sh             
+ 4849706   1 bin/pidin          
+     pid tid name               prio STATE            code  data        stack
+       1   1 boot/procnto-instr   0f READY            487K 3664K    320(320)*
+       1   2 boot/procnto-instr 255r RECEIVE          487K 3664K  8192(8192) 
+       1   3 boot/procnto-instr 255r RECEIVE          487K 3664K  8192(8192) 
+       1   5 boot/procnto-instr 255r RECEIVE          487K 3664K  8192(8192) 
+       1   6 boot/procnto-instr  10r RECEIVE          487K 3664K  8192(8192) 
+       1   7 boot/procnto-instr  10r RECEIVE          487K 3664K  8192(8192) 
+       1   8 boot/procnto-instr  10r RECEIVE          487K 3664K  8192(8192) 
+       1   9 boot/procnto-instr  10r RUNNING          487K 3664K  8192(8192) 
+       1  10 boot/procnto-instr  10r RECEIVE          487K 3664K  8192(8192) 
+       1  11 boot/procnto-instr  10r RECEIVE          487K 3664K  8192(8192) 
+       1  12 boot/procnto-instr  10r RECEIVE          487K 3664K  8192(8192) 
+       1  14 boot/procnto-instr  10r RECEIVE          487K 3664K  8192(8192) 
+       2   1 sbin/tinit          10o REPLY            8192  112K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+    4099   1 proc/boot/pci-bios  10o RECEIVE           60K  108K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+    4100   1 proc/boot/slogger   21o RECEIVE           12K  172K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+    4101   1 proc/boot/io-usb    10o SIGWAITINFO       84K  472K  8192(516K)*
+    4101   2 proc/boot/io-usb    21r RECEIVE           84K  472K   4096(20K) 
+    4101   3 proc/boot/io-usb    21r RECEIVE           84K  472K   4096(20K) 
+    4101   4 proc/boot/io-usb    21r RECEIVE           84K  472K   4096(20K) 
+    4101   5 proc/boot/io-usb    21r RECEIVE           84K  472K   4096(20K) 
+    4101   6 proc/boot/io-usb    21r RECEIVE           84K  472K   4096(20K) 
+    4101   7 proc/boot/io-usb    10o RECEIVE           84K  472K   4096(20K) 
+    4101   8 proc/boot/io-usb    10r NANOSLEEP         84K  472K   4096(20K) 
+    4101   9 proc/boot/io-usb    10o RECEIVE           84K  472K   4096(20K) 
+             libc.so.3          @b0300000             468K   12K              
+             devu-uhci.so       @b8200000              24K  4096              
+             devu-ohci.so       @b8207000              24K  4096              
+             devu-ehci.so       @b820e000              32K  4096              
+             Mapped Phys Memory @40100000 (e8200000)        4096  S           
+    4102   1 proc/boot/io-hid    10o SIGWAITINFO       28K  112K  8192(516K)*
+    4102   2 proc/boot/io-hid    21r RECEIVE           28K  112K   4096(12K) 
+    4102   3 proc/boot/io-hid    10o RECEIVE           28K  112K   4096(20K) 
+    4102   4 proc/boot/io-hid    10o RECEIVE           28K  112K   4096(20K) 
+    4102   5 proc/boot/io-hid    10r REPLY             28K  112K   4096(20K) 
+    4102   6 proc/boot/io-hid    15r RECEIVE           28K  112K   4096(12K) 
+    4102   7 proc/boot/io-hid    15r RECEIVE           28K  112K   4096(12K) 
+             libc.so.3          @b0300000             468K   12K              
+             libhiddi.so.1      @b8200000              24K  4096              
+             devh-ps2ser.so     @b8207000              48K  8192              
+             devh-usb.so        @b8215000              16K  4096              
+             libusbdi.so.2      @b821a000              40K  8192              
+    4103   1 /boot/devc-con-hid  20o RECEIVE          100K  144K  8192(516K)*
+    4103   2 /boot/devc-con-hid  10o REPLY            100K  144K   4096(20K) 
+             libc.so.3          @b0300000             468K   12K              
+             Mapped Phys Memory @40100000 (       0)        4096  S           
+             Mapped Phys Memory @40101000 (   b8000)         32K  S           
+    8200   1 roc/boot/devb-eide  10o SIGWAITINFO       88K   87M  8192(516K)*
+    8200   2 roc/boot/devb-eide  21r RECEIVE           88K   87M   4096(20K) 
+    8200   3 roc/boot/devb-eide  10o RECEIVE           88K   87M    20K(24K) 
+    8200   4 roc/boot/devb-eide  10o RECEIVE           88K   87M    20K(24K) 
+    8200   5 roc/boot/devb-eide  10o RECEIVE           88K   87M    20K(24K) 
+    8200   6 roc/boot/devb-eide  10o RECEIVE           88K   87M    20K(24K) 
+    8200   8 roc/boot/devb-eide  10o RECEIVE           88K   87M    20K(24K) 
+    8200   9 roc/boot/devb-eide  10o RECEIVE           88K   87M    20K(24K) 
+             libc.so.3          @b0300000             468K   12K              
+             libcam.so.2        @b8200000              64K  8192              
+             io-blk.so          @b8212000             140K  8192              
+             cam-disk.so        @b8237000             8192  4096              
+             fs-qnx4.so         @b823a000              48K  8192              
+   20489   1 sbin/pipe           10o SIGWAITINFO       16K  144K  4096(516K)*
+   20489   2 sbin/pipe           10o RECEIVE           16K  144K    12K(16K) 
+   20489   4 sbin/pipe           10o RECEIVE           16K  144K    12K(16K) 
+   20489   5 sbin/pipe           10o RECEIVE           16K  144K    12K(16K) 
+   20489   6 sbin/pipe           10o RECEIVE           16K  144K    12K(16K) 
+             libc.so.3          @b0300000             468K   12K              
+   24586   1 sbin/mqueue         10o RECEIVE           12K  112K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+   53259   1 usr/sbin/mcd        10o RECEIVE           32K  112K  8192(516K)*
+   53259   2 usr/sbin/mcd        10o NANOSLEEP         32K  112K   8192(20K) 
+   53259   3 usr/sbin/mcd        10o SIGWAITINFO       32K  112K   8192(20K) 
+   53259   5 usr/sbin/mcd        10o SIGWAITINFO       32K  112K   8192(20K) 
+   53259   6 usr/sbin/mcd        10o SIGWAITINFO       32K  112K   8192(20K) 
+   53259   7 usr/sbin/mcd        10o SIGWAITINFO       32K  112K   8192(20K) 
+             libc.so.3          @b0300000             468K   12K              
+   57356   1 usr/sbin/random     10o SIGWAITINFO       24K  368K  8192(516K)*
+   57356   2 usr/sbin/random     10o RECEIVE           24K  368K  8192(132K) 
+   57356   3 usr/sbin/random     10o NANOSLEEP         24K  368K  4096(132K) 
+             libc.so.3          @b0300000             468K   12K              
+             libm.so.2          @b8200000             184K   20K              
+             libz.so.2          @b8233000              48K  8192              
+   61453   1 sbin/enum-devices   10o REPLY             28K  176K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+   77840   1 sbin/enum-usb       10o SIGWAITINFO       16K  112K  8192(516K)*
+   77840   2 sbin/enum-usb       10r REPLY             16K  112K   4096(20K) 
+             libc.so.3          @b0300000             468K   12K              
+             libusbdi.so.2      @b8200000              40K  8192              
+   90126   1 sbin/io-audio       10o SIGWAITINFO      132K  108K  8192(516K)*
+   90126   2 sbin/io-audio       10o RECEIVE          132K  108K  4096(132K) 
+   90126   3 sbin/io-audio       10o RECEIVE          132K  108K  8192(132K) 
+   90126   4 sbin/io-audio       10o RECEIVE          132K  108K  4096(132K) 
+   90126   5 sbin/io-audio       50r INTR             132K  108K  4096(132K) 
+   90126   6 sbin/io-audio       50r RECEIVE          132K  108K  4096(132K) 
+             libc.so.3          @b0300000             468K   12K              
+             deva-ctrl-i8x0.so  @b8200000              12K  4096              
+             deva-mixer-ac97.so @b8204000              24K  8192              
+             Mapped Phys Memory @40100000 (e8201000)        4096  S           
+             Mapped Phys Memory @40101000 (e8202000)        4096  S           
+  106513   1 sbin/devc-ser8250   24o RECEIVE           64K  140K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  106516   1 sbin/devc-par       10o RECEIVE           60K  144K  8192(516K)*
+  106516   2 sbin/devc-par        9r CONDVAR           60K  144K  4096(132K) 
+             libc.so.3          @b0300000             468K   12K              
+  110614   1 sbin/io-display     10o SIGWAITINFO       44K 1928K  8192(516K)*
+  110614   2 sbin/io-display     10o RECEIVE           44K 1928K  4096(132K) 
+  110614   3 sbin/io-display     12o RECEIVE           44K 1928K  8192(132K) 
+  110614   4 sbin/io-display     10o RECEIVE           44K 1928K  4096(132K) 
+  110614   5 sbin/io-display     10o RECEIVE           44K 1928K  4096(132K) 
+             libc.so.3          @b0300000             468K   12K              
+             devg-extreme2.so   @b8200000             136K  8192              
+             libm.so.2          @b8224000             184K   20K              
+             libffb.so.2        @b8257000              68K  4096              
+             em/ctl-8086,3582,0 @40100000 (       0)        4096  S           
+             Mapped Phys Memory @40101000 (e8180000)        512K  S           
+             Mapped Phys Memory @40400000 (d8000000)        128M  S           
+  126999   1 sbin/io-pkt-v4-hc   21o SIGWAITINFO      868K 1104K  8192(516K)*
+  126999   2 sbin/io-pkt-v4-hc   21o RECEIVE          868K 1104K  8192(132K) 
+             libc.so.3          @b0300000             468K   12K              
+             devnp-speedo.so    @b8200000              44K  8192              
+  163855   1 sbin/devc-pty       10o RECEIVE           60K  336K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  176146   1 usr/sbin/dumper     10o RECEIVE           56K  180K   36K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  184341   1 usr/sbin/sshd       10o SIGWAITINFO      276K  164K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libsocket.so.2     @b8200000             160K   28K              
+             libcrypto.so.1     @b822f000            1268K  100K              
+             libz.so.2          @b8385000              48K  8192              
+  270355   1 bin/login           10o REPLY             20K  108K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  270360   1 bin/login           10o REPLY             20K  108K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  270361   1 bin/login           10o REPLY             20K  108K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  299036   1 /photon/bin/Photon  10r RECEIVE           72K  144K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  319517   1 on/bin/io-graphics  12r CONDVAR           80K 3780K   12K(516K)*
+  319517   2 on/bin/io-graphics  10r RECEIVE           80K 3780K  8192(516K) 
+  319517   3 on/bin/io-graphics  12r REPLY             80K 3780K  8192(132K) 
+             libc.so.3          @b0300000             468K   12K              
+             libgf.so.1         @b8200000              76K  8192              
+             libph.so.3         @b8215000            1052K   36K              
+             libfont.so.1       @b8325000              28K  4096              
+             libphrender.so.2   @b832d000             232K  8192              
+             phfont.so          @b8369000              92K   12K              
+             FCcore.so          @b8383000              36K  4096              
+             libblkcache.so.2   @b838d000              12K  4096              
+             libFF-T2K-fm.so.1  @b8391000              12K  4096              
+             bFF-T2K-cache.so.2 @b8395000             8192  4096              
+             libFF-T2K.so.2     @b8398000             280K   12K              
+             PHFcore.so         @b83e1000              24K  8192              
+             libfontutils.so.1  @b83e9000             4096  4096              
+             ttfFFcore.so       @b83eb000              36K  8192              
+             devg-extreme2.so   @b83f6000             136K  8192              
+             libm.so.2          @b841a000             184K   20K              
+             libffb.so.2        @b844d000              68K  4096              
+             m/Pf319517.806a250 @40100000 (       0)         64K  S           
+             em/ctl-8086,3582,0 @40110000 (       0)        4096  S           
+             ture-8086,3582,0:1 @40111000 (       0)        512K  S           
+             ture-8086,3582,0:2 @40191000 (       0)        128K  S           
+             v/shmem/Pgf01e0000 @401b1000 (       0)         48K  S           
+             v/shmem/Pgf01e0001 @401bd000 (       0)         28K  S           
+             ture-8086,3582,0:0 @40400000 (       0)        128M  S           
+             v/shmem/Pg70220000 @48400000 (       0)       2304K  S           
+  335904   1 hoton/bin/devi-hid  10o RECEIVE          100K  144K  4096(132K) 
+  335904   2 hoton/bin/devi-hid  10o REPLY            100K  144K   4096(20K) 
+  335904   3 hoton/bin/devi-hid  12o SIGWAITINFO      100K  144K  8192(132K) 
+  335904   5 hoton/bin/devi-hid  10o RECEIVE          100K  144K  4096(132K) 
+             libc.so.3          @b0300000             468K   12K              
+             libgf.so.1         @b8200000              76K  8192              
+             libhiddi.so.1      @b8215000              24K  4096              
+  348186   1 bin/login           10o REPLY             20K  108K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+  765983   1 usr/photon/bin/pwm  10r RECEIVE           64K  172K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libphexlib.so.3    @b8200000             180K  8192              
+             libph.so.3         @b822f000            1052K   36K              
+             libimg.so.1        @b833f000              60K  4096              
+             libfont.so.1       @b834f000              28K  4096              
+             wframe_updated2.so @b8357000              44K  8192              
+  794657   1 r/photon/bin/shelf  10r RECEIVE           80K  496K   12K(516K)*
+  794657   2 r/photon/bin/shelf  10r CONDVAR           80K  496K  8192(132K) 
+             libc.so.3          @b0300000             468K   12K              
+             libAp.so.3         @b8200000              60K  8192              
+             libph.so.3         @b8211000            1052K   36K              
+             libm.so.2          @b8321000             184K   20K              
+             libcpp.so.4        @b8354000             376K   32K              
+             libfont.so.1       @b83ba000              28K  4096              
+             launchmenu.so      @b83c2000              20K  4096              
+             libphexlib.so.3    @b83c8000             180K  8192              
+             libimg.so.1        @b83f7000              60K  4096              
+             taskbar.so         @b8407000              24K  4096              
+             clock.so           @b840e000              12K  4096              
+             launcher.so        @b8412000              12K  8192              
+             pload.so           @b8417000              20K  8192              
+             libsocket.so.2     @b841e000             160K   28K              
+             volume.so          @b844d000              12K  4096              
+             libasound.so.2     @b8451000              68K   12K              
+             worldview.so       @b8465000              20K  4096              
+  815138   1 photon/bin/bkgdmgr  10r RECEIVE           12K 2444K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libph.so.3         @b8200000            1052K   36K              
+             libphexlib.so.3    @b8310000             180K  8192              
+             libimg.so.1        @b833f000              60K  4096              
+             libfont.so.1       @b834f000              28K  4096              
+             img_codec_jpg.so   @b8357000             100K  4096              
+             v/shmem/Pg70220000 @40100000 (       0)       2304K  S           
+  815139   1 hoton/bin/wmswitch  10r RECEIVE           12K  204K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libAp.so.3         @b8200000              60K  8192              
+             libph.so.3         @b8211000            1052K   36K              
+             libfont.so.1       @b8321000              28K  4096              
+  815140   1 r/photon/bin/saver  10r RECEIVE           20K  204K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libphexlib.so.3    @b8200000             180K  8192              
+             libAp.so.3         @b822f000              60K  8192              
+             libph.so.3         @b8240000            1052K   36K              
+             libimg.so.1        @b8350000              60K  4096              
+             libfont.so.1       @b8360000              28K  4096              
+  851995   1 r/photon/bin/pterm  10r RECEIVE           48K  304K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libphexlib.so.3    @b8200000             180K  8192              
+             libimg.so.1        @b822f000              60K  4096              
+             libAp.so.3         @b823f000              60K  8192              
+             libph.so.3         @b8250000            1052K   36K              
+             libm.so.2          @b8360000             184K   20K              
+             libfont.so.1       @b8393000              28K  4096              
+  851998   1 bin/sh              10r SIGSUSPEND       184K  144K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+ 3620901   1 usr/bin/ssh         10r SIGWAITINFO      232K  252K   24K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libsocket.so.2     @b8200000             160K   28K              
+             libcrypto.so.1     @b822f000            1268K  100K              
+             libz.so.2          @b8385000              48K  8192              
+ 3624998   1 usr/sbin/sshd       10o REPLY            276K 2820K   20K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libsocket.so.2     @b8200000             160K   28K              
+             libcrypto.so.1     @b822f000            1268K  100K              
+             libz.so.2          @b8385000              48K  8192              
+             /dev/mem           @40110000 (       0)       1280K  S           
+             /dev/mem           @40250000 (       0)       1280K  S           
+ 3633191   1 usr/sbin/sshd       10o SIGWAITINFO      276K 2820K   20K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+             libsocket.so.2     @b8200000             160K   28K              
+             libcrypto.so.1     @b822f000            1268K  100K              
+             libz.so.2          @b8385000              48K  8192              
+             /dev/mem           @40110000 (       0)       1280K  S           
+             /dev/mem           @40250000 (       0)       1280K  S           
+ 3633192   1 bin/sh              10o SIGSUSPEND       184K  144K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              
+ 3825705   1 bin/sh              10o SIGSUSPEND       184K  144K   12K(516K)*
+             libc.so.3          @b0300000             468K   12K              
+ 4849706   1 bin/pidin           10o REPLY             52K  216K  8192(516K)*
+             libc.so.3          @b0300000             468K   12K              

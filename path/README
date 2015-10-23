@@ -1,0 +1,42 @@
+This is the top-level directory of the California PATH shared code
+distribution, which is kept under Subversion version control on
+the PATH server.
+
+To build the code in this tree using make.
+
+1) Look in the 'build' subdirectory of this directory, and edit
+capath_lnx.mk, if you are on a Linux system, capath_qnx.mk if you
+are on a QNX6 system, or capath_sobos.make, if you are using the
+Sobos embedded cross-compile for the Savari on-board unit, to set
+DISTRIB_DIR to the parent directory where you have checked out this
+"path" subdirectory. (The parent directory is used so that project
+files in a "sister" directory may use the same make include file
+and build mechanisms to link to the California PATH shared code. 
+
+2) Set up the environment variable CAPATH_MK_DEFS to contain the
+location of this file on your system, for example, on a Linux system,
+where you have done
+
+% svn co $SVNURL/path/trunk /home/capath/path
+
+do
+
+% export CAPATH_MK_DEFS=/home/capath/path/build/capath_lnx.mk
+
+You will probably want to put this command in your profile, unless
+you often switch from native to cross-compile. On QNX6, the commands
+are the same as for Linux. If you need to do the Sobos cross-compile,
+you will need more information than is in this README.  
+
+3) Check the Makefile to see if you want to turn on builds of the
+Tilcon or mtcp directories by uncommenting those lines. You may 
+also comment out the build of the "sens" directory if you only need
+that DB data server and do not use any of the drivers or the GPS
+utility functions.
+
+
+4) Type 'make' in this directory to build the subtrees. On Sobos,
+make setup will copy a Makefile into the parent directory for using
+a package. On Linux and QNX6, make setup copies a stub Makefile in
+the parent directory in case you want to build a top-level Makefile
+that builds both the project-specific files and the shared code.

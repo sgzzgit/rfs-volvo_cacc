@@ -1,0 +1,16 @@
+static int sig_list[]=
+{
+	SIGINT,
+	SIGQUIT,
+	SIGTERM,
+	SIGALRM,	// for timer
+	ERROR
+};
+static jmp_buf exit_env;
+static void sig_hand( int code )
+{
+	if (code == SIGALRM)
+		return;
+	else
+		longjmp( exit_env, code );
+}

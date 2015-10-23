@@ -1,0 +1,31 @@
+To parse the LONG format in IBEO CAN message protocol 1.7.0 required
+the following changes in the original CAN parsing code:
+
+Messate type 1:
+list header: 
+	sensor_status no longer supported
+	bit field for object_count changed
+	bit field for calibration flag changed
+environment info:
+	all bit fields changed extent
+Message type 2:
+object header:
+	all bit fields changed extent
+	no longer contains first point info
+	contains velocity extension as well as velocity
+Message type 3
+object deviation info:
+	all bit fields changed extent
+Message type 4
+object classifcation and age:
+	all bit fields changed extent
+Message type 5
+extended object info:
+	new message not parsed before
+Message type 6
+object outline points:
+	bit field munging changed (still 13 bits per position number)
+
+
+
+ 

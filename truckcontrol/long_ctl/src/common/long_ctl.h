@@ -31,7 +31,7 @@
 #include "mdl.h"
 #include "path_gps_lib.h"
 #include "long_comm.h"
-#include "vehicle.h"
+#include "veh_trk.h"
 
 // defined in long_ctl.c, used by tasks to control how much to print
 extern int long_ctl_verbose;
@@ -153,40 +153,78 @@ typedef struct {
 
   float MVS_X_E_AppliedVehicleSpeedLimit_BB1_X_E;
 
-  // Engine control by transmission
-  unsigned char TSC1_E_T_EnOvrdCtrlM;
-  unsigned char TSC1_E_T_EnRSpdCtrlC;
-  unsigned char TSC1_E_T_EnRSpdSpdLm;
-  unsigned char TSC1_E_T_EnRTrqTrqLm;
-  unsigned char TSC1_E_T_OvrdCtrlMPr;
+  // Engine control by transmission TSC1_E_T
+  unsigned char TSC1_EMSTECU_EnOvrdCtrlM;
+  unsigned char TSC1_EMSTECU_EnRSpdCtrlC;
+  unsigned char TSC1_EMSTECU_EnRSpdSpdLm;
+  unsigned char TSC1_EMSTECU_EnRTrqTrqLm;
+  unsigned char TSC1_EMSTECU_OvrdCtrlMPr;
+  unsigned char TSC1_EMSTECU_src_address;
+  unsigned char TSC1_EMSTECU_destination_address;
 
-  // Engine retarder control by transmission
-  unsigned char TSC1_ER_T_EnOvrdCtrlM;
-  unsigned char TSC1_ER_T_EnRSpdCtrlC;
-  unsigned char TSC1_ER_T_EnRSpdSpdLm;
-  unsigned char TSC1_ER_T_EnRTrqTrqLm;
-  unsigned char TSC1_ER_T_OvrdCtrlMPr;
+  // Engine control by brake TSC1_E_A
+  unsigned char TSC1_EMSABS_EnOvrdCtrlM;
+  unsigned char TSC1_EMSABS_EnRSpdCtrlC;
+  unsigned char TSC1_EMSABS_EnRSpdSpdLm;
+  unsigned char TSC1_EMSABS_EnRTrqTrqLm;
+  unsigned char TSC1_EMSABS_OvrdCtrlMPr;
+  unsigned char TSC1_EMSABS_src_address;
+  unsigned char TSC1_EMSABS_destination_address;
 
-  // Engine retarder control by CC
-  unsigned char TSC1_ER_V_EnOvrdCtrlM;
-  unsigned char TSC1_ER_V_EnRSpdCtrlC;
-  unsigned char TSC1_ER_V_EnRSpdSpdLm;
-  unsigned char TSC1_ER_V_EnRTrqTrqLm;
-  unsigned char TSC1_ER_V_OvrdCtrlMPr;
+  // Engine control by CC TSC1_E_V
+  unsigned char TSC1_EMSVMCUes_EnOvrdCtrlM;
+  unsigned char TSC1_EMSVMCUes_EnRSpdCtrlC;
+  unsigned char TSC1_EMSVMCUes_EnRSpdSpdLm;
+  unsigned char TSC1_EMSVMCUes_EnRTrqTrqLm;
+  unsigned char TSC1_EMSVMCUes_OvrdCtrlMPr;
+  unsigned char TSC1_EMSVMCUes_src_address;
+  unsigned char TSC1_EMSVMCUes_destination_address;
 
-  // Engine retarder control by ACC
-  unsigned char TSC1_ER_ACC_EnOvrdCtrlM;
-  unsigned char TSC1_ER_ACC_EnRSpdCtrlC;
-  unsigned char TSC1_ER_ACC_EnRSpdSpdLm;
-  unsigned char TSC1_ER_ACC_EnRTrqTrqLm;
-  unsigned char TSC1_ER_ACC_OvrdCtrlMPr;
-
-  // Engine control by ACC
+  // Engine control by ACC TSC1_E_ACC
   unsigned char TSC1_EMS_ACC_EnOvrdCtrlM;
   unsigned char TSC1_EMS_ACC_EnRSpdCtrlC;
   unsigned char TSC1_EMS_ACC_EnRSpdSpdLm;
   unsigned char TSC1_EMS_ACC_EnRTrqTrqLm;
   unsigned char TSC1_EMS_ACC_OvrdCtrlMPr;
+  unsigned char TSC1_EMS_ACC_src_address;
+  unsigned char TSC1_EMS_ACC_destination_address;
+
+
+  // Engine retarder control by transmission TSC1_ER_T
+  unsigned char TSC1_EMSrTECU_EnOvrdCtrlM;
+  unsigned char TSC1_EMSrTECU_EnRSpdCtrlC;
+  unsigned char TSC1_EMSrTECU_EnRSpdSpdLm;
+  unsigned char TSC1_EMSrTECU_EnRTrqTrqLm;
+  unsigned char TSC1_EMSrTECU_OvrdCtrlMPr;
+  unsigned char TSC1_EMSrTECU_src_address;
+  unsigned char TSC1_EMSrTECU_destination_address;
+
+  // Engine retarder control by brake TSC1_ER_A
+  unsigned char TSC1_EMSrABS_EnOvrdCtrlM;
+  unsigned char TSC1_EMSrABS_EnRSpdCtrlC;
+  unsigned char TSC1_EMSrABS_EnRSpdSpdLm;
+  unsigned char TSC1_EMSrABS_EnRTrqTrqLm;
+  unsigned char TSC1_EMSrABS_OvrdCtrlMPr;
+  unsigned char TSC1_EMSrABS_src_address;
+  unsigned char TSC1_EMSrABS_destination_address;
+
+  // Engine retarder control by CC TSC1_ER_V
+  unsigned char TSC1_ER_V_EnOvrdCtrlM;
+  unsigned char TSC1_ER_V_EnRSpdCtrlC;
+  unsigned char TSC1_ER_V_EnRSpdSpdLm;
+  unsigned char TSC1_ER_V_EnRTrqTrqLm;
+  unsigned char TSC1_ER_V_OvrdCtrlMPr;
+  unsigned char TSC1_ER_V_src_address;
+  unsigned char TSC1_ER_V_destination_address;
+
+  // Engine retarder control by ACC TSC1_ER_ACC
+  unsigned char TSC1_ER_ACC_EnOvrdCtrlM;
+  unsigned char TSC1_ER_ACC_EnRSpdCtrlC;
+  unsigned char TSC1_ER_ACC_EnRSpdSpdLm;
+  unsigned char TSC1_ER_ACC_EnRTrqTrqLm;
+  unsigned char TSC1_ER_ACC_OvrdCtrlMPr;
+  unsigned char TSC1_ER_ACC_src_address;
+  unsigned char TSC1_ER_ACC_destination_address;
 
   float VDC2_SteeringWheelAngle;
   float VDC2_SteeringWheelAngleSensorType;
@@ -196,6 +234,36 @@ typedef struct {
   float VDC2_LateralAcceleration;
   float VP_X_TGW_Latitude_BB1_X_TGW;
   float VP_X_TGW_Longitude_BB1_X_TGW;;
+
+  float VOLVO_XBR_ExternalAccelerationDemand;       ///
+  unsigned char VOLVO_XBR_src_address;
+  unsigned char VOLVO_XBR_destination_address;
+  unsigned char VOLVO_XBR_XBREBIMode;       ///
+  unsigned char VOLVO_XBR_XBRPriority;      ///
+  unsigned char VOLVO_XBR_XBRControlMode;   ///
+  unsigned char VOLVO_XBR_XBRUrgency;       ///
+  unsigned char VOLVO_XBR_spare1;           /// 0xFF
+  unsigned char VOLVO_XBR_spare2;           /// 0xFF
+  unsigned char VOLVO_XBR_spare3;           /// 0xFF
+  unsigned char VOLVO_XBR_XBRMessageCounter;///
+  unsigned char VOLVO_XBR_XBRMessageChecksum;///
+
+  unsigned char VOLVO_XBR_WARN_src_address;
+  unsigned char VOLVO_XBR_WARN_byte1;
+  unsigned char VOLVO_XBR_WARN_byte2;
+  unsigned char VOLVO_XBR_WARN_byte3;
+  unsigned char VOLVO_XBR_WARN_byte4;
+  unsigned char VOLVO_XBR_WARN_byte5;
+  unsigned char VOLVO_XBR_WARN_byte6;
+  unsigned char VOLVO_XBR_WARN_byte7;
+  unsigned char VOLVO_XBR_WARN_byte8;
+
+  float Volvo_TargetDist;
+  float Volvo_TargetVel;
+  float Volvo_TargetAcc;
+  float Volvo_TargetAvailable;
+  float Volvo_EgoVel;
+  float Volvo_EgoAcc;
 
   unsigned char CAN1_BusLoad;
   unsigned char CAN1_ExtData;

@@ -1,0 +1,126 @@
+\file
+
+This directory contains client test programs that use the utilities
+in ../local and ../db. 
+
+Test Programs for Data Transfer
+
+rcvdbg.c and snddbg.c can be used to test basic serial port or
+UDP packet transfer between two systems; a variety of flags can be
+used to vary the test set-up. Default is UDP broadcast of bytes
+supplied to snddbg from stdin.
+
+Example: to send UDP unicast to default port 6056, IP address 128.32.234.193
+first type
+rcvdbg -v
+on the receiving system, then type
+snddbg -o 128.32.234.193
+
+Characters can be typed in on the sending system, and will be echoed
+as byte codes on the receiving system, in verbose mode. Or a file or
+pipe can be used as input.
+
+When developing programs to send/received particular higher-level messages,
+rcvdbg can be used to receive from a message sending program, or snddbg can
+be used to send a byte stream that has been constructed to have the
+form of a correct message, so that each side of the higher-level protocol
+can be debugged separately.
+
+Test Programs For In-Memory Database Code on Linux. 
+
+The in-memory database db_slv has been used at PATH for many years for
+Inter Process Communications (IPC) on QNX4. This server allows client
+programs to share read and write access to structured variables,
+by sharing common header files where the index names of the variables
+and the structure types associated with these variable indexes are 
+defined.  The clients control the creation and deletion of variables;
+the server keeps track of the index value, the size of the variable,
+and what clients have asked to be notified when the variable's value
+is changed. The server ensures that once a variable has been created
+by one process, a second attempt to create it will receive an error.
+More than one process can read or even write a variable, and the
+reads and writes will be serialized at the server, so that they
+remain atomic. Since these are reads and writes to the server, not
+to a file, there is no disk I/O.
+
+On QNX4, this code was based on native message passing. On QNX6, we
+have been using an approximation of the same interface, based on
+the Cogent networked database, that provides similar functionality
+but does not enforce unique creation of variables. For Linux, we
+have ported the QNX4 code to use POSIX message queues; for more
+information about the implementation see /home/path/db/implementation_notes.
+
+For the Makefile and scripts to work without change, this directory must be
+/home/path/clt, the database library include files, library libdb_clts.a
+and server db_slv must be in /home/path/db, and the PATH local library
+liblocals.a and include files must be installed in /home/path/local.
+
+The following pairs of programs can be built in this directory:
+
+chgdii 	Changes the value of the DII_OUT database variable interactively 
+rcv_io	Sets a trigger on DII_OUT and reads and prints it when it changes
+
+sample_update	Writes a database variable once, destroys it on exit
+		Must stay alive long enough for someone to read it,
+		so usually run this with the -e option that keeps
+		it from exiting.
+sample_read	Read a database variable. Both sample_update and
+		sample_read can specify variable index on the command line;
+		sample_read also has command line flags to set values
+		to be written.
+
+test_update	Takes command line flags to specify a count, timer interval
+		and database variable index. Writes a variable, 
+		incrementing one field and writing a time stamp in the other.
+test_read	Same flags as test_read, reads and prints out the same
+		structure that test_update writes. Note that if test_update
+		ends before test_read, because it destroys the variable
+		as it exits, test_read will get errors. If test_update
+		is given a count of 0, it will run until terminated with
+		a signal.  
+		
+The header files clt_vars.h and ids_io.h were taken from the 
+code on the intersection cabinet computer, and give an example
+of how the variable indices and their corresponding types are declared.
+These files are also used by the chgdii and rcv_io programs. The other
+programs create variable "on the fly" just for testing the database.
+
+To build a clean copy of all executables in this directory, type
+make clean
+make
+
+There are some example shell scripts (all ending in .sh to distinguish
+them easily from the binary executables):
+
+see_q.sh	Demonstrates the use of the ipcs -q command. This
+		is useful to make sure programs have created their 
+		queues, and after they have completed, to make
+		sure they have exited cleanly and their queues are
+		gone. If they crashed and didn't clean up, ipcrm
+		can be used to delete old queues.
+
+start_q.sh	This starts the db_slv process that must be running
+		before any of the other programs will work. A commented
+		out line shows how to start it with logging redirected
+		to a file. A useful way to get to know these programs
+		is to run db_slv -v in another window without redirecting it
+		to a file, so you can see the activity of client
+		logins, reads and writes. But ordinarily you never
+		want to use the -v flag.
+stop_q.sh	This shows how to use killall to kill processes with
+		a particular signal, by name, as slay does on QNX.	
+
+time_clt.sh and test_multi.sh are designed to run longer performance
+tests of the database, to make sure it can handle reads and writes
+at frequent intervals.
+
+A simple way to get started testing these programs is first to start
+db_slv -v
+(needs the additional arguments  -Q -S`hostname` on QNX6) in one window.
+chgdii
+in the second window, and finally
+rcv_io
+in a third.
+Then interactively change the value being written and watch the debug
+from db_slv and output from rcv_io change.
+

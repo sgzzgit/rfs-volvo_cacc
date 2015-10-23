@@ -1,0 +1,21 @@
+Release Information
+
+App (DRemover98_2K) Version: V1.3.0.0
+Driver Version for Win98 & Me: V1.5.0.0 [V1.5.0.25]
+Driver Version for Win2K_XP: V2.0.20701.0
+Released date: 01/23/2003
+
+Files Included in This Release:
+	DRemover98_2K.exe
+	driver_info.txt
+	serwpl.inf
+	Win98_ME\ser9pl.sys
+	Win98_ME\serspl.inf
+	Win98_ME\serspl.vxd
+	Win2K\ser2pl.sys
+		
+Changes in This Release:
+	1. To be able to pass WHQL (USB100) Test.
+	2. To fix PL-2303 driver in Windows 2000 and windows XP embedded FAX function can't work issue.
+	
+Note:   all of these solutions are for Windows 2000 and Windows XP2000 driver only.

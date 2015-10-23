@@ -1,0 +1,3 @@
+Name	Message	Multiplexing/Group	Startbit	Length [Bit]	Byte Order	Value Type	Initial Value	Factor	Offset	Minimum	Maximum	Unit	Value Table	Comment	SigType	GenSigEVName	GenSigILSupport	GenSigSendType	GenSigStartValue	SPN
+EgoVel	EgoData	-	0	16	Intel	Unsigned	0	0.01	0	0	655.35		<none>		Default	Env@Nodename_@Signame	Yes	NoSigSendType	0	0
+EgoAcc	EgoData	-	16	16	Intel	Signed	0	0.01	0	-327.68	327.67		<none>		Default	Env@Nodename_@Signame	Yes	NoSigSendType	0	0

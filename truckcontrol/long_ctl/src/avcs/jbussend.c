@@ -37,7 +37,7 @@ static void sig_hand(int code)
 		longjmp(exit_env, code);
 }
 
-#define MAX_LOOP_NUMBER 8
+#define MAX_LOOP_NUMBER 20
 
 /**
  * main calls active_loop every 5 milliseconds, loop numbers range from 0 to 8
@@ -50,11 +50,13 @@ int active_loop(int i, int loop_number)
 {
 	switch(i) {
 	case JBUS_SEND_ENGINE_SRC_ACC:
-		 return (loop_number % 2 == 0);
+		 return (loop_number % 4 == 0);
 	case JBUS_SEND_ENGINE_RETARDER_SRC_ACC:
-		 return (loop_number == 1);
-	case JBUS_SEND_EBS: 
-		return (loop_number == 3) || (loop_number == 7);
+		 return (loop_number % 4 == 0);
+	case JBUS_SEND_XBR: 
+		 return (loop_number % 4 == 0);
+	case JBUS_SEND_XBR_WARN: 
+		 return (loop_number % 20 == 0);
 	}
 	return 0;
 }
@@ -82,7 +84,7 @@ void update_info_for_check (db_clt_typ *pclt, info_check_type *pinfo,
 
 	/* Only read every 20 milliseconds, since messages are not
 	 * updated faster than that */
-	if (!(loop_number == 0 || loop_number == 4))
+	if (!(loop_number == 0 || loop_number == 20))
 		return;
 
         valid_read = clt_read(pclt, DB_J1939_EEC1_VAR,
@@ -109,9 +111,9 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 {
 	struct timeb current;
 	struct timeb *last_sent = &cmd->last_time;
-	j1939_tsc1_e_acc_typ *tsc1_e_acc = &cmd->cmd.tsc1;
+	j1939_tsc1_e_acc_typ *tsc1_e_acc = (j1939_tsc1_e_acc_typ *)&cmd->cmd.tsc1;
 	int new_mode = ctrl->engine_command_mode;
-	int old_mode = tsc1_e_acc->TSC1_EMS_ACC_EnOvrdCtrlM;
+	int old_mode = tsc1_e_acc->EnOvrdCtrlM;
 
 	ftime(&current);
  
@@ -132,9 +134,9 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 {
 	struct timeb current;
 	struct timeb *last_sent = &cmd->last_time;
-	j1939_tsc1_er_acc_typ *tsc_er_acc = &cmd->cmd.tsc1;
+	j1939_tsc1_er_acc_typ *tsc_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
 	int new_mode = ctrl->engine_retarder_command_mode;
-	int old_mode = tsc_er_acc->TSC1_ER_ACC_EnOvrdCtrlM;
+	int old_mode = tsc_er_acc->EnOvrdCtrlM;
 
 	ftime(&current);
  
@@ -149,14 +151,25 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 		;
 }
 
-int ready_to_send_ebs (long_output_typ *ctrl, jbus_cmd_type *cmd) 
+int ready_to_send_xbr (long_output_typ *ctrl, jbus_cmd_type *cmd) 
 {
 	struct timeb current;
 	struct timeb *last_sent = &cmd->last_time;
 
 	ftime(&current);
  
-	/* message sent every 40 ms whether active or inactive */
+	/* message sent every 20 ms whether active or inactive */
+	return (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval);
+}
+
+int ready_to_send_xbr_warn (long_output_typ *ctrl, jbus_cmd_type *cmd) 
+{
+	struct timeb current;
+	struct timeb *last_sent = &cmd->last_time;
+
+	ftime(&current);
+ 
+	/* message sent every 100 ms whether active or inactive */
 	return (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval);
 }
 
@@ -171,22 +184,22 @@ int ready_to_send_ebs (long_output_typ *ctrl, jbus_cmd_type *cmd)
  * retarder should not be enabled.
  */
 #define ACC_OFF_VOLTAGE	0.0
-
+/*
 int ready_to_send_trans_retarder (long_output_typ *ctrl, jbus_cmd_type *cmd) 
 {
 	struct timeb current;
 	struct timeb *last_sent = &cmd->last_time;
-	j1939_tsc1_er_acc_typ *tsc1_er_acc = &cmd->cmd.tsc1;
+	j1939_tsc1_er_acc_typ *tsc1_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
 	int new_mode = ctrl->trans_retarder_command_mode;
-	int old_mode = tsc1_er_acc->TSC1_ER_ACC_EnOvrdCtrlM;
+	int old_mode = tsc1_er_acc->EnOvrdCtrlM;
 	
 
 	ftime(&current);
  
 #if 0
-	/* make sure not to turn on during acceleration, and to turn
-	 * off if active during acceleration.
-	 */
+	 make sure not to turn on during acceleration, and to turn
+	 off if active during acceleration.
+	
 	if (new_mode == TSC_TORQUE_CONTROL) {
 		if (pinfo->percent_engine_torque > IDLE_PERCENT_TORQUE || 
 		    pinfo->accelerator_pedal_position > 0.0 ||
@@ -197,21 +210,21 @@ int ready_to_send_trans_retarder (long_output_typ *ctrl, jbus_cmd_type *cmd)
 		}
 	}
 #endif
-	return  /* no heartbeat message for transmission retarder */ 
-		/* send message to disable control */ 
+	return   no heartbeat message for transmission retarder 
+		 send message to disable control 
 		((new_mode == TSC_OVERRIDE_DISABLED
 			 && old_mode != TSC_OVERRIDE_DISABLED)
 		||
-		/* send active message every 50 milleseconds */
+		 send active message every 50 milleseconds
         	((new_mode != TSC_OVERRIDE_DISABLED) 
 		&& (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval)))
 		;
 }
-
+*/
 void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd, int dosend)
 {
 	struct timeb current;
-	j1939_tsc1_e_acc_typ *tsc1_e_acc = &cmd->cmd.tsc1;
+	j1939_tsc1_e_acc_typ *tsc1_e_acc = (j1939_tsc1_e_acc_typ *)&cmd->cmd.tsc1;
 	static int engine_speed_mode = 0;
 	static struct timeb last_mode_change;
 
@@ -221,20 +234,24 @@ void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd, int dosend)
 			TIMEB_SUBTRACT(&last_mode_change, &current) >
 				cmd->override_limit) {
 			engine_speed_mode = 0;
-			tsc1_e_acc->TSC1_EMS_ACC_EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
+			tsc1_e_acc->EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
 		} else {
 			engine_speed_mode = 1;
-			tsc1_e_acc->TSC1_EMS_ACC_EnOvrdCtrlM = TSC_SPEED_CONTROL;;
+			tsc1_e_acc->EnOvrdCtrlM = TSC_SPEED_CONTROL;
 		}
 	} else {
 		engine_speed_mode = 0;
-		tsc1_e_acc->TSC1_EMS_ACC_EnOvrdCtrlM = ctrl->engine_command_mode;
+		tsc1_e_acc->EnOvrdCtrlM = ctrl->engine_command_mode;
 	}
-	tsc1_e_acc->TSC1_EMS_ACC_EnRSpdSpdLm = ctrl->engine_speed;
+	tsc1_e_acc->EnRSpdSpdLm = ctrl->engine_speed;
+	if( (ctrl->engine_priority == TSC_HIGHEST) ||  
+	    (ctrl->engine_priority == TSC_HIGH) ||  
+	    (ctrl->engine_priority == TSC_MEDIUM) ||  
+	    (ctrl->engine_priority == TSC_LOW) ) 
+		tsc1_e_acc->EnOvrdCtrlMPr = ctrl->engine_priority;
 
 	/* convert torque to percent */
-	tsc1_e_acc->TSC1_EMS_ACC_EnRTrqTrqLm = 
-		(100.0 * ctrl->engine_torque/max_engine_torque);
+	tsc1_e_acc->EnRTrqTrqLm = ctrl->engine_torque;
 
 	if (dosend) {
 		ftime(&current);
@@ -248,32 +265,56 @@ void update_engine_retarder_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd,
 				int dosend)
 {
 	struct timeb current;
-	j1939_tsc1_er_acc_typ *tsc1_er_acc = &cmd->cmd.tsc1;
+	j1939_tsc1_er_acc_typ *tsc1_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
 
 
-	tsc1_er_acc->TSC1_ER_ACC_EnOvrdCtrlM = ctrl->engine_retarder_command_mode;
-	tsc1_er_acc->TSC1_ER_ACC_EnRTrqTrqLm = 
-		(100.0 * ctrl->engine_retarder_torque/max_retarder_torque);
+	tsc1_er_acc->EnOvrdCtrlM = ctrl->engine_retarder_command_mode;
+	tsc1_er_acc->EnRTrqTrqLm = ctrl->engine_retarder_torque;
+	if( (ctrl->engine_retarder_priority == TSC_HIGHEST) ||  
+	    (ctrl->engine_retarder_priority == TSC_HIGH) ||  
+	    (ctrl->engine_retarder_priority == TSC_MEDIUM) ||  
+	    (ctrl->engine_retarder_priority == TSC_LOW) ) 
+		tsc1_er_acc->EnOvrdCtrlMPr = ctrl->engine_retarder_priority;
+	if (dosend) {
+		ftime(&current);
+		cmd->last_time = current;
+	}
+}
+#define DEBUG_BRAKE	1
+void update_brake_volvo_xbr(long_output_typ *ctrl, jbus_cmd_type *cmd,
+				int dosend)
+{
+	struct timeb current;
+	j1939_volvo_xbr_typ *volvo_xbr = &cmd->cmd.volvo_xbr;
+
+	volvo_xbr->XBRControlMode = ctrl->brake_command_mode;
+	volvo_xbr->ExternalAccelerationDemand = ctrl->ebs_deceleration; 
+	if( (ctrl->brake_priority == TSC_HIGHEST) ||  
+	    (ctrl->brake_priority == TSC_HIGH) ||  
+	    (ctrl->brake_priority == TSC_MEDIUM) ||  
+	    (ctrl->brake_priority == TSC_LOW) ) 
+		volvo_xbr->XBRPriority = ctrl->brake_priority;
+#ifdef DEBUG_BRAKE
+	printf("long_output send Volvo brake mode %d deceleration %.3f priority %d\n", 
+		volvo_xbr->XBRControlMode,
+		volvo_xbr->ExternalAccelerationDemand,
+		volvo_xbr->XBRPriority
+	);
+#endif
 	if (dosend) {
 		ftime(&current);
 		cmd->last_time = current;
 	}
 }
 
-void update_brake_exac (long_output_typ *ctrl, jbus_cmd_type *cmd,
+void update_brake_volvo_xbr_warn(long_output_typ *ctrl, jbus_cmd_type *cmd,
 				int dosend)
 {
 	struct timeb current;
-	j1939_exac_typ *exac = &cmd->cmd.exac;
+	j1939_volvo_xbr_warn_typ *volvo_xbr_warn = &cmd->cmd.volvo_xbr_warn;
 
-	exac->external_deceleration_control_mode = ctrl->brake_command_mode;
-#ifdef DEBUG_BRAKE
-	printf("long_output send %d ebs deceleration %.3f\n", dosend,
-				ctrl->ebs_deceleration);
-#endif
-	exac->requested_deceleration_to_ebs = ctrl->ebs_deceleration; 
+	volvo_xbr_warn->src_address = 0x2A;
 	if (dosend) {
-		exac->alive_signal++;
 		ftime(&current);
 		cmd->last_time = current;
 	}
@@ -303,16 +344,16 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 	int active_message_types = 0;
 	int engine_fd = -1;
 	int brake_fd = -1;
-	int trans_fd = -1;
 	struct timeb current;
 
 	ftime(&current);	/* use to initialize "last_time" */
 	for (i = 0; i < NUM_JBUS_SEND; i++) {
 		send_jbus_type *pm = &msg[i];
 		jbus_cmd_type *cmd = &msg[i].cmd;
-		j1939_tsc1_e_acc_typ *tsc1_e_acc = &cmd->cmd.tsc1;
-		j1939_tsc1_er_acc_typ *tsc1_er_acc = &cmd->cmd.tsc1;
-		j1939_exac_typ *exac = &cmd->cmd.exac;
+		j1939_tsc1_e_acc_typ *tsc1_e_acc = (j1939_tsc1_e_acc_typ *)&cmd->cmd.tsc1;
+		j1939_tsc1_er_acc_typ *tsc1_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
+		j1939_volvo_xbr_typ *volvo_xbr = &cmd->cmd.volvo_xbr;
+		j1939_volvo_xbr_warn_typ *volvo_xbr_warn = &cmd->cmd.volvo_xbr_warn;
 
 		pm->total_sent = 0;
 		if (!(active_mask & (1 << i))){
@@ -345,55 +386,87 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			cmd->interval = 10;
 			cmd->heartbeat = 200;
 			cmd->override_limit = 5000;
-			tsc1_e_acc->TSC1_EMS_ACC_EnOvrdCtrlMPr = TSC_HIGHEST; 
+//			tsc1_e_acc->EnOvrdCtrlMPr = TSC_HIGHEST; 
+			tsc1_e_acc->EnOvrdCtrlMPr = TSC_HIGH; 
+//			tsc1_e_acc->EnOvrdCtrlMPr = TSC_MEDIUM; 
+//			tsc1_e_acc->EnOvrdCtrlMPr = TSC_LOW; 
 			/* Cummins only supports speed control condition 01 */
-			tsc1_e_acc->TSC1_EMS_ACC_EnRSpdCtrlC = 1;
-			tsc1_e_acc->TSC1_EMS_ACC_EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
-			tsc1_e_acc->TSC1_EMS_ACC_EnRSpdSpdLm = 0.0;
-			tsc1_e_acc->TSC1_EMS_ACC_EnRTrqTrqLm = 0.0;
-			tsc1_e_acc->TSC1_EMS_ACC_destination_address = J1939_ADDR_ENGINE;
-			tsc1_e_acc->TSC1_EMS_ACC_src_address = J1939_ADDR_ACC;
+			tsc1_e_acc->EnRSpdCtrlC = 1;
+			tsc1_e_acc->EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
+			tsc1_e_acc->EnRSpdSpdLm = 0.0;
+			tsc1_e_acc->EnRTrqTrqLm = 0.0;
+			tsc1_e_acc->destination_address = J1939_ADDR_ENGINE;
+			tsc1_e_acc->src_address = J1939_ADDR_ACC;
 			break;
 		case JBUS_SEND_ENGINE_RETARDER_SRC_ACC:
 			pm->slot_number = 12;
 			pm->is_ready_to_send = ready_to_send_engine_retarder_src_acc;
 			pm->update_command = update_engine_retarder_tsc;
 			pm->cmd_to_pdu = (void *)tsc1_to_pdu;
-			cmd->dbv = DB_J1939_TSC1_RTDR_VAR;
+			cmd->dbv = DB_J1939_TSC1_ER_ACC_VAR;
 			cmd->interval = 40;
 			cmd->heartbeat = 0;	/* not used */
 			cmd->override_limit = 0;	/* not used */
-			tsc1_er_acc->TSC1_ER_ACC_EnOvrdCtrlMPr = TSC_HIGHEST;
+//			tsc1_er_acc->EnOvrdCtrlMPr = TSC_HIGHEST;
+			tsc1_er_acc->EnOvrdCtrlMPr = TSC_HIGH;
+//			tsc1_er_acc->EnOvrdCtrlMPr = TSC_MEDIUM;
+//			tsc1_er_acc->EnOvrdCtrlMPr = TSC_LOW;
 			/* Cummins only supports speed control condition 01 */
-			tsc1_er_acc->TSC1_ER_ACC_EnRSpdCtrlC = 1;
-			tsc1_er_acc->TSC1_ER_ACC_EnOvrdCtrlM = TSC_OVERRIDE_DISABLED; 
-			tsc1_er_acc->TSC1_ER_ACC_EnRSpdSpdLm = 0.0;
-			tsc1_er_acc->TSC1_ER_ACC_EnRTrqTrqLm = 0.0;
-			tsc1_er_acc->TSC1_ER_ACC_destination_address = J1939_ADDR_ENG_RTDR;
-			tsc1_er_acc->TSC1_ER_ACC_src_address = J1939_ADDR_ACC;
+			tsc1_er_acc->EnRSpdCtrlC = 1;
+			tsc1_er_acc->EnOvrdCtrlM = TSC_OVERRIDE_DISABLED; 
+			tsc1_er_acc->EnRSpdSpdLm = 0.0;
+			tsc1_er_acc->EnRTrqTrqLm = 0.0;
+			tsc1_er_acc->destination_address = J1939_ADDR_ENG_RTDR;
+			tsc1_er_acc->src_address = J1939_ADDR_ACC;
 			break;
-/*
-		case JBUS_SEND_EBS:
+
+		case JBUS_SEND_XBR:
 			pm->slot_number = 13;
-			pm->is_ready_to_send = ready_to_send_ebs;
-			pm->update_command = update_brake_exac;
-			pm->cmd_to_pdu = (void *) exac_to_pdu;
-			cmd->dbv = DB_J1939_EXAC_VAR;
+			pm->is_ready_to_send = ready_to_send_xbr;
+			pm->update_command = update_brake_volvo_xbr;
+			pm->cmd_to_pdu = (void *) volvo_xbr_to_pdu;
+			cmd->dbv = DB_J1939_VOLVO_XBR_VAR;
+			cmd->interval = 20;
+			cmd->heartbeat = 20;	
+			cmd->override_limit = 0;	//not used
+			volvo_xbr->ExternalAccelerationDemand = 0.0;
+			volvo_xbr->XBREBIMode = 2;
+			volvo_xbr->XBRPriority = 3;
+			volvo_xbr->XBRControlMode = 0;
+			volvo_xbr->XBRUrgency = 0;
+			volvo_xbr->spare1 = 0xFF;
+			volvo_xbr->spare2 = 0xFF;
+			volvo_xbr->spare3 = 0xFF;
+			volvo_xbr->XBRMessageCounter = 0;
+			volvo_xbr->XBRMessageChecksum = 0;
+
+			volvo_xbr->pdu_format = 0xEF;
+			volvo_xbr->destination_address = J1939_ADDR_BRAKE;
+			volvo_xbr->src_address = J1939_ADDR_ACC;
+			break;
+
+		case JBUS_SEND_XBR_WARN:
+			pm->slot_number = 14;
+			pm->is_ready_to_send = ready_to_send_xbr_warn;
+			pm->update_command = update_brake_volvo_xbr_warn;
+			pm->cmd_to_pdu = (void *) volvo_xbr_warn_to_pdu;
+			cmd->dbv = DB_J1939_VOLVO_XBR_WARN_VAR;
 			cmd->interval = 40;
 			cmd->heartbeat = 40;	
-			cmd->override_limit = 0;	not used
-			exac->ebs_override_control_mode_priority = TSC_HIGHEST;
-			exac->external_deceleration_control_mode = EXAC_NOT_ACTIVE;
-			exac->requested_deceleration_to_ebs = 0.0;
-			exac->edc_override_control_mode_priority = 3;  lowest 
-			exac->override_control_modes = TSC_OVERRIDE_DISABLED; 
-			exac->requested_torque_to_edc = 0.0;
-			exac->alive_signal = 0;
-			exac->acc_internal_status = J1939_BYTE_UNDEFINED;
-			exac->undefined = J1939_BYTE_UNDEFINED;
-			exac->src_address = J1939_ADDR_ACC;
+			cmd->override_limit = 0;	//not used
+			volvo_xbr_warn->byte1 = 0xFF;
+			volvo_xbr_warn->byte2 = 0x31;
+			volvo_xbr_warn->byte3 = 0xFF;
+			volvo_xbr_warn->byte4 = 0xFF;
+			volvo_xbr_warn->byte5 = 0xFF;
+			volvo_xbr_warn->byte6 = 0xFF;
+			volvo_xbr_warn->byte7 = 0xFF;
+			volvo_xbr_warn->byte8 = 0xFF;
+			volvo_xbr_warn->pdu_format = 0xFF;
+			volvo_xbr_warn->destination_address = 0x10;
+			volvo_xbr_warn->src_address = J1939_ADDR_ACC;
 			break;
-*/
+
 		}
 	}
 	if (!active_message_types) return 0;
@@ -424,11 +497,14 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 		msg[JBUS_SEND_ENGINE_RETARDER_SRC_ACC].fd = engine_fd;
 		printf("engine_fd %d\n", engine_fd);	
 	}
-	if (msg[JBUS_SEND_EBS].active && brake_file != NULL) {
+	if (msg[JBUS_SEND_XBR].active && brake_file != NULL) {
+printf("jbussend: Got to 1\n");
 		if (strcmp(brake_file, engine_file) == 0 && engine_fd >= 0)  
 			brake_fd = engine_fd;
 		else {
+printf("jbussend: Got to 2\n");
 			brake_fd = (pjbf->init)(brake_file, O_WRONLY, NULL);
+printf("jbussend: Got to 3\n");
 			if (brake_fd < 0) {
 				printf("open error, brake file");
 				printf(" %s fd %d\n", brake_file, brake_fd);
@@ -440,27 +516,10 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 				fflush(stdout);
 			}
 		}
-		msg[JBUS_SEND_EBS].fd = brake_fd;
-	}
-	if (msg[JBUS_SEND_TRANS_RETARDER].active) {
-		if (strcmp(trans_file, engine_file) == 0 && engine_fd >= 0)
-			trans_fd = engine_fd;
-		else if (strcmp(trans_file, brake_file) == 0 && brake_fd >= 0)  
-			trans_fd = brake_fd;
-		else {
-			trans_fd = (pjbf->init)(trans_file, O_WRONLY, NULL);
-			if (trans_fd < 0) {
-				printf("open error, transmission file");
-				printf(" %s fd %d\n", trans_file, trans_fd);
-				fflush(stdout);
-				return 0;
-			} else if (debug) {
-				printf("successfully open trans %s\n", trans_file);
-				fflush(stdout);
-			}
-		}
-		msg[JBUS_SEND_TRANS_RETARDER].fd = trans_fd;
-		printf("trans_fd: %d\n", trans_fd);
+printf("jbussend: Got to 4\n");
+		msg[JBUS_SEND_XBR].fd = brake_fd;
+		msg[JBUS_SEND_XBR_WARN].fd = brake_fd;
+printf("jbussend: Got to 5\n");
 	}
 	if (debug) {
 		printf("Initialized %d messages\n ", active_message_types);
@@ -480,18 +539,23 @@ void send_jbus_exit (jbus_func_t *pjbf, send_jbus_type *msg)
 	send_jbus_type *pm;
 	jbus_cmd_type *cmd;
 	j1939_tsc1_typ *ptsc;
-	j1939_exac_typ *pexac;
+	j1939_volvo_xbr_typ *pvolvo_xbr;
+	j1939_volvo_xbr_warn_typ *pvolvo_xbr_warn;
 	int i;
 
 	for (i = 0; i < NUM_JBUS_SEND; i++) {
 		pm = &msg[i];
 		cmd = &pm->cmd;
 		if (pm->active) {
-			if (i == JBUS_SEND_EBS) {
-				pexac = &cmd->cmd.exac;
-				pexac->external_deceleration_control_mode =
-					 EXAC_NOT_ACTIVE;
-				exac_to_pdu(&pdu, pexac);
+			if (i == JBUS_SEND_XBR) {
+				pvolvo_xbr= &cmd->cmd.volvo_xbr;
+				pvolvo_xbr->XBRControlMode =
+					 XBR_NOT_ACTIVE;
+				volvo_xbr_to_pdu(&pdu, pvolvo_xbr);
+			}
+			else if (i == JBUS_SEND_XBR_WARN) {
+				pvolvo_xbr_warn= &cmd->cmd.volvo_xbr_warn;
+				volvo_xbr_warn_to_pdu(&pdu, pvolvo_xbr_warn);
 			}
 			else {
 				ptsc = &cmd->cmd.tsc1;
@@ -512,7 +576,7 @@ static long_output_typ inactive_ctrl = {
 	TSC_OVERRIDE_DISABLED,	/* engine retarder command mode */
 	 0.0,	/* accelerator pedal voltage -- not used by jbussend */
 	 0.0,	/* ebs deceleration */ 
-	EXAC_NOT_ACTIVE,	/* brake command mode */
+	XBR_NOT_ACTIVE,	/* brake command mode */
 	 0.0,	/* percent of maximum transmission retarder activation */ 
 	TSC_OVERRIDE_DISABLED,	/* transmission retarder command mode */
 }; 
@@ -566,17 +630,18 @@ void print_send_jbus_type(send_jbus_type *pm)
 
 {
 	jbus_cmd_type *cmd = &pm->cmd;
-	j1939_tsc1_e_acc_typ *tsc1_e_acc = &cmd->cmd.tsc1;
-	j1939_tsc1_er_acc_typ *tsc1_er_acc = &cmd->cmd.tsc1;
-	j1939_exac_typ *exac = &cmd->cmd.exac;
+	j1939_tsc1_e_acc_typ *tsc1_e_acc = (j1939_tsc1_e_acc_typ *)&cmd->cmd.tsc1;
+	j1939_tsc1_er_acc_typ *tsc1_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
+	j1939_volvo_xbr_typ *volvo_xbr = (j1939_volvo_xbr_typ *)&cmd->cmd.volvo_xbr;
 	int dbv = cmd->dbv;
 
 	printf("Message to %s\n", 
-		(dbv == DB_J1939_TSC1_VAR) ? "engine":
-		((dbv == DB_J1939_TSC1_RTDR_VAR)? "engine retarder":
-		((dbv == DB_J1939_EXAC_VAR)? "brake":
+		(dbv == DB_J1939_TSC1_E_ACC_VAR) ? "engine":
+		((dbv == DB_J1939_TSC1_ER_ACC_VAR)? "engine retarder":
+		((dbv == DB_J1939_VOLVO_XBR_VAR)? "brake":
+		((dbv == DB_J1939_VOLVO_XBR_WARN_VAR)? "brake warning":
 		((dbv == DB_J1939_TSC1_TRTDR_VAR)? "trans retarder":
-				"unknown"))));
+				"unknown")))));
 	printf("\tactive %d, slot %d, total %d, fd %d\n",
 		 pm->active, pm->slot_number, pm->total_sent, pm->fd);
 
@@ -592,29 +657,28 @@ void print_send_jbus_type(send_jbus_type *pm)
 			cmd->last_time.millitm); 
 
 	switch (dbv) {
-	case DB_J1939_TSC1_VAR:
+	case DB_J1939_TSC1_E_ACC_VAR:
 		printf("\tmode %d, engine speed %.3f, torque %.3f\n",
-			tsc1_e_acc->TSC1_EMS_ACC_EnOvrdCtrlM,
-			tsc1_e_acc->TSC1_EMS_ACC_EnRSpdSpdLm,
-			tsc1_e_acc->TSC1_EMS_ACC_EnRTrqTrqLm);
-		printf("\tdestination %d, source %d\n", tsc1_e_acc->TSC1_EMS_ACC_destination_address,
-			tsc1_e_acc->TSC1_EMS_ACC_src_address);
+			tsc1_e_acc->EnOvrdCtrlM,
+			tsc1_e_acc->EnRSpdSpdLm,
+			tsc1_e_acc->EnRTrqTrqLm);
+		printf("\tdestination %d, source %d\n", tsc1_e_acc->destination_address,
+			tsc1_e_acc->src_address);
 		break;
-	case DB_J1939_TSC1_RTDR_VAR:
+	case DB_J1939_TSC1_ER_ACC_VAR:
 		printf("\tmode %d, torque %.3f\n",
-			tsc1_er_acc->TSC1_ER_ACC_EnOvrdCtrlM,
-			tsc1_er_acc->TSC1_ER_ACC_EnRTrqTrqLm);
-		printf("\tdestination %d, source %d\n", tsc1_er_acc->TSC1_ER_ACC_destination_address,
-			tsc1_er_acc->TSC1_ER_ACC_src_address);
+			tsc1_er_acc->EnOvrdCtrlM,
+			tsc1_er_acc->EnRTrqTrqLm);
+		printf("\tdestination %d, source %d\n", tsc1_er_acc->destination_address,
+			tsc1_er_acc->src_address);
 		break;
-	case DB_J1939_EXAC_VAR:
-		printf("\tebs mode %d, deceleration %.3f\n",
-			exac->external_deceleration_control_mode,
-			exac->requested_deceleration_to_ebs);
- 		printf("\tedc mode %d, edc torque %.3f, alive_signal %d\n",
-			exac->override_control_modes,
-			exac->requested_torque_to_edc,
-			exac->alive_signal);
+	case DB_J1939_VOLVO_XBR_VAR:
+		printf("\tebi mode %d, deceleration %.3f\n",
+			volvo_xbr->XBREBIMode,
+			volvo_xbr->ExternalAccelerationDemand);
+ 		printf("\tcontrol mode %d, priority %d\n",
+			volvo_xbr->XBRControlMode,
+			volvo_xbr->XBRPriority);
 		break;
 	}
 	fflush(stdout);
@@ -658,8 +722,8 @@ int main( int argc, char *argv[] )
 	get_local_name(hostname, MAXHOSTNAMELEN);
 
 	/* default, use STB serial port converter */
-	jfunc.send = send_stb;
-	jfunc.receive = receive_stb;
+//	jfunc.send = send_stb;
+//	jfunc.receive = receive_stb;
 
         while ((ch = getopt(argc, argv, "a:b:cde:t:v:")) != EOF) {
                 switch (ch) {
@@ -694,7 +758,7 @@ int main( int argc, char *argv[] )
 		fflush(stdout);
 	}
 
-	if ((fpin = get_ini_section("/home/truckcontrol/test/jparam.ini", vehicle_str))
+	if ((fpin = get_ini_section("/home/truckcontrol/test/realtime.ini", vehicle_str))
                                                                  == NULL) {
                 printf("Cannot get ini file %s, section %s\n",
                    "realtime.ini", vehicle_str);
@@ -737,10 +801,7 @@ int main( int argc, char *argv[] )
 		printf("jbussend, %d engine, %d engine retarder, %d brake, ",
 			msg[JBUS_SEND_ENGINE_SRC_ACC].total_sent,
 			msg[JBUS_SEND_ENGINE_RETARDER_SRC_ACC].total_sent,
-			msg[JBUS_SEND_EBS].total_sent);
-		printf("%d trans retarder -- exit %d\n",
-			msg[JBUS_SEND_TRANS_RETARDER].total_sent,
-			rtn_jmp);
+			msg[JBUS_SEND_XBR].total_sent);
 		printf("%d invalid data server reads\n", update_invalid_read);
 
 		exit( EXIT_SUCCESS );
@@ -761,6 +822,9 @@ int main( int argc, char *argv[] )
 
 		for (i = 0; i < NUM_JBUS_SEND; i++) { 
 			send_jbus_type *pm = &msg[i];
+
+if (i == JBUS_SEND_XBR) 
+printf("xbr command active %d\n", msg[i].active);
 			if (pm->active) {	
 				int can_send;
 				jbus_cmd_type *cmd = &pm->cmd;
@@ -768,18 +832,57 @@ int main( int argc, char *argv[] )
 					&& (pm->is_ready_to_send)(&ctrl, cmd);
 				pm->update_command(&ctrl, cmd, can_send);
 				if (can_send) {
-					if (i == JBUS_SEND_EBS)
-						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.exac);	
-					else
+					if (i == JBUS_SEND_XBR) {
+						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.volvo_xbr);	
+						printf("jbussend: Got to 6 %d millisec src_address %#hhx dest address %#hhx XBREBIMode #%hhx XBRPriority %#hhx XBRControlMode %#hhx XBRUrgency %#hhx spare1 %#hhx spare2 %#hhx spare3 %#hhx XBRMessageCounter %#hhx XBRMessageChecksum %#hhx \n",
+							cmd->last_time.millitm,
+							cmd->cmd.volvo_xbr.src_address,
+							cmd->cmd.volvo_xbr.destination_address,
+							cmd->cmd.volvo_xbr.XBREBIMode,
+							cmd->cmd.volvo_xbr.XBRPriority,
+							cmd->cmd.volvo_xbr.XBRControlMode,
+							cmd->cmd.volvo_xbr.XBRUrgency,
+							cmd->cmd.volvo_xbr.spare1,
+							cmd->cmd.volvo_xbr.spare2,
+							cmd->cmd.volvo_xbr.spare3,
+							cmd->cmd.volvo_xbr.XBRMessageCounter,
+							cmd->cmd.volvo_xbr.XBRMessageChecksum
+						);
+					}
+					else if (i == JBUS_SEND_XBR_WARN) {
+						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.volvo_xbr_warn);	
+//						printf("jbussend: Got to 6.5 %d millisec src_address %#hhx dest address %#hhx Byte1 #%hhx Byte2 %#hhx Byte3 %#hhx Byte4 %#hhx Byte5 %#hhx Byte6 %#hhx Byte7 %#hhx Byte8 %#hhx\n",
+						printf("jbussend: Got to 6.5 %d millisec src_address %#hhx dest address %#hhx priority %d R %d DP %d pdu_format %#hhx pdu_specific %#hhx src_address %#hhx \n",
+							cmd->last_time.millitm,
+							cmd->cmd.volvo_xbr_warn.src_address,
+							cmd->cmd.volvo_xbr_warn.destination_address,
+							pdu.priority,
+							pdu.R,
+							pdu.DP,
+							pdu.pdu_format,
+							pdu.pdu_specific,
+							pdu.src_address
+						);
+					}
+				else {
 						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.tsc1);	
-
+						printf("jbussend: Got to 7 src_address %#hhx dest address %#hhx EnOvrdCtrlMPr #%hhx EnRSpdCtrlC %#hhx EnOvrdCtrlM %#hhx EnRSpdSpdLm %.3f EnRTrqTrqLm %.3f\n",
+							cmd->cmd.tsc1.src_address,
+							cmd->cmd.tsc1.destination_address,
+							cmd->cmd.tsc1.EnOvrdCtrlMPr,
+							cmd->cmd.tsc1.EnRSpdCtrlC,
+							cmd->cmd.tsc1.EnOvrdCtrlM,
+							cmd->cmd.tsc1.EnRSpdSpdLm,
+							cmd->cmd.tsc1.EnRTrqTrqLm
+						);
+				}
 					jfunc.send(pm->fd, &pdu, pm->slot_number);
 					if (debug) {	
-						if (i == 3) {
+//						if ( (i == 3) || (i == 2) ){
 							j1939_pdu_typ pdu_out;
 							pdu_to_pdu(&pdu, &pdu_out);
 							print_pdu(&pdu_out, stdout, 1);
-						}
+//						}
 					}
 					pm->total_sent++;
 				}

@@ -1,0 +1,4 @@
+ibeo_dump.c functions from ibeo_utils.c in ../ibeo_can to read the .ibeo
+files collected by Jeff Ko in the format from hwy12/test/collect_ibeo.php
+and parse the object data information out into the same format previously
+used at PATH for IBEO CAN data. 

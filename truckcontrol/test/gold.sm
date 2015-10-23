@@ -18,7 +18,7 @@ global "LONG_CFG_FILE" = 'realtime' ;
 global "LONG_PLOT" = '/home/truckcontrol/plot/trkplot' ;
 global "COMMAND_TEST" = '1' ;
 global "LAPTOP_IP" = '128.32.235.133' ;
-global "DSRC_IP" = '10.0.1.46' ;
+global "DSRC_IP" = '10.0.1.255' ;
 global "DATAFILE" = '/big/data/trk_wr.dat' ;
 global "USER" = 'jspring' ;
 global "PLOT_DIR" = '/home/jspring/plot' ;
@@ -68,7 +68,8 @@ shell 'Start everything but longitudinal control and file writing'
 #	slay  -f -Q -s TERM rdj1587
 	slay  -f -Q -s TERM veh_snd
 	slay  -f -Q -s TERM veh_rcv
-	slay  -f -Q -s TERM gpsrcv
+#	slay  -f -Q -s TERM gpsrcv
+	slay  -f -Q -s TERM gpsdb
 	slay  -f -Q -s TERM jbussend
 	slay  -f -Q -s TERM can_man
 	slay  -f -Q -s TERM trk_cr
@@ -84,9 +85,11 @@ shell 'Start everything but longitudinal control and file writing'
 	# To start jbussend with debugging ON, add -d flag
 	$TEST_DIR/jbussend -c -e /dev/can1 -b /dev/can2 >/home/truckcontrol/test/jbussend.dbg &
 	sleep 1
-	$TEST_DIR/gpsrcv -n 202 -u 5050  >gpsrcv.dbg &
+#	$TEST_DIR/gpsrcv -n 202 -u 5050  >gpsrcv.dbg &
+	$TEST_DIR/gpsdb -d1 -n 202 </dev/ser6 >gpsdb.dbg &
 	$TEST_DIR/veh_rcv -f $CONFIG_FILE -u 5051  -t Gold >veh_rcv.dbg &
-	$TEST_DIR/veh_snd -i 50 -a $DSRC_IP -u 5052  -t Gold >veh_snd.dbg &
+#	$TEST_DIR/veh_snd -i 20 -a 10.0.1.255 -b -u 5052 -t Gold >veh_snd.dbg &
+	$TEST_DIR/veh_snd -i 20 -a 10.0.1.46 -u 5052 -t Gold >veh_snd.dbg &
 	sleep 1
 	$CAN_CLIENT_DIR/rdj1939 -c -f /dev/can1 >j1939_eng.dbg &
 	sleep 2
@@ -115,6 +118,7 @@ shell 'Stop everything'
 	slay  -f -Q -s TERM veh_snd
 	slay  -f -Q -s TERM veh_rcv
 	slay  -f -Q -s TERM gpsrcv
+	slay  -f -Q -s TERM gpsdb
 	slay  -f -Q -s TERM jbussend
 	slay  -f -Q -s TERM can_man
 	slay  -f -Q -s TERM trk_cr
@@ -126,7 +130,7 @@ skip ;
 shell 'Run longitudinal control'
 %(
 	slay  -f -Q -s TERM $LONGITUDINAL
-	/home/truckcontrol/test/$LONGITUDINAL -v Gold -f $LONG_DIR$LONG_CFG_FILE.ini -o /big/data/$LONG_CFG_FILE -r $COMMAND_TEST >$LONG_CFG_FILE$COMMAND_TEST.log &
+	/home/truckcontrol/test/$LONGITUDINAL -v Gold -f $LONG_DIR$LONG_CFG_FILE.ini -o /big/data/$LONG_CFG_FILE -r $COMMAND_TEST >$LONG_CFG_FILE$COMMAND_TEST.log 2>long_trk.err &
 %)
 ;
 shell 'Stop longitudinal control'

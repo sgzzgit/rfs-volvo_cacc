@@ -252,6 +252,16 @@ static int trk_jdbv_list[] = {
 		DB_J1939_IEC_VAR,
 		DB_J1939_VDC2_VAR,
 		DB_J1939_VP_X_VAR,
+		DB_J1939_TSC1_E_ACC_VAR,
+		DB_J1939_TSC1_ER_ACC_VAR,
+		DB_J1939_TSC1_E_A_VAR,
+		DB_J1939_TSC1_E_T_VAR,
+		DB_J1939_TSC1_E_V_VAR,
+		DB_J1939_TSC1_ER_A_VAR,
+		DB_J1939_TSC1_ER_T_VAR,
+		DB_J1939_TSC1_ER_V_VAR,
+		DB_J1939_VOLVO_TARGET_VAR,
+		DB_J1939_VOLVO_EGO_VAR,
 };
 
 static db_id_t trk_in_dbv_list[] = {
@@ -446,6 +456,15 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
         j1939_ccvs_typ *pccvs;
         j1939_etc1_typ *petc1;
 	j1939_etc2_typ *petc2;
+	j1939_tsc1_typ *ptsc1;
+	j1939_tsc1_typ *ptsc1_e_t;
+	j1939_tsc1_typ *ptsc1_e_a;
+	j1939_tsc1_typ *ptsc1_e_v;
+	j1939_tsc1_typ *ptsc1_er_t;
+	j1939_tsc1_typ *ptsc1_er_a;
+	j1939_tsc1_typ *ptsc1_er_v;
+	j1939_tsc1_typ *ptsc1_e_acc;
+	j1939_tsc1_typ *ptsc1_er_acc;
 	j1939_lfe_typ *plfe;
 	j1939_vdc2_typ *pvdc2;
 	j1939_vp_x_typ *pvp_x;
@@ -453,7 +472,10 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 	j1939_iec_typ *piec;
 	j1939_gfi2_typ *pgfi2;
 	j1939_ei_typ *pei;
-	j1939_can1_typ *pcan1;
+	j1939_volvo_target_typ *pvolvo_target;
+	j1939_volvo_ego_typ *pvolvo_ego;
+	j1939_volvo_xbr_typ *pvolvo_xbr;
+	j1939_volvo_xbr_warn_typ *pvolvo_xbr_warn;
 	j1939_can2_typ *pcan2;
 	j1587_engc_typ *pengc;
 	long_input_typ *plong_in;
@@ -468,6 +490,84 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 	long_dig_in_typ *pdig_in;
 
 	switch (db_num) {
+	case DB_J1939_VOLVO_TARGET_VAR:
+		pvolvo_target = (j1939_volvo_target_typ *) pdata_val;
+		pstate->Volvo_TargetDist = pvolvo_target->TargetDist;
+		pstate->Volvo_TargetVel = pvolvo_target->TargetVel;
+		pstate->Volvo_TargetAcc = pvolvo_target->TargetAcc;
+		pstate->Volvo_TargetAvailable = pvolvo_target->TargetAvailable;
+		break;
+	case DB_J1939_VOLVO_EGO_VAR:
+		pvolvo_ego = (j1939_volvo_ego_typ *) pdata_val;
+		pstate->Volvo_EgoVel = pvolvo_ego->EgoVel;
+		pstate->Volvo_EgoAcc = pvolvo_ego->EgoAcc;
+		break;
+	case DB_J1939_TSC1_E_T_VAR:
+		ptsc1_e_t = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_EMSTECU_OvrdCtrlMPr = ptsc1_e_t->EnOvrdCtrlMPr;
+		pstate->TSC1_EMSTECU_EnRSpdCtrlC = ptsc1_e_t->EnRSpdCtrlC;
+		pstate->TSC1_EMSTECU_EnOvrdCtrlM = ptsc1_e_t->EnOvrdCtrlM;
+		pstate->TSC1_EMSTECU_EnRSpdSpdLm = ptsc1_e_t->EnRSpdSpdLm; 
+		pstate->TSC1_EMSTECU_EnRTrqTrqLm = ptsc1_e_t->EnRTrqTrqLm;
+		pstate->TSC1_EMSTECU_destination_address = ptsc1_e_t->destination_address;
+		pstate->TSC1_EMSTECU_src_address = ptsc1_e_t->src_address;
+		break;
+	case DB_J1939_TSC1_E_A_VAR:
+		ptsc1_e_a = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_EMSABS_OvrdCtrlMPr = ptsc1_e_a->EnOvrdCtrlMPr;
+		pstate->TSC1_EMSABS_EnRSpdCtrlC = ptsc1_e_a->EnRSpdCtrlC;
+		pstate->TSC1_EMSABS_EnOvrdCtrlM = ptsc1_e_a->EnOvrdCtrlM;
+		pstate->TSC1_EMSABS_EnRSpdSpdLm = ptsc1_e_a->EnRSpdSpdLm; 
+		pstate->TSC1_EMSABS_EnRTrqTrqLm = ptsc1_e_a->EnRTrqTrqLm;
+		break;
+	case DB_J1939_TSC1_E_V_VAR:
+		ptsc1_e_v = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_EMSVMCUes_OvrdCtrlMPr = ptsc1_e_v->EnOvrdCtrlMPr;
+		pstate->TSC1_EMSVMCUes_EnRSpdCtrlC = ptsc1_e_v->EnRSpdCtrlC;
+		pstate->TSC1_EMSVMCUes_EnOvrdCtrlM = ptsc1_e_v->EnOvrdCtrlM;
+		pstate->TSC1_EMSVMCUes_EnRSpdSpdLm = ptsc1_e_v->EnRSpdSpdLm; 
+		pstate->TSC1_EMSVMCUes_EnRTrqTrqLm = ptsc1_e_v->EnRTrqTrqLm;
+		break;
+	case DB_J1939_TSC1_E_ACC_VAR:
+		ptsc1_e_acc = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_EMS_ACC_OvrdCtrlMPr = ptsc1_e_acc->EnOvrdCtrlMPr;
+		pstate->TSC1_EMS_ACC_EnRSpdCtrlC = ptsc1_e_acc->EnRSpdCtrlC;
+		pstate->TSC1_EMS_ACC_EnOvrdCtrlM = ptsc1_e_acc->EnOvrdCtrlM;
+		pstate->TSC1_EMS_ACC_EnRSpdSpdLm = ptsc1_e_acc->EnRSpdSpdLm; 
+		pstate->TSC1_EMS_ACC_EnRTrqTrqLm = ptsc1_e_acc->EnRTrqTrqLm;
+		break;
+	case DB_J1939_TSC1_ER_T_VAR:
+		ptsc1_er_t = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_EMSrTECU_OvrdCtrlMPr = ptsc1_er_t->EnOvrdCtrlMPr;
+		pstate->TSC1_EMSrTECU_EnRSpdCtrlC = ptsc1_er_t->EnRSpdCtrlC;
+		pstate->TSC1_EMSrTECU_EnOvrdCtrlM = ptsc1_er_t->EnOvrdCtrlM;
+		pstate->TSC1_EMSrTECU_EnRSpdSpdLm = ptsc1_er_t->EnRSpdSpdLm; 
+		pstate->TSC1_EMSrTECU_EnRTrqTrqLm = ptsc1_er_t->EnRTrqTrqLm;
+		break;
+	case DB_J1939_TSC1_ER_A_VAR:
+		ptsc1_er_a = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_EMSrABS_OvrdCtrlMPr = ptsc1_er_a->EnOvrdCtrlMPr;
+		pstate->TSC1_EMSrABS_EnRSpdCtrlC = ptsc1_er_a->EnRSpdCtrlC;
+		pstate->TSC1_EMSrABS_EnOvrdCtrlM = ptsc1_er_a->EnOvrdCtrlM;
+		pstate->TSC1_EMSrABS_EnRSpdSpdLm = ptsc1_er_a->EnRSpdSpdLm; 
+		pstate->TSC1_EMSrABS_EnRTrqTrqLm = ptsc1_er_a->EnRTrqTrqLm;
+		break;
+	case DB_J1939_TSC1_ER_V_VAR:
+		ptsc1_er_v = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_ER_V_OvrdCtrlMPr = ptsc1_er_v->EnOvrdCtrlMPr;
+		pstate->TSC1_ER_V_EnRSpdCtrlC = ptsc1_er_v->EnRSpdCtrlC;
+		pstate->TSC1_ER_V_EnOvrdCtrlM = ptsc1_er_v->EnOvrdCtrlM;
+		pstate->TSC1_ER_V_EnRSpdSpdLm = ptsc1_er_v->EnRSpdSpdLm; 
+		pstate->TSC1_ER_V_EnRTrqTrqLm = ptsc1_er_v->EnRTrqTrqLm;
+		break;
+	case DB_J1939_TSC1_ER_ACC_VAR:
+		ptsc1_er_acc = (j1939_tsc1_typ *) pdata_val;
+		pstate->TSC1_ER_ACC_OvrdCtrlMPr = ptsc1_er_acc->EnOvrdCtrlMPr;
+		pstate->TSC1_ER_ACC_EnRSpdCtrlC = ptsc1_er_acc->EnRSpdCtrlC;
+		pstate->TSC1_ER_ACC_EnOvrdCtrlM = ptsc1_er_acc->EnOvrdCtrlM;
+		pstate->TSC1_ER_ACC_EnRSpdSpdLm = ptsc1_er_acc->EnRSpdSpdLm; 
+		pstate->TSC1_ER_ACC_EnRTrqTrqLm = ptsc1_er_acc->EnRTrqTrqLm;
+		break;
 	case DB_LONG_INPUT_VAR:
 		plong_in = (long_input_typ *) pdata_val;
 		pstate->acc_pedal_voltage = plong_in->acc_pedal;
@@ -644,6 +744,33 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 		pstate->instantaneous_brake_power =
 			 pei->instantaneous_estimated_brake_power;
 		break;
+        case DB_J1939_VOLVO_XBR_WARN_VAR:
+        	pvolvo_xbr_warn = (j1939_volvo_xbr_warn_typ *) pdata_val;
+		pstate->VOLVO_XBR_WARN_src_address = pvolvo_xbr_warn->src_address;
+		pstate->VOLVO_XBR_WARN_byte1= pvolvo_xbr_warn->byte1;       ///
+		pstate->VOLVO_XBR_WARN_byte2= pvolvo_xbr_warn->byte1;       ///
+		pstate->VOLVO_XBR_WARN_byte3= pvolvo_xbr_warn->byte1;       ///
+		pstate->VOLVO_XBR_WARN_byte4= pvolvo_xbr_warn->byte1;       ///
+		pstate->VOLVO_XBR_WARN_byte5= pvolvo_xbr_warn->byte1;       ///
+		pstate->VOLVO_XBR_WARN_byte6= pvolvo_xbr_warn->byte1;       ///
+		pstate->VOLVO_XBR_WARN_byte7= pvolvo_xbr_warn->byte1;       ///
+		pstate->VOLVO_XBR_WARN_byte8= pvolvo_xbr_warn->byte1;       ///
+		break;
+        case DB_J1939_VOLVO_XBR_VAR:
+        	pvolvo_xbr = (j1939_volvo_xbr_typ *) pdata_val;
+		pstate->VOLVO_XBR_ExternalAccelerationDemand = pvolvo_xbr->ExternalAccelerationDemand;       ///
+		pstate->VOLVO_XBR_src_address = pvolvo_xbr->src_address;
+		pstate->VOLVO_XBR_destination_address = pvolvo_xbr->destination_address;
+		pstate->VOLVO_XBR_XBREBIMode = pvolvo_xbr->XBREBIMode;       ///
+		pstate->VOLVO_XBR_XBRPriority = pvolvo_xbr->XBRPriority;      ///
+		pstate->VOLVO_XBR_XBRControlMode = pvolvo_xbr->XBRControlMode;   ///
+		pstate->VOLVO_XBR_XBRUrgency = pvolvo_xbr->XBRUrgency;       ///
+		pstate->VOLVO_XBR_spare1 = pvolvo_xbr->spare1;           /// 0xFF
+		pstate->VOLVO_XBR_spare2 = pvolvo_xbr->spare2;           /// 0xFF
+		pstate->VOLVO_XBR_spare3 = pvolvo_xbr->spare3;           /// 0xFF
+		pstate->VOLVO_XBR_XBRMessageCounter = pvolvo_xbr->XBRMessageCounter;///
+		pstate->VOLVO_XBR_XBRMessageChecksum = pvolvo_xbr->XBRMessageChecksum;///
+		break;
         case DB_J1939_ERC1_TRANS_VAR:
         	perc1 = (j1939_erc1_typ *) pdata_val;
 		pstate->ERC1ERRetarderEnableShiftAssistSw = perc1->ERC1ERRetarderEnableShiftAssistSw ;
@@ -698,7 +825,7 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
                 pstate->dig_in = *pdig_in;
 		break;
 	default:
-		fprintf(stderr, "Unknown db_num in long_update_fields...\n");
+		fprintf(stderr, "Unknown db_num %d in long_update_fields...\n", db_num);
 		break;
 	}
 }

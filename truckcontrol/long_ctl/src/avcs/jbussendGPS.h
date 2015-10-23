@@ -20,7 +20,7 @@
 #include "j1939pdu_extended.h"
 #include "j1939db.h"
 #include "clt_vars.h"
-#include "vehicle.h"
+#include "veh_trk.h"
 #include <timing.h>
 #include <path_gps_lib.h>
 

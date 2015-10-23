@@ -1,0 +1,6 @@
+This code was written by Sue Dickey in 2005 for the early version
+of the IBEO Laser Scanner using the CAN interface. It worked briefly,
+until the device started having problems, running on QNX4 and QNX6.
+It depends on the ssv_can driver developed for the JBUS code for 
+Demo2003 for the CAN messaging facility.
+ 
