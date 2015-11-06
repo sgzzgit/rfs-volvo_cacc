@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 	int sd_out;		/// socket descriptor for UDP send
 	short udp_port = 7015;	/// set from command line option 
 	char *udp_name = NULL;	/// address of UDP destination
+	char *my_udp_name = "127.0.0.1";	/// address of UDP source 
 	int do_broadcast = 1;	/// by default broacast information
 	int verbose = 0;	/// if 1, print extra info for debugging	
 	int bytes_sent;		/// returned from sendto
@@ -92,7 +93,7 @@ int main(int argc, char *argv[])
 	if (do_broadcast)  	
 		sd_out = udp_broadcast_init(&snd_addr, udp_name, udp_port);
 	else 
-		sd_out = udp_unicast_init(&snd_addr, udp_name, udp_port);
+		sd_out = udp_unicast_init(&snd_addr, udp_name, my_udp_name, udp_port);
 
 	if (sd_out < 0) {
 		printf("failure opening socket on %s %d\n",
