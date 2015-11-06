@@ -331,24 +331,27 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
                 fprintf(fp, "%d ", pcmd->brake_command_mode);		//170 //always 0
                 fprintf(fp, "%.3f ", pcmd->trans_retarder_value);	//always 0
                 fprintf(fp, "%d ", pcmd->trans_retarder_command_mode);	//always 0
+                fprintf(fp, "%d ", pcmd->engine_priority);
+                fprintf(fp, "%d ", pcmd->engine_retarder_priority);
+                fprintf(fp, "%d ", pcmd->brake_priority);		//175
 
 		/// GPS and COMM
 		fprintf(fp, "%.7f ", pv->self_gps.latitude);
 		fprintf(fp, "%.7f ", pv->self_gps.longitude);
-		fprintf(fp, "%.3f ", pv->self_gps.speed);		//175
+		fprintf(fp, "%.3f ", pv->self_gps.speed);		//178
 		fprintf(fp, "%.3f ", pv->lead_trk.global_time);
 		// We removed the transmission of GPS over the comm link 
 		// because the packet was >128 bytes
 //		fprintf(fp, "%.7f ", pv->lead_trk.gps.latitude);
 //		fprintf(fp, "%.7f ", pv->lead_trk.gps.longitude);
 //		fprintf(fp, "%.3f ", pv->lead_trk.gps.speed);
-		fprintf(fp, "%.3f ", pv->lead_trk.velocity);		//177
+		fprintf(fp, "%.3f ", pv->lead_trk.velocity);		//180
 		fprintf(fp, "%.3f ", pv->second_trk.global_time);
 //		fprintf(fp, "%.7f ", pv->second_trk.gps.latitude);
 //		fprintf(fp, "%.7f ", pv->second_trk.gps.longitude);
 //		fprintf(fp, "%.3f ", pv->second_trk.gps.speed);
-		fprintf(fp, "%.3f ", pv->second_trk.velocity);		//179
-		fprintf(fp, "%.3f ", pv->third_trk.global_time);	//180
+		fprintf(fp, "%.3f ", pv->second_trk.velocity);		//181
+		fprintf(fp, "%.3f ", pv->third_trk.global_time);	//182
 //		fprintf(fp, "%.7f ", pv->third_trk.gps.latitude);
 //		fprintf(fp, "%.7f ", pv->third_trk.gps.longitude);
 //		fprintf(fp, "%.3f ", pv->third_trk.gps.speed); fprintf(fp, "%.3f ", pv->third_trk.velocity);
@@ -358,31 +361,31 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 			pv->dig_in.autoctl,
 			pv->dig_in.brakesw,
 			pdig_out->outchar,				
-			pdig_out->amber_flash);		//185
+			pdig_out->amber_flash);		//188
 
 		// Platoon communication; add remaining fields later
 		fprintf(fp, "%.3f ", pcomm_tx->global_time);
-		fprintf(fp, "%hd ", pcomm_tx->user_ushort_1);		
+		fprintf(fp, "%hd ", pcomm_tx->user_ushort_1);		//190		
 		fprintf(fp, "%hd ", pcomm_tx->user_ushort_2);
 		fprintf(fp, "%.3f ", pcomm_tx->user_float);	
-		fprintf(fp, "%.3f ", pv->lead_trk.global_time);		//190
+		fprintf(fp, "%.3f ", pv->lead_trk.global_time);	
 		fprintf(fp, "%hd ", pv->lead_trk.user_ushort_1);
-		fprintf(fp, "%hd ", pv->lead_trk.user_ushort_2);
+		fprintf(fp, "%hd ", pv->lead_trk.user_ushort_2);	//195
 		fprintf(fp, "%.3f ", pv->lead_trk.user_float);
 		fprintf(fp, "%.3f ", pv->second_trk.global_time);
-		fprintf(fp, "%hd ", pv->second_trk.user_ushort_1);	//195
+		fprintf(fp, "%hd ", pv->second_trk.user_ushort_1);
 		fprintf(fp, "%hd ", pv->second_trk.user_ushort_2);
-		fprintf(fp, "%.3f ", pv->second_trk.user_float);
+		fprintf(fp, "%.3f ", pv->second_trk.user_float);	//200
 		fprintf(fp, "%.3f ", pv->third_trk.global_time);
 		fprintf(fp, "%hd ", pv->third_trk.user_ushort_1);
-		fprintf(fp, "%hd ", pv->third_trk.user_ushort_2);	//200
+		fprintf(fp, "%hd ", pv->third_trk.user_ushort_2);
 		fprintf(fp, "%.3f ", pv->third_trk.user_float);	
-		fprintf(fp, "%.3f ", pv->Volvo_TargetDist);
+		fprintf(fp, "%.3f ", pv->Volvo_TargetDist);		//205
 		fprintf(fp, "%.3f ", pv->Volvo_TargetVel);
 		fprintf(fp, "%.3f ", pv->Volvo_TargetAcc);
-		fprintf(fp, "%d ", pv->Volvo_TargetAvailable);		//205
+		fprintf(fp, "%.3f ", pv->Volvo_TargetAvailable);
 		fprintf(fp, "%.3f ", pv->Volvo_EgoVel);
-		fprintf(fp, "%.3f ", pv->Volvo_EgoAcc);		//206
+		fprintf(fp, "%.3f ", pv->Volvo_EgoAcc);			//210
 
 		fprintf(fp, "\n");
 

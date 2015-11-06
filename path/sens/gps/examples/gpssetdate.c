@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
 	int verbose = 0;	/// if 1, print extra info for debugging	
 	path_gps_point_t hb;	/// fill in from GPS messages received
 	int option;
+	char datetime_str[30];
+	int hour;
 
 	/* Read and interpret any user switches. */
 	while ((option = getopt(argc, argv, "v")) != EOF) {
@@ -81,10 +83,23 @@ int main(int argc, char *argv[])
 			hb.longitude = path_gps2degree(prmc->longitude); 
 			hb.speed = path_knots2mps(prmc->speed_knots);
 			hb.heading = prmc->true_track;
+			hour = ((int)(prmc->utc_time/10000)%100);
+			hour = hour < 7 ? (hour + 17) : (hour-7);
+			sprintf(datetime_str, "date %04d%02d%02d%02d%02d.%02d",
+				2000 + (prmc->date_of_fix%100),
+				(prmc->date_of_fix/100)%100,
+				(prmc->date_of_fix/10000)%100,
+				hour,
+				((int)(prmc->utc_time/100)%100),
+				((int)prmc->utc_time%100)
+				);
+//date 120515, time 222910.000
 			if (verbose)
 				printf("date %d, time %.3f\n", 
 					    prmc->date_of_fix, prmc->utc_time);
-			clockset2gps(prmc->date_of_fix,prmc->utc_time);	
+				printf("datestr %s\n", datetime_str);
+//			clockset2gps(prmc->date_of_fix,prmc->utc_time);	
+			system(datetime_str);
 			break;	// exit after setting clock
 		} 
 	}

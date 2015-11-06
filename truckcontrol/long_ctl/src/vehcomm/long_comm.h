@@ -21,6 +21,7 @@
 #define DB_COMM_SECOND_TRK_VAR	DB_COMM_SECOND_TRK_TYPE
 #define DB_COMM_THIRD_TRK_TYPE	498		/// veh_comm_packet_t 
 #define DB_COMM_THIRD_TRK_VAR	DB_COMM_THIRD_TRK_TYPE
+#define BSM_FLOAT_MULT		100.0
 
 /* Use this veh_comm_pkt_t variable to write the packet
  * that will be sent.

@@ -1,8 +1,7 @@
 #!/bin/sh
 
-slay  -f -Q -s TERM long_trk
-slay  -f -Q -s TERM veh_rcv
 slay  -f -Q -s TERM veh_snd
+slay  -f -Q -s TERM veh_rcv
 slay  -f -Q -s TERM trk_wr
 slay  -f -Q -s TERM rdj1939
 slay  -f -Q -s TERM gpsdb

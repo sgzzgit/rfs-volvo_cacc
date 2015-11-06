@@ -1268,8 +1268,8 @@ int clockset2gps(int utc_date, double utc_time )
 		day -= 1;
 	}
 
-	snprintf(date_string, 128, "date %02d%02d%02d%02d%s%02d.%02d",
-			month, day, hour, min, "20", year, sec);
+	snprintf(date_string, 128, "date 20%02d%02d%02d%02d%02d.%02d",
+			year, month, day, hour, min, sec);
 	system(date_string);
 	return 1;
 }

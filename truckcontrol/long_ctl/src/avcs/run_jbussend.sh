@@ -15,15 +15,15 @@ echo $DATESTR >/big/data/last_start_timestamp.txt
 sleep 1
 /home/truckcontrol/test/trk_cr -t 1000 2>long_input$DATESTR.dbg &
 sleep 1
-#/home/can/drv_i82527/qnx/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 &
-#sleep 1
-/home/can/drv_i82527/qnx/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 &
+/home/can/drv_sja1000/qnx/can_man -n /dev/can1 -s 250 -i 10 -p 0xda000 -e 1 &
+sleep 1
+/home/can/drv_sja1000/qnx/can_man -n /dev/can2 -s 500 -i 7 -p 0xda200 -e 1 &
 sleep 1
 /home/truckcontrol/test/gpsdb -n 202 -d1 </dev/ser1 &
 sleep 1
-#/home/can/jbus/src/qnx/rdj1939 -v -c -f /dev/can1 >/big/data/can1$DATESTR.txt &
-#sleep 1
+/home/can/jbus/src/qnx/rdj1939 -v -c -f /dev/can1 >/big/data/can1$DATESTR.txt &
+sleep 1
 /home/can/jbus/src/qnx/rdj1939 -v -c -f /dev/can2 >/big/data/can2$DATESTR.txt &
 sleep 2
-/home/truckcontrol/test/jbussend -d -c -e /dev/can2 -b /dev/can2 >/big/data/jbussend_$DATESTR.dbg &
-#/home/truckcontrol/test/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg 2>/big/data/jbussend_$DATESTR.err &
+#/home/truckcontrol/test/jbussend -d -c -e /dev/can2 -b /dev/can2 >/big/data/jbussend_$DATESTR.dbg &
+/home/truckcontrol/test/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg 2>/big/data/jbussend_$DATESTR.err &

@@ -12,7 +12,7 @@ J2735INC = $(J2735DIR)/include
 
 PATH_CFLAGS += -I$(ASNDIR) -I$(J2735INC)
 PATH_LDFLAGS += -L$(ASNDIR)
-PATH_OBJS += $(ASNDIR)/*.o
+PATH_OBJS += $(ASNDIR)/*.o $(OBJDIR)/veh_lib.o
 
 EXEC =  $(OBJDIR)/veh_rcv $(OBJDIR)/veh_snd $(OBJDIR)/veh_snd_test
 

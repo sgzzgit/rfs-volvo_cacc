@@ -12,4 +12,4 @@ sleep 1
 sleep 1
 /home/can/drv_sja1000/qnx/can_man -n /dev/can2 -s 250 -i 7 -p 0xda200 -e 1 &
 sleep 1
-/home/truckcontrol/long_ctl/src/vehcomm/qnx/veh_snd -i 100 -A 192.168.0.203 -a 192.168.0.31 -u 15042 -t Blue >veh_snd.dbg &
+/home/truckcontrol/long_ctl/src/vehcomm/qnx/veh_snd -v -i 100 -A 192.168.0.203 -a 192.168.0.33 -u 15062 -t Blue 

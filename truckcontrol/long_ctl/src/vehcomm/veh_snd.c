@@ -16,9 +16,11 @@
 #include "path_gps_lib.h"
 #include "long_comm.h"
 #include "udp_utils.h"
+#include "veh_lib.h"
 
 #include "asn_application.h"
 #include "asn_internal.h"       /* for _ASN_DEFAULT_STACK_MAX */
+#include "asn_SEQUENCE_OF.h" 
 #include "BSMCACC.h"
  
  
@@ -33,37 +35,12 @@ static int sig_list[]=
 
 static jmp_buf exit_env;
 
-int vehcomm2BSM(BSMCACC_t *BSMCACC, veh_comm_packet_t *comm_pkt);
-static int write_out(const void *buffer, size_t size, void *key);
-
 static void sig_hand(int code)
 {
         if (code == SIGALRM)
                 return;
         else
                 longjmp(exit_env, code);
-}
-
-/** Open UDP socket for sending to a unicast or broadcast IPv4 address
- *  and initialize sock_addrin structure and set sock_opt if necessary
- */
-static int udp_init(char *ipaddr, short port, struct sockaddr_in *paddr,
-		int do_broadcast)
-{
-        int sockfd;
-
-	if (do_broadcast)
-		sockfd = udp_broadcast();
-	else
-		sockfd = udp_unicast();
-
-        memset(paddr, 0, sizeof(struct sockaddr_in));
-        paddr->sin_family = AF_INET;       // host byte order
-        paddr->sin_port = htons(port);     // short, network byte order
-        paddr->sin_addr.s_addr = inet_addr(ipaddr);
-        memset(&(paddr->sin_zero), '\0', 8); // zero the rest of the struct
-
-        return sockfd;
 }
 
 /* Set the vehicle string as the object identifier in the
@@ -92,14 +69,14 @@ int main(int argc, char *argv[])
 	int udp_port = 5050;
 
 	veh_comm_packet_t comm_pkt;
+	veh_comm_packet_t comm_pkt_decode;
 	BSMCACC_t *BSMCACC;
+	BSMCACC_t *BSMCACC_decode;
 #define BSMCACCSIZE	10000
 	char BSMCACC_buf[BSMCACCSIZE];
 
-	static asn_TYPE_descriptor_t PDU_Type;
-	static asn_TYPE_descriptor_t *pduType = &PDU_Type;
 	asn_enc_rval_t erv;
-	void *structure;    /* Decoded structure */
+	asn_dec_rval_t rval;
 
         int bytes_sent;     		/// received from a call to sendto
 	int verbose = 0;
@@ -112,8 +89,27 @@ int main(int argc, char *argv[])
 	int interval = 20;	/// milliseconds
 	int do_broadcast = 0;	/// by default do unicast
 	int ret = -1;
+	float fcounter = 0;
+	int i;
+	BSMblob_t *my_blob;
+//	CaccData_t *my_caccdata;
+//	DDateTime_t *my_datetime;
+//	VehicleSize_t *my_vehiclesize;
 
+        //Allocate memory for J2735 BSMCACC message
         BSMCACC = (BSMCACC_t *)calloc(1, sizeof(BSMCACC_t));
+	my_blob = (BSMblob_t *)calloc(1, sizeof(BSMblob_t));
+//	my_caccdata = (CaccData_t *)calloc(1, sizeof(CaccData_t));
+//	my_datetime = (DDateTime_t *)calloc(1, sizeof(DDateTime_t));
+//	my_vehiclesize = (VehicleSize_t *)calloc(1, sizeof(VehicleSize_t));
+
+	//Now add the parts of BSMCACC to it
+//        asn_sequence_add(my_blob, my_vehiclesize);
+//        asn_sequence_add(&BSMCACC->caccData, my_datetime);
+        asn_sequence_add(&BSMCACC->blob1, my_blob);
+//        asn_sequence_add(&BSMCACC->caccData, my_caccdata);
+
+        BSMCACC_decode = (BSMCACC_t *)calloc(1, sizeof(BSMCACC_t));
 
         while ((ch = getopt(argc, argv, "A:a:bi:t:u:v")) != EOF) {
                 switch (ch) {
@@ -153,7 +149,6 @@ int main(int argc, char *argv[])
 	} else
 		sig_ign(sig_list, sig_hand);
 
-//	if ( (sd = udp_init(ipaddr, udp_port, &dst_addr, do_broadcast)) < 0) {
 	if ( (sd = udp_unicast_init(&dst_addr, remote_ipaddr, local_ipaddr, udp_port)) < 0) {
  
 		printf("Failure to initialize socket from %s to %s on port %d\n",
@@ -167,15 +162,131 @@ int main(int argc, char *argv[])
 
                 msg_count++;
 		comm_pkt.sequence_no = msg_count;
+		fcounter += 0.02;
+		comm_pkt.global_time = fcounter;
+		comm_pkt.user_bit_1 = 1;
+		comm_pkt.user_bit_2 = 0;
+		comm_pkt.user_bit_3 = 1;
+		comm_pkt.user_bit_4 = 0;
+		comm_pkt.my_pip = 3; 
+		comm_pkt.maneuver_id = 4;
+		comm_pkt.fault_mode = 5;
+		comm_pkt.maneuver_des_1 = 6;
+		comm_pkt.pltn_size = 7;
+		comm_pkt.acc_traj = 8.12 + fcounter;
+		comm_pkt.vel_traj = 9.23 + fcounter;
+		comm_pkt.range = 10.34 + fcounter;
+		comm_pkt.rate = 2.45 + fcounter;
+
+printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f\n", 
+		BSMCACC->msgID,
+		comm_pkt.sequence_no,
+		comm_pkt.global_time,
+		comm_pkt.user_bit_1,
+		comm_pkt.user_bit_2,
+		comm_pkt.user_bit_3,
+		comm_pkt.user_bit_4,
+		comm_pkt.my_pip,
+		comm_pkt.maneuver_id,
+		comm_pkt.fault_mode,
+		comm_pkt.maneuver_des_1,
+		comm_pkt.pltn_size,
+		comm_pkt.acc_traj,
+		comm_pkt.vel_traj,
+		comm_pkt.range,
+		comm_pkt.rate
+		);
 
 		get_current_timestamp(&comm_pkt.ts);
+		memset(BSMCACC, 0, sizeof(BSMCACC_t));
+		memset(BSMCACC_buf, 0, BSMCACCSIZE);
 
 		ret = vehcomm2BSM(BSMCACC, &comm_pkt);
-//printf("Got to 1\n");
-		erv = der_encode_to_buffer(&asn_DEF_BSMCACC, BSMCACC, &BSMCACC_buf, sizeof(BSMCACC_t));
+		erv = der_encode_to_buffer(&asn_DEF_BSMCACC, BSMCACC, BSMCACC_buf, sizeof(BSMCACC_t));
+
+		if(erv.encoded < 0) {
+			fprintf(stderr, "%s: Cannot convert into DER\n", argv[0]);
+			exit(EXIT_FAILURE);
+		}
+	
+                bytes_sent = sendto(sd, &BSMCACC_buf, erv.encoded,
+			 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr));
+
+		if (verbose) {
+                BSMCACC_decode = 0;
+                rval = ber_decode(0, &asn_DEF_BSMCACC,(void **)&BSMCACC_decode, &BSMCACC_buf[0], BSMCACCSIZE);
+                if(rval.code != RC_OK) {
+                        fprintf(stderr, "%s:Cannot decode received message. Bytes consumed %d\n", argv[0], rval.consumed);
+                        exit(EXIT_FAILURE);
+                }
+                ret = BSM2vehcomm(BSMCACC_decode, &comm_pkt);
+
+                //Print out BSMCACC if desired
+                if(verbose) {
+                        xer_fprint(stdout, &asn_DEF_BSMCACC, BSMCACC_decode);
+                        printf("BSMCACC->msgID %d\n", (int)BSMCACC_decode->msgID);
+                        printf("\n");
+                        for(i=0; i < rval.consumed; i++)
+                                printf("%02hhx ", BSMCACC_buf[i]);
+                        printf("\n");
+                }
 
 /*
+			printf("%s %d: %f\n", comm_pkt.object_id,
+				comm_pkt.my_pip,
+				comm_pkt.global_time);
+		BSMCACC_decode = 0;
+			rval = ber_decode(0, &asn_DEF_BSMCACC,(void **)&BSMCACC_decode, &BSMCACC_buf[0], erv.encoded);
+			ret = BSM2vehcomm(BSMCACC_decode, &comm_pkt_decode);
+printf("Got to 3 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f\n", 
+		BSMCACC_decode->msgID,
+		comm_pkt_decode.sequence_no,
+		comm_pkt_decode.global_time,
+		comm_pkt_decode.user_bit_1,
+		comm_pkt_decode.user_bit_2,
+		comm_pkt_decode.user_bit_3,
+		comm_pkt_decode.user_bit_4,
+		comm_pkt_decode.my_pip,
+		comm_pkt_decode.maneuver_id,
+		comm_pkt_decode.fault_mode,
+		comm_pkt_decode.maneuver_des_1,
+		comm_pkt_decode.pltn_size,
+		comm_pkt_decode.acc_traj,
+		comm_pkt_decode.vel_traj,
+		comm_pkt_decode.range,
+		comm_pkt_decode.rate
+		);
+			ret = xer_fprint(stdout, &asn_DEF_BSMCACC, &BSMCACC_decode);
+			if(ret >= 0) {
+printf("Got to 3 BSMCACC_decode.msgID %#x msgCnt %d lat %d\n", 
+	(unsigned int)BSMCACC_decode->msgID,
+	(unsigned int)BSMCACC_decode->blob1.msgCnt,
+	(unsigned int)BSMCACC_decode->blob1.lat);
+//::printf("BSMCACC_decode->msgID %d globalTime %f\n", BSMCACC_decode->msgID, BSMCACC->caccData.globalTime/50.0);      // From long_ctl or trk_comm_mgr
+			}
+			else {
+				printf("xer_fprint returned an error\n");
+			}
+//			printf("\n");
+//			for(i=0; i < erv.encoded ; i++) 
+//				printf("%02hhx ", BSMCACC_buf[i]);
+//			printf("\n");
+*/
+			fflush(stdout);
+		}
+                if (bytes_sent < 0) {
+                        perror("UDP sendto ");
+                        printf("port %d addr 0x%08x\n",
+                                ntohs(dst_addr.sin_port),
+                                ntohl(dst_addr.sin_addr.s_addr));
+                        fflush(stdout);
+                }
+		TIMER_WAIT(ptmr);
+	}
+	longjmp(exit_env,1);	/* go to exit code when loop terminates */
+}
 
+/*
 ssize_t AsnJ2735Lib::encode_bsm_payload(const BSM_element_t* ps_bsm,char* ptr,const size_t size,bool withHeader) const
 {
         asn_enc_rval_t rval;    // Encoder return value
@@ -195,72 +306,3 @@ ssize_t AsnJ2735Lib::encode_bsm_payload(const BSM_element_t* ps_bsm,char* ptr,co
         // free pbsm
         SEQUENCE_free(&asn_DEF_BasicSafetyMessage, pbsm, 0);
 */
-printf("Got to 2 BSMCACC.msgID %#x %d\n", BSMCACC->msgID, erv.encoded) ;
-		if(erv.encoded < 0) {
-			fprintf(stderr, "%s: Cannot convert %s into DER\n", argv[0], pduType->name);
-			exit(EXIT_FAILURE);
-		}
-	
-//printf("Got to 3\n");
-                bytes_sent = sendto(sd, &BSMCACC_buf, erv.encoded,
-			 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr));
-
-		if (verbose) {
-			printf("%s %d: %f\n", comm_pkt.object_id,
-				comm_pkt.my_pip,
-				comm_pkt.global_time);
-			fflush(stdout);
-		}
-                if (bytes_sent < 0) {
-                        perror("UDP sendto ");
-                        printf("port %d addr 0x%08x\n",
-                                ntohs(dst_addr.sin_port),
-                                ntohl(dst_addr.sin_addr.s_addr));
-                        fflush(stdout);
-                }
-		TIMER_WAIT(ptmr);
-	}
-	longjmp(exit_env,1);	/* go to exit code when loop terminates */
-}
-
-
-int vehcomm2BSM(BSMCACC_t *BSMCACC, veh_comm_packet_t *comm_pkt) {
-
-	BSMCACC->msgID = 0x20;
-//	BSMCACC-> = comm_pkt->node;               // Node number of packet origin
-//	BSMCACC-> = comm_pkt->rcv_ts;     // When message is received, from veh_recv
-//	BSMCACC-> = comm_pkt->ts;         // When message is sent, from veh_send
-//	BSMCACC-> = comm_pkt->global_time;      // From long_ctl or trk_comm_mgr
-//	BSMCACC-> = comm_pkt->user_float;
-//	BSMCACC-> = comm_pkt->user_float1;
-//	BSMCACC-> = comm_pkt->char user_ushort_1;
-//	BSMCACC-> = comm_pkt->char user_ushort_2;
-//	BSMCACC-> = comm_pkt->char my_pip;  // My position-in-platoon (i.e. 1, 2, or 3)
-//	BSMCACC-> = comm_pkt->char maneuver_id;
-//	BSMCACC-> = comm_pkt->char fault_mode;
-//	BSMCACC->caccData = comm_pkt->char maneuver_des_1;
-//	BSMCACC-> = comm_pkt->char maneuver_des_2;
-//	BSMCACC-> = comm_pkt->char pltn_size;
-	BSMCACC->blob1.msgCnt = comm_pkt->sequence_no;
-
-//	BSMCACC-> = comm_pkt->user_bit_1 : 1;
-//	BSMCACC-> = comm_pkt->user_bit_2 : 1;
-//	BSMCACC-> = comm_pkt->user_bit_3 : 1;
-//	BSMCACC-> = comm_pkt->user_bit_4 : 1;
-//	BSMCACC-> = comm_pkt->acc_traj;         //Desired acceleration from profile (m/s^2)
-//	BSMCACC-> = comm_pkt->vel_traj;         //Desired velocity from profile (m/s)
-//	BSMCACC-> = comm_pkt->velocity;         //Current velocity (m/s)
-//	BSMCACC-> = comm_pkt->accel;            //Current acceleration (m/s^2)
-	BSMCACC->caccData.distToPVeh = comm_pkt->range;            //Range from *dar (m)
-	BSMCACC->caccData.relSpdPVeh = comm_pkt->rate;             //Relative velocity from *dar (m/s)
-//	BSMCACC->blob1.id = "1"; //comm_pkt->object_id[GPS_OBJECT_ID_SIZE + 1];
-
-
-	return 0;
-}
-
-/* Dump the buffer out to the specified FILE */
-static int write_out(const void *buffer, size_t size, void *key) {
-	FILE *fp = (FILE *)key;
-	return (fwrite(buffer, 1, size, fp) == size) ? 0 : -1;
-}

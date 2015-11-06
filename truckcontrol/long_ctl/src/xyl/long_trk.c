@@ -584,17 +584,23 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
      if( test_site == RFS )
      {
 		 con_state. des_f_dist=10.0;		 
-		 config.max_spd=55.0*mph2mps;
+		 
 
 		 if (config_pt-> task == 1)    
 		 {
 		     vehicle_info. veh_id=1;
 			
-			if (config_pt-> run == 1)			
-				track_length = 380.0;				
+			if (config_pt-> run == 1)
+			{
+				track_length = 330.0;
+				config.max_spd=25.0*mph2mps;
+			}
 				
 			if (config_pt-> run == 2)
-				track_length = 9550.0;			
+			{
+				track_length = 9550.0;
+				config.max_spd=55.0*mph2mps;
+			}
 				              	
 			stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
         	stop_dist = track_length - ((config.max_spd)*stop_period - 0.25*(config.max_dcc)*stop_period*stop_period);  
@@ -1218,17 +1224,22 @@ if( config.run_data == TRUE ) {
 	 
 }
 if( config.read_data == TRUE ) {
-    fprintf(pout, "%3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i  %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i ",
+    fprintf(pout, "%3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i  %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i ",  // 31 int
 	 (int) sw_read_pt->  park_brk_sw,
 	 (int) sw_read_pt->  two_spd_axle_sw,
 	 (int) sw_read_pt->  park_brk_release,
 	 (int) sw_read_pt->  clutch_sw,
 	 (int) sw_read_pt->  brk_sw,
-	 (int) sw_read_pt->  CC_pause_sw,
+	 /*(int) sw_read_pt->  CC_pause_sw,
 	 (int) sw_read_pt->  CC_enable_sw,
 	 (int) sw_read_pt->  CC_active,
 	 (int) sw_read_pt->  CC_acel_sw,
-	 (int) sw_read_pt->  CC_resume_sw,
+	 (int) sw_read_pt->  CC_resume_sw,*/
+	 (int) con_output_pt->con_sw_1,
+	 (int) con_output_pt->con_sw_2,
+	 (int) con_output_pt->con_sw_3,
+	 (int) con_output_pt->con_sw_4,
+	 (int) con_output_pt->con_sw_5,	
 	 (int) sw_read_pt->  CC_coast_sw,
 	 (int) sw_read_pt->  CC_set_sw,
 	 (int) sw_read_pt->  CC_state,
@@ -1270,8 +1281,8 @@ if( config.read_data == TRUE ) {
 		jbus_read_pt-> jk_driver_dmd_percent_tq,	//16
 		jbus_read_pt-> jk_selection_Non_Eng     	//17
         );     
-             // 59 float numbers
-        fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f\n",           
+             // 47 float numbers
+        fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f",           
 			jbus_read_pt-> we,						//1			
 			jbus_read_pt-> w_p,						//2
 			jbus_read_pt-> w_t,  					//3

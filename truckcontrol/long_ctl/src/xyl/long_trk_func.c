@@ -460,51 +460,58 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
 	 con_st_pt-> max_tq_we = max_tq_we;
 	 
 	 //max_tq_we=ENGINE_REF_TORQUE;
-
+	    
 
      if (con_out_pt-> con_sw_1 == 1)  // Tq cmd
       {
-	      pcmd->engine_command_mode = TSC_TORQUE_CONTROL;	       		  
+
+	      pcmd->engine_command_mode = TSC_TORQUE_CONTROL;
+		  if (sw_pt-> gshift_sw == 0)
+		//	pcmd->engine_priority=TSC_HIGH;           /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */
+		    pcmd->engine_priority=TSC_MEDIUM; 
+		  else
+			pcmd->engine_priority=TSC_LOW;
           pcmd->engine_torque = (con_out_pt-> y1)/ENGINE_REF_TORQUE;
           if (pcmd->engine_torque < (MIN_TORQUE/ENGINE_REF_TORQUE) )
              pcmd->engine_torque = (MIN_TORQUE/ENGINE_REF_TORQUE);
 		
-		  tmp_rate=(con_st_pt-> ref_v - con_st_pt-> spd)/3.0;
+		 /* tmp_rate=(con_st_pt-> ref_v - con_st_pt-> spd)/3.0;
 		   if (tmp_rate > 0.25)
               tmp_rate = 0.25;      
            if (tmp_rate < -0.25)
-              tmp_rate = -0.25;    
+              tmp_rate = -0.25;   */ 
 		  
-		//   pcmd->engine_torque = (pcmd->engine_torque)*100.0;
-		   pcmd->engine_torque = (1.0+tmp_rate)*(pcmd->engine_torque)*100.0;
+		   pcmd->engine_torque = (pcmd->engine_torque)*100.0;
+		  // pcmd->engine_torque = (1.0+tmp_rate)*(pcmd->engine_torque)*100.0;
 
 		  if (pcmd->engine_torque > 99.0)
              pcmd->engine_torque = 99.0;
-		/*  if (mng_cmd_pt-> drive_mode > 1)
-		  {
-			if (pcmd->engine_torque < 2.0*cnfg_pt-> max_spd)                         // added on 06_30_15
-				pcmd->engine_torque = 2.0*cnfg_pt-> max_spd;
-		  }*/
-
+	
           pcmd->engine_torque =pcmd->engine_torque +0.1*rand()/RAND_MAX; 
 
 		  pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;   
           pcmd->engine_retarder_torque = -0.0; // Negative percentage torque                                                              
                                                                    
-         // pcmd->brake_command_mode = EXAC_NOT_ACTIVE; //04_09_03
+          pcmd->brake_command_mode = XBR_NOT_ACTIVE; //04_09_03
       }
       else                                                         
       {                                                        
               //pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; 
-              pcmd->engine_torque = 100.0*(MIN_TORQUE/ENGINE_REF_TORQUE); 			 
-              pcmd->engine_speed = +0.0;                           
+		  pcmd->engine_priority=TSC_LOW;           /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */
+          pcmd->engine_torque = 100.0*(MIN_TORQUE/ENGINE_REF_TORQUE); 			 
+          pcmd->engine_speed = +0.0;                           
       }                                                        
       if( (jbus_rd_pt-> accel_pedal_pos1 > 2.0) || ( sw_pt-> brk_sw == 1) )
 		pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; // indicating driver taking over                                                            
                    
       if (con_out_pt-> con_sw_3 == 1)  //jk_cmd                 
       {   
-	     pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;	   
+	     pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;
+		// if (sw_pt-> gshift_sw == 0)
+			pcmd->engine_retarder_priority=TSC_HIGHEST;  /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */ 
+		// else
+			
+	    
 		  tmp_rate=(con_st_pt-> ref_v - con_st_pt-> spd)/2.0;
 		   if (tmp_rate > 0.45)
               tmp_rate = 0.45;      
@@ -515,15 +522,16 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
 		 
          pcmd->engine_command_mode = TSC_TORQUE_CONTROL; //Use this if possible                                                                
          pcmd->engine_torque = 0.0;
-		 //pcmd->brake_command_mode = EXAC_NOT_ACTIVE; //04_09_03
+		 pcmd->brake_command_mode = XBR_NOT_ACTIVE; //04_09_03
 		 if (pcmd->engine_retarder_torque > 0.0)
 			 pcmd->engine_retarder_torque = 0.0;
 		 if (pcmd->engine_retarder_torque < -99.0)
 			pcmd->engine_retarder_torque = -99.0;
-		 pcmd->engine_retarder_torque = pcmd->engine_retarder_torque + 0.8*rand()/RAND_MAX; 
+		 pcmd->engine_retarder_torque = pcmd->engine_retarder_torque + 0.5*rand()/RAND_MAX; 
       }                                                        
       else
-      {            
+      {   
+		  pcmd->engine_retarder_priority=TSC_LOW;  /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */   
 		  pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;	             
           pcmd->engine_retarder_torque = -0.0;                 
       }   // jk cmd end                                                     
@@ -531,8 +539,10 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
           
       if (con_out_pt-> con_sw_5 == 1)                           // E brk cmd           
       {  		  
-	      //pcmd->brake_command_mode = EXAC_ACTIVE;      
-	                                                      
+	      pcmd->brake_command_mode = XBR_ACTIVE; 
+		  // if (sw_pt-> gshift_sw == 0)
+			pcmd->brake_priority=TSC_HIGHEST;            /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */    
+
           if (con_st_pt-> pre_v > 9.0)
               pcmd->ebs_deceleration = - 0.05*(con_out_pt-> y16);               
           else
@@ -543,9 +553,10 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
            pcmd->engine_torque = 0.0;
       }                                                        
       else                                                         
-      {                                                        
-             // pcmd->brake_command_mode = EXAC_NOT_ACTIVE;
-              pcmd->ebs_deceleration = -0.0;                       
+      {       
+		    pcmd->brake_priority=TSC_LOW;            /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */    
+            pcmd->brake_command_mode = XBR_NOT_ACTIVE;
+            pcmd->ebs_deceleration = -0.0;                       
       }   // E-brake end 
                                                               
                                                                              
