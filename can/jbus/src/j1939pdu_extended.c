@@ -485,6 +485,16 @@ pdu_to_etc2 (struct j1939_pdu *pdu, void *pdbv)
 
 	two_bytes = TWOBYTES(pdu->data_field[7], pdu->data_field[6]);
 	etc2->ETC2_TransmissionRangeAttained = two_bytes;
+	printf("ETC2 Raw %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx\n",
+		pdu->data_field[0],
+		pdu->data_field[1],
+		pdu->data_field[2],
+		pdu->data_field[3],
+		pdu->data_field[4],
+		pdu->data_field[5],
+		pdu->data_field[6],
+		pdu->data_field[7]
+		);
 
 }
 
@@ -514,6 +524,66 @@ print_etc2(void *pdbv, FILE  *fp, int numeric)
 	}
 }
 
+/** ETC2_E (Electronic Tr_eansmission Controller #3) documented in J1939 - 71, p152
+*/
+void
+pdu_to_etc2_e (struct j1939_pdu *pdu, void *pdbv)
+{
+	j1939_etc2_e_typ *etc2_e = (j1939_etc2_e_typ *)pdbv;
+	unsigned short two_bytes;
+
+	etc2_e->ETC2_E_TransmissionSelectedGear =
+		 gear_m125_to_p125(pdu->data_field[0]);
+
+	two_bytes = TWOBYTES(pdu->data_field[2], pdu->data_field[1]);
+	etc2_e->ETC2_E_TransmissionActualGearRatio = gear_ratio(two_bytes);	
+
+	etc2_e->ETC2_E_TransmissionCurrentGear =
+		 gear_m125_to_p125(pdu->data_field[3]);
+
+	two_bytes = TWOBYTES(pdu->data_field[5], pdu->data_field[4]);
+	etc2_e->ETC2_E_TransmissionRangeSelected = two_bytes;
+
+	two_bytes = TWOBYTES(pdu->data_field[7], pdu->data_field[6]);
+	etc2_e->ETC2_E_TransmissionRangeAttained = two_bytes;
+	printf("ETC2_E Raw %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx %#02hhx\n",
+		pdu->data_field[0],
+		pdu->data_field[1],
+		pdu->data_field[2],
+		pdu->data_field[3],
+		pdu->data_field[4],
+		pdu->data_field[5],
+		pdu->data_field[6],
+		pdu->data_field[7]
+		);
+
+}
+
+void 
+print_etc2_e(void *pdbv, FILE  *fp, int numeric)
+
+{
+	j1939_etc2_e_typ *etc2_e = (j1939_etc2_e_typ *)pdbv;
+	fprintf(fp, "ETC2_E ");
+	print_timestamp(fp, &etc2_e->timestamp);
+	if (numeric){
+		fprintf(fp," %d", etc2_e->ETC2_E_TransmissionSelectedGear);
+		fprintf(fp," %.2f", etc2_e->ETC2_E_TransmissionActualGearRatio);
+		fprintf(fp," %d", etc2_e->ETC2_E_TransmissionCurrentGear);
+		fprintf(fp," %d", etc2_e->ETC2_E_TransmissionRangeSelected);
+		fprintf(fp," %d", etc2_e->ETC2_E_TransmissionRangeAttained);
+		fprintf(fp, "\n");	
+	} else {
+		fprintf(fp,"Selected gear %d\n", etc2_e->ETC2_E_TransmissionSelectedGear);
+		fprintf(fp,"Actual gear ratio %.2f\n",
+			 etc2_e->ETC2_E_TransmissionActualGearRatio);
+		fprintf(fp,"Current gear %d\n", etc2_e->ETC2_E_TransmissionCurrentGear);
+		fprintf(fp,"Transmission requested range %d\n",
+			etc2_e->ETC2_E_TransmissionRangeSelected);
+		fprintf(fp,"Transmission current range %d\n",
+			etc2_e->ETC2_E_TransmissionRangeAttained);
+	}
+}
 /** TURBO (Turbocharger) documented in J1939 - 71, p153
 */
 void

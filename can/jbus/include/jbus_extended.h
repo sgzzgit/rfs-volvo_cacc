@@ -188,7 +188,7 @@ typedef struct {
                                                                   
 } IS_PACKED j1939_eec2_typ;
  
-/** PDU ETC2 (Electronic Transmission Controller #2) doc. in J1939 - 71, p152 */
+/** PDU ETC2 (Electronic Transmission Controller #2, source transmission) doc. in J1939 - 71, p152 */
 typedef struct {
 	timestamp_t timestamp;
 	char ETC2_TransmissionSelectedGear;
@@ -197,6 +197,16 @@ typedef struct {
 	int ETC2_TransmissionRangeSelected;
 	int ETC2_TransmissionRangeAttained;
 } IS_PACKED j1939_etc2_typ;
+ 
+/** PDU ETC2_E (Electronic Transmission Controller #2, source engine) doc. in J1939 - 71, p152 */
+typedef struct {
+	timestamp_t timestamp;
+	char ETC2_E_TransmissionSelectedGear;
+	float ETC2_E_TransmissionActualGearRatio;
+	char ETC2_E_TransmissionCurrentGear;
+	int ETC2_E_TransmissionRangeSelected;
+	int ETC2_E_TransmissionRangeAttained;
+} IS_PACKED j1939_etc2_e_typ;
  
 /** PDU TURBO (Turbocharger) doc. in J1939 - 71, p153 */
 typedef struct {

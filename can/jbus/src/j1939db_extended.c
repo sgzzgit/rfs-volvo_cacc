@@ -587,6 +587,7 @@ j1939_dbv_info db_ref[] = {
 	{VOLVO_EGO, sizeof(j1939_volvo_ego_typ), pdu_to_volvo_ego, NULL, print_volvo_ego, 0},
 	{VOLVO_XBR_WARN, sizeof(j1939_volvo_xbr_warn_typ), pdu_to_volvo_xbr_warn, NULL, print_volvo_xbr_warn, 0},
 	{VOLVO_XBR, sizeof(j1939_volvo_xbr_typ), pdu_to_volvo_xbr, NULL, print_volvo_xbr, 0},
+	{ETC2_E, sizeof(j1939_etc2_e_typ), pdu_to_etc2_e, NULL, print_etc2_e, 0},
 };
 
 /*
@@ -783,6 +784,14 @@ get_pgn_dbv(int pgn, struct j1939_pdu *pdu, j1939_dbv_info **pinfo)
 	case DB_J1939_ERC1_VAR:
 		if (pdu->src_address == J1939_ADDR_TR_RTDR)
 			dbv = DB_J1939_ERC1_TRANS_VAR;
+		break;	
+	case DB_J1939_ETC2_VAR:
+		if (pdu->src_address == J1939_ADDR_TRANS) {
+			dbv = DB_J1939_ETC2_VAR;
+		}
+		else {
+			dbv = DB_J1939_ETC2_E_VAR;
+		}
 		break;	
 	case DB_J1939_RCFG_VAR:
 		if (pdu->src_address == J1939_ADDR_TR_RTDR)
