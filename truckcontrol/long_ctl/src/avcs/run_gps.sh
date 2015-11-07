@@ -10,9 +10,9 @@ slay  -f -Q -s TERM db_slv
 sleep 2
 /home/truckcontrol/test/trk_cr -t 1000 2>long_input.dbg &
 sleep 2
-/home/can/drv_i82527/qnx/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 &
+/home/can/drv_sja1000/qnx/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 &
 sleep 2
-/home/can/drv_i82527/qnx/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 &
+/home/can/drv_sja1000/qnx/can_man -n /dev/can2 -s 250 -i 7 -p 0xd8100 -e 1 &
 sleep 2
 /home/truckcontrol/test/gpsdb -n 202 -d1 </dev/ser1 &
 sleep 2
