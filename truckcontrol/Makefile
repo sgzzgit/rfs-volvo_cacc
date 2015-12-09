@@ -4,7 +4,7 @@
 all:
 	make -C long_ctl/src/common
 	make -C long_ctl/src/cmdtest
-	make -C long_ctl/src/xyl
+#	make -C long_ctl/src/xyl
 #	make -C long_ctl/src/template
 	make -C long_ctl/src/profile
 	make -C long_ctl/src/vehcomm
@@ -15,7 +15,7 @@ install: all
 	if [[ ! -d test ]] ; then mkdir -p test; fi
 	make install -C long_ctl/src/common
 	make install -C long_ctl/src/cmdtest
-	make install -C long_ctl/src/xyl
+#	make install -C long_ctl/src/xyl
 	make install -C long_ctl/src/profile
 #	make install -C long_ctl/src/template
 	make install -C long_ctl/src/vehcomm

@@ -22,7 +22,7 @@ ASN_MODULE_SOURCES=	\
 	VehicleWidth.c	\
 	VehicleLength.c	\
 	TransmissionState.c	\
-	Speed.c	\
+	Velocity.c	\
 	CACCFlags.c	\
 	DDateTime.c	\
 	DYear.c	\
@@ -56,7 +56,7 @@ ASN_MODULE_HEADERS=	\
 	VehicleWidth.h	\
 	VehicleLength.h	\
 	TransmissionState.h	\
-	Speed.h	\
+	Velocity.h	\
 	CACCFlags.h	\
 	DDateTime.h	\
 	DYear.h	\
@@ -67,8 +67,14 @@ ASN_MODULE_HEADERS=	\
 	DSecond.h
 
 ASN_MODULE_HEADERS+=INTEGER.h
+ASN_MODULE_HEADERS+=BOOLEAN.h
+ASN_MODULE_HEADERS+=asn_SEQUENCE_OF.h
+ASN_MODULE_HEADERS+=asn_SET_OF.h
 ASN_MODULE_HEADERS+=NativeEnumerated.h
 ASN_MODULE_SOURCES+=INTEGER.c
+ASN_MODULE_SOURCES+=asn_SEQUENCE_OF.c
+ASN_MODULE_SOURCES+=asn_SET_OF.c
+ASN_MODULE_SOURCES+=BOOLEAN.c
 ASN_MODULE_SOURCES+=NativeEnumerated.c
 ASN_MODULE_HEADERS+=NativeInteger.h
 ASN_MODULE_SOURCES+=NativeInteger.c
@@ -142,4 +148,4 @@ clean:
 regen: regenerate-from-asn1-source
 
 regenerate-from-asn1-source:
-	asn1c -S/skeletons -fnative-types BasicSafetyMessage-Volvo.txt
+	asn1c -S/home/jspring/downloads/asn1c-0.9.26/skeletons -fnative-types BasicSafetyMessage-Volvo.txt

@@ -13,7 +13,7 @@ global "LONGITUDINAL" = 'long_trk' ;
 global "LONG_DIR" = '/home/truckcontrol/test/' ;
 global "TEST_DIR" = '/home/truckcontrol/test' ;
 global "CAN_CLIENT_DIR" = '/home/can/jbus/src/qnx' ;
-global "CAN_DRIVER_DIR" = '/home/can/drv_i82527/qnx' ;
+global "CAN_DRIVER_DIR" = '/home/can/drv_sja1000/qnx' ;
 global "LONG_CFG_FILE" = 'realtime' ;
 global "LONG_PLOT" = '/home/truckcontrol/plot/trkplot' ;
 global "COMMAND_TEST" = '1' ;
@@ -78,29 +78,30 @@ shell 'Start everything but longitudinal control and file writing'
 	sleep 1
 	$TEST_DIR/trk_cr -t 1000 2>long_input_$DATESTR.dbg &
 	sleep 1
-	$CAN_DRIVER_DIR/can_man -n /dev/can1 -s 250 -i 10 -p 0xd8000 -e 1 >/big/data/can1$DATESTR.log &
+	$CAN_DRIVER_DIR/can_man -n /dev/can1 -s 250 -i 10 -p 0xda000 -e 1 >/big/data/can1$DATESTR.log &
 	sleep 1
-	$CAN_DRIVER_DIR/can_man -n /dev/can2 -s 500 -i 7 -p 0xd8100 -e 1 >/big/data/can2$DATESTR.log &
+	$CAN_DRIVER_DIR/can_man -n /dev/can2 -s 500 -i 7 -p 0xda200 -e 1 >/big/data/can2$DATESTR.log &
+	sleep 1
+	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 >/big/data/rdj1939_can1_$DATESTR.txt &
+	sleep 1
+	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can2 >/big/data/rdj1939_can2_$DATESTR.txt &
 	sleep 1
 	# To start jbussend with debugging ON, add -d flag
-	$TEST_DIR/jbussend -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg &
+	$TEST_DIR/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg &
 	sleep 1
 # To start jbussendGPS with debugging ON, add -d flag
 #	$TEST_DIR/jbussendGPS -c -g /dev/can2 -n202 >/home/truckcontrol/test/jbussendGPS.dbg &
 #	sleep 1
 	$TEST_DIR/gpsdb -n 202 -d1 </dev/ser1 >/big/data/gpsdb_$DATESTR.dbg &
+	sleep 1
 	/home/truckcontrol/test/trk_wr -t 100 1>/big/data/trk_wr_$DATESTR.txt 2>/big/data/trk_wr.err &
-	$TEST_DIR/veh_rcv -f $CONFIG_FILE -u 5051  -t Gold >veh_rcv.dbg &
-#	$TEST_DIR/veh_snd -b -i 20 -a 10.0.1.255 -u 5052 -t Blue >veh_snd.dbg &
-	$TEST_DIR/veh_snd -i 20 -a 10.0.1.34 -u 5052 -t Gold >veh_snd.dbg &
-#	$TEST_DIR/veh_snd -i 20 -a 10.0.1.46 -u 5052 -t Blue >veh_snd.dbg &
-	echo "Starting CAN 1"
 	sleep 1
-	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 >/big/data/rdj1939_can1_$DATESTR.txt &
-	echo "Starting CAN 2"
+	$TEST_DIR/veh_snd -v -i 100 -A 192.168.0.202 -a 192.168.0.74 -u 15041 -t Gold >/big/data/veh_snd_$DATESTR.dbg &
 	sleep 1
-	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can2 >/big/data/rdj1939_can2_$DATESTR.txt &
-#	sleep 1
+	$TEST_DIR/veh_rcv -f $CONFIG_FILE -v -A 192.168.0.202 -a 192.168.0.74 -u 15042 -t Gold >/big/data/veh_rcv_$DATESTR.dbg &
+	sleep 1
+#	$CAN_CLIENT_DIR/rdj1939 -c -f /dev/can2 >j1939_brake.dbg &
+#	sleep 2
 #	$TEST_DIR/trk_io -o2 >trk_io.log &
 %)
 ;

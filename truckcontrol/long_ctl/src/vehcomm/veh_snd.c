@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
 
         int bytes_sent;     		/// received from a call to sendto
 	int verbose = 0;
+	int veryverbose = 0;
 	short msg_count = 0;
 	char *remote_ipaddr = "10.0.1.9";	/// address of UDP destination
 	char *local_ipaddr = "127.0.0.1";	/// address of UDP destination
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
 
         BSMCACC_decode = (BSMCACC_t *)calloc(1, sizeof(BSMCACC_t));
 
-        while ((ch = getopt(argc, argv, "A:a:bi:t:u:v")) != EOF) {
+        while ((ch = getopt(argc, argv, "A:a:bi:t:u:vd")) != EOF) {
                 switch (ch) {
 		case 'A': local_ipaddr = strdup(optarg);
 			  break;
@@ -126,6 +127,9 @@ int main(int argc, char *argv[])
 		case 'u': udp_port = atoi(optarg); 
 			  break;
 		case 'v': verbose = 1; 
+			  break;
+		case 'd': veryverbose = 1; 
+			  verbose = 1; 
 			  break;
                 default:  printf("Usage: %s [-v (verbose)] -A <local IP address, def. 127.0.0.1> -a <remote IP address, def. 10.0.1.9> -u <UDP port, def. 5050> -t <vehicle string, def. Blue> -i <interval, def. 20 ms>\n",argv[0]);
 			  exit(EXIT_FAILURE);
@@ -162,23 +166,27 @@ int main(int argc, char *argv[])
 
                 msg_count++;
 		comm_pkt.sequence_no = msg_count;
-		fcounter += 0.02;
-		comm_pkt.global_time = fcounter;
-		comm_pkt.user_bit_1 = 1;
-		comm_pkt.user_bit_2 = 0;
-		comm_pkt.user_bit_3 = 1;
-		comm_pkt.user_bit_4 = 0;
-		comm_pkt.my_pip = 3; 
-		comm_pkt.maneuver_id = 4;
-		comm_pkt.fault_mode = 5;
-		comm_pkt.maneuver_des_1 = 6;
-		comm_pkt.pltn_size = 7;
-		comm_pkt.acc_traj = 8.12 + fcounter;
-		comm_pkt.vel_traj = 9.23 + fcounter;
-		comm_pkt.range = 10.34 + fcounter;
-		comm_pkt.rate = 2.45 + fcounter;
+		if(veryverbose) {
+			fcounter += 0.02;
+			comm_pkt.global_time = fcounter;
+			comm_pkt.user_bit_1 = 1;
+			comm_pkt.user_bit_2 = 0;
+			comm_pkt.user_bit_3 = 1;
+			comm_pkt.user_bit_4 = 0;
+			comm_pkt.my_pip = 3; 
+			comm_pkt.maneuver_id = 4;
+			comm_pkt.fault_mode = 5;
+			comm_pkt.maneuver_des_1 = 6;
+			comm_pkt.pltn_size = 7;
+			comm_pkt.acc_traj = 8.12 + fcounter;
+			comm_pkt.vel_traj = 9.23 + fcounter;
+			comm_pkt.range = 10.34 + fcounter;
+			comm_pkt.rate = 2.45 + fcounter;
+			comm_pkt.velocity = fcounter;
+		}
 
-printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f\n", 
+		if(verbose)
+printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f velocity %f\n", 
 		BSMCACC->msgID,
 		comm_pkt.sequence_no,
 		comm_pkt.global_time,
@@ -194,7 +202,8 @@ printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d user
 		comm_pkt.acc_traj,
 		comm_pkt.vel_traj,
 		comm_pkt.range,
-		comm_pkt.rate
+		comm_pkt.rate,
+		comm_pkt.velocity
 		);
 
 		get_current_timestamp(&comm_pkt.ts);
@@ -211,7 +220,6 @@ printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d user
 	
                 bytes_sent = sendto(sd, &BSMCACC_buf, erv.encoded,
 			 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr));
-
 		if (verbose) {
                 BSMCACC_decode = 0;
                 rval = ber_decode(0, &asn_DEF_BSMCACC,(void **)&BSMCACC_decode, &BSMCACC_buf[0], BSMCACCSIZE);
@@ -238,7 +246,7 @@ printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d user
 		BSMCACC_decode = 0;
 			rval = ber_decode(0, &asn_DEF_BSMCACC,(void **)&BSMCACC_decode, &BSMCACC_buf[0], erv.encoded);
 			ret = BSM2vehcomm(BSMCACC_decode, &comm_pkt_decode);
-printf("Got to 3 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f\n", 
+printf("Got to 3 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f velocity %f\n", 
 		BSMCACC_decode->msgID,
 		comm_pkt_decode.sequence_no,
 		comm_pkt_decode.global_time,
@@ -254,7 +262,8 @@ printf("Got to 3 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d user
 		comm_pkt_decode.acc_traj,
 		comm_pkt_decode.vel_traj,
 		comm_pkt_decode.range,
-		comm_pkt_decode.rate
+		comm_pkt_decode.rate,
+		comm_pkt_decode.velocity
 		);
 			ret = xer_fprint(stdout, &asn_DEF_BSMCACC, &BSMCACC_decode);
 			if(ret >= 0) {

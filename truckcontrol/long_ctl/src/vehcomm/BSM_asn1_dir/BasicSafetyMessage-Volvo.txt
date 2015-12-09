@@ -6,11 +6,11 @@ BSMCACC ::=  SEQUENCE {
 -- Part I
     msgID   [0]DSRCmsgID,   -- 1 byte
     blob1   [1]BSMblob,     -- Sent as a single octet blob 
- 
+
 -- Part II, contains CACC specific data
     caccData [2]CaccData    -- CACC defined Data
- 
 }
+ 
  
  
 --CACC DEFINITIONS IMPLICIT TAGS::= BEGIN
@@ -54,28 +54,28 @@ BSMblob ::= SEQUENCE {
    angle       SteeringWheelAngle,   --x- 1 byte
    accelSet    AccelerationSet4Way,  --x- accel set  (four way) 7 bytes
    brakes      BrakeSystemStatus,    --x- 2 bytes
-   size        VehicleSize           --x- 3 bytes
+   size        VehicleSize	     --x- 3 bytes
 } 
  
 CaccData ::= SEQUENCE {
     flags       [0]CACCFlags,               -- Radar\Lidar, ACC Switch, ACC Setting type, ACC Resume\Engaged, (ACC) Cancel Button, ACC\CACC Flag
-    setSpeed    [1]Speed,
+    setSpeed    [1]Velocity,
     throtPos    [2]ThrottlePosition,
-    lclPN       [3]OCTET STRING (SIZE(4)),  -- PinPoint Local Position North in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
-    lclPE       [4]OCTET STRING (SIZE(4)),  -- PinPoint Local Position East in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
-    lclPD       [5]OCTET STRING (SIZE(4)),  -- PinPoint Local Position Down in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
-    roll        [6]OCTET STRING (SIZE(2)),  -- PinPoint Roll; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
-    pitch       [7]OCTET STRING (SIZE(2)),  -- PinPoint Pitch; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
-    yaw         [8]OCTET STRING (SIZE(2)),  -- PinPoint Yaw; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
-    hPosAcry    [9]OCTET STRING (SIZE(4)),  -- PinPoint North Accuracy m, (F32) 4-Byte Float, getFilterAccuracy: Method ID =6
-    vPosAcry    [10]OCTET STRING (SIZE(4)), -- PinPoint North Accuracy m, (F32) 4-Byte Float, getFilterAccuracy: Method ID =6
-    fwrdVel     [11]OCTET STRING (SIZE(4)), -- PinPoint North Velocity m/s, (F32) 4-Byte Float, newRawGpsData: Signal ID = 6
-    rightVel    [12]OCTET STRING (SIZE(4)), -- PinPoint East Velocity m/s, (F32) 4-Byte Float
-    downVel     [13]OCTET STRING (SIZE(4)), -- PinPoint Down Velocity m/s, (F32) 4-Byte Float
-    velAcc      [14]OCTET STRING (SIZE(4)), -- Velocity Accuracy m/s, (F32) 4-Byte Float
-    fwrdAcc     [15]OCTET STRING (SIZE(2)), -- PinPoint Forward Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18
-    rightAcc    [16]OCTET STRING (SIZE(2)), -- PinPoint Right Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18
-    dwnAcc      [17]OCTET STRING (SIZE(2)), -- PinPoint Down Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18 
+    lclPN       [3]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint Local Position North in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
+    lclPE       [4]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint Local Position East in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
+    lclPD       [5]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint Local Position Down in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
+    roll        [6]OCTET STRING (SIZE(2)) OPTIONAL,  -- PinPoint Roll; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
+    pitch       [7]OCTET STRING (SIZE(2)) OPTIONAL,  -- PinPoint Pitch; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
+    yaw         [8]OCTET STRING (SIZE(2)) OPTIONAL,  -- PinPoint Yaw; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
+    hPosAcry    [9]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint North Accuracy m, (F32) 4-Byte Float, getFilterAccuracy: Method ID =6
+    vPosAcry    [10]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint North Accuracy m, (F32) 4-Byte Float, getFilterAccuracy: Method ID =6
+    fwrdVel     [11]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint North Velocity m/s, (F32) 4-Byte Float, newRawGpsData: Signal ID = 6
+    rightVel    [12]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint East Velocity m/s, (F32) 4-Byte Float
+    downVel     [13]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint Down Velocity m/s, (F32) 4-Byte Float
+    velAcc      [14]OCTET STRING (SIZE(4)) OPTIONAL, -- Velocity Accuracy m/s, (F32) 4-Byte Float
+    fwrdAcc     [15]OCTET STRING (SIZE(2)) OPTIONAL, -- PinPoint Forward Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18
+    rightAcc    [16]OCTET STRING (SIZE(2)) OPTIONAL, -- PinPoint Right Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18
+    dwnAcc      [17]OCTET STRING (SIZE(2)) OPTIONAL, -- PinPoint Down Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18 
     grpID       [18]INTEGER (0..7),         -- Group ID
     grpSize     [19]INTEGER (0..15),        -- Group Size
     grpMode     [20]INTEGER (0..7),         -- Group Mode
@@ -97,13 +97,19 @@ CaccData ::= SEQUENCE {
     estDisLVeh  [36]INTEGER (0..150),       -- Estimated distance gap to lead veh in m 0-150 **<try to reduce to 1 Byte, need to know acceptable resolution>
     desSpd      [37]INTEGER (0..35),        -- Desired speed (control) in m/s 0-35
     desTrq      [38]INTEGER (0..2500),      -- Desired torque (control) in N-m 0-2500 **<try to reduce to 1 Byte, need to know acceptable resolution>
-    userDI1     [39]INTEGER OPTIONAL,    -- User Defined integer 1 
-    userDI2     [40]INTEGER OPTIONAL,    -- User Defined integer 2 
-    userDF1     [41]INTEGER OPTIONAL,    -- User Defined float 1 
-    userDF2     [42]INTEGER OPTIONAL,    -- User Defined float 2 
-    userDF3     [43]INTEGER OPTIONAL,    -- User Defined float 3 
-    utcTime     [44]DDateTime OPTIONAL   -- time with mSec precision
-    -- [4] GPS Quality?
+    desAcc	[39]INTEGER (0..500),       -- Desired acceleration in m/s^2, 0.01 m/s^2 resolution
+    userDI1     [40]INTEGER,    -- User Defined integer 1 
+    userDI2     [41]INTEGER,    -- User Defined integer 2 
+    userDF1     [42]INTEGER,    -- User Defined float 1 
+    userDF2     [43]INTEGER,    -- User Defined float 2 
+    userDF3     [44]INTEGER,    -- User Defined float 3 
+    utcTime     [45]DDateTime,   -- time with mSec precision
+    globalTime	[46]INTEGER,			-- Global time in sec, 0.02 sec resolution (actually a counter, starting from when the software
+						-- starts up, and incrementing each servo loop, the loop time of which is 0.02 sec)
+    userBit1	[47]BOOLEAN,    -- User Defined bit 1 
+    userBit2	[48]BOOLEAN,    -- User Defined bit 2 
+    userBit3	[49]BOOLEAN,    -- User Defined bit 3 
+    userBit4	[50]BOOLEAN	-- User Defined bit 4 
 }
    VehicleSize ::=  SEQUENCE {
    width     VehicleWidth,
@@ -154,11 +160,11 @@ PositionalAccuracy ::= OCTET STRING (SIZE(4))
   -- a value of 0xFFFF =65535 shall be used for orientation unavailable 
   -- (In NMEA GPGST)
  
-TransmissionAndSpeed ::= OCTET STRING (SIZE(2)) 
-    -- Bits 14~16 to be made up of the data element
-    -- DE_TransmissionState 
-    -- Bits 1~13 to be made up of the data element
-    -- DE_Speed
+TransmissionAndSpeed ::= SEQUENCE {
+    transmisson TransmissionState,
+    speed Velocity
+}
+
  
 Heading ::= INTEGER (0..28800) 
    -- LSB of 0.0125 degrees
@@ -172,14 +178,12 @@ SteeringWheelAngle ::= OCTET STRING (SIZE(1))
     -- 0x7E = +126 = +189 deg and beyond
     -- 0x7F = +127 to be used for unavailable
     
-AccelerationSet4Way ::= OCTET STRING (SIZE(7)) 
-   -- composed of the following:
-   -- SEQUENCE {
-   --    long Acceleration,          -x- Along the Vehicle Longitudinal axis
-   --    lat  Acceleration,          -x- Along the Vehicle Lateral axis
-   --    vert VerticalAcceleration,  -x- Along the Vehicle Vertical axis
-   --    yaw  YawRate
-   --    }
+AccelerationSet4Way ::=  SEQUENCE {
+	longAcc Acceleration,          --x- Along the Vehicle Longitudinal axis
+	latAcc  Acceleration,          --x- Along the Vehicle Lateral axis
+	vertAcc VerticalAcceleration,  --x- Along the Vehicle Vertical axis
+	yaw  YawRate
+}
  
 Acceleration ::= INTEGER (-2000..2001) 
     -- LSB units are 0.01 m/s^2
@@ -246,7 +250,7 @@ TransmissionState ::= ENUMERATED {
    ... -- # LOCAL_CONTENT
    }
  
-Speed ::= INTEGER (0..8191) -- Units of 0.02 m/s
+Velocity ::= INTEGER (0..8191) -- Units of 0.02 m/s
           -- The value 8191 indicates speed is unavailable
  
 CACCFlags ::= OCTET STRING (SIZE(1))

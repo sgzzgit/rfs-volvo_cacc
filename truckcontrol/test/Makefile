@@ -24,12 +24,12 @@ TRUCK_EXECS= veh_trk long_trk veh_snd veh_rcv long_out \
 
 install:
 	cp $(HOME_DIR)/db/qnx/db_slv $(TEST_DIR)
-	cp $(HOME_DIR)/sens/radar/qnx/evt300 $(TEST_DIR) 
-	cp $(HOME_DIR)/sens/lidar/denso/qnx/rdlidar $(TEST_DIR) 
-	cp $(HOME_DIR)/sens/lidar/mdl/qnx/mdl $(TEST_DIR) 
-	cp $(HOME_DIR)/sens/das/driver/qnx/dmm32 $(TEST_DIR) 
 	cp $(HOME_DIR)/sens/gps/examples/qnx/gpsrcv $(TEST_DIR) 
 	cp $(HOME_DIR)/sens/gps/examples/qnx/gpsdb $(TEST_DIR) 
+#	cp $(HOME_DIR)/sens/radar/qnx/evt300 $(TEST_DIR) 
+#	cp $(HOME_DIR)/sens/lidar/denso/qnx/rdlidar $(TEST_DIR) 
+#	cp $(HOME_DIR)/sens/lidar/mdl/qnx/mdl $(TEST_DIR) 
+#	cp $(HOME_DIR)/sens/das/driver/qnx/dmm32 $(TEST_DIR) 
 
 clean:
 	rm -f *.dbg *.tmg *.log 
