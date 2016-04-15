@@ -30,6 +30,7 @@ EXEC = $(OBJDIR)/trk_io\
 	$(OBJDIR)/setLEDs\
 	$(OBJDIR)/set_fault\
 	$(OBJDIR)/jbussend\
+	$(OBJDIR)/jbussendGPS\
 	$(OBJDIR)/fake_switches
 
 all: $(OBJDIR) $(EXEC)
