@@ -642,8 +642,8 @@ void send_jbus_exit (jbus_func_t *pjbf, send_jbus_type *msg)
 			if (i == JBUS_SEND_EBS) {
 				pexac = &cmd->cmd.exac;
 				pexac->external_deceleration_control_mode =
-					 EXAC_NOT_ACTIVE;
-				exac_to_pdu(&pdu, pexac);
+					 XBR_NOT_ACTIVE;
+				volvo_xbr_to_pdu(&pdu, pexac);
 			}
 			else {
 				ptsc = &cmd->cmd.tsc1;
@@ -664,7 +664,7 @@ static long_output_typ inactive_ctrl = {
 	TSC_OVERRIDE_DISABLED,	/* engine retarder command mode */
 	 0.0,	/* accelerator pedal voltage -- not used by jbussend */
 	 0.0,	/* ebs deceleration */ 
-	EXAC_NOT_ACTIVE,	/* brake command mode */
+	XBR_NOT_ACTIVE,	/* brake command mode */
 	 0.0,	/* percent of maximum transmission retarder activation */ 
 	TSC_OVERRIDE_DISABLED,	/* transmission retarder command mode */
 }; 
