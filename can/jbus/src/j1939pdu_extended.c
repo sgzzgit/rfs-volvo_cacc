@@ -1360,6 +1360,8 @@ pdu_to_vdc2(struct j1939_pdu *pdu, void *pdbv)
 	j1939_vdc2_typ *vdc2 = (j1939_vdc2_typ *)pdbv;
 	unsigned short two_bytes;
 
+	two_bytes = TWOBYTES(pdu->data_field[1], pdu->data_field[0]);
+	vdc2->VDC2_SteeringWheelAngle = (two_bytes * 0.000976563) - 31.374;
 	vdc2->VDC2_SteeringWheelTurnCounter = (pdu->data_field[2] & 0x3F) - 32;
 	two_bytes = TWOBYTES(pdu->data_field[4], pdu->data_field[3]);
 	vdc2->VDC2_YawRate = (two_bytes * 0.000122) - 3.92;
@@ -1376,6 +1378,7 @@ print_vdc2(void *pdbv, FILE  *fp, int numeric)
 	print_timestamp(fp, &vdc2->timestamp);
 	if (numeric){
 		fprintf(fp," %d", vdc2->VDC2_SteeringWheelTurnCounter);
+		fprintf(fp," %.3f", vdc2->VDC2_SteeringWheelAngle);
 		fprintf(fp," %.3f", vdc2->VDC2_YawRate);
 		fprintf(fp," %.3f", vdc2->VDC2_LateralAcceleration);
 		fprintf(fp," %.3f", vdc2->VDC2_LongitudinalAcceleration);
@@ -1383,6 +1386,8 @@ print_vdc2(void *pdbv, FILE  *fp, int numeric)
 	} else {
 		fprintf(fp,"Steering Wheel Turn Counter %d\n",
 			vdc2->VDC2_SteeringWheelTurnCounter);
+		fprintf(fp,"Steering Wheel Angle %.3f\n",
+			vdc2->VDC2_SteeringWheelAngle);
 		fprintf(fp,"Yaw Rate %.3f\n",
 			vdc2->VDC2_YawRate);
 		fprintf(fp,"Lateral Acceleration %.3f\n",
