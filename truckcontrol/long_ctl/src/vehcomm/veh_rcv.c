@@ -59,7 +59,7 @@ static int get_ids(FILE *fpin, int *pself, int *plead, int *psecond, int *pthird
         return 1;
 }
 
-#define BSMCACCSIZE     300
+#define BSMCACCSIZE     3000
 
 int main( int argc, char *argv[] )
 {
@@ -215,8 +215,8 @@ int main( int argc, char *argv[] )
 			db_clt_write(pclt, DB_COMM_THIRD_TRK_VAR,
 				sizeof(comm_pkt), &comm_pkt);
 		if (verbose) {
-			printf("Vehicle %d received packet from vehicle %d\n",
-				self_vehicle_id, comm_pkt.my_pip);
+			printf("Vehicle %d received packet from vehicle %d speed %f\n",
+				self_vehicle_id, comm_pkt.my_pip, comm_pkt.velocity);
                         printf("%s: %f\n", comm_pkt.object_id,
                                comm_pkt.global_time);
                         fflush(stdout);

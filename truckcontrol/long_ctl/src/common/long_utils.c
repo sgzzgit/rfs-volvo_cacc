@@ -709,6 +709,7 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
         case DB_J1939_VDC2_VAR:
 		pvdc2 = (j1939_vdc2_typ *) pdata_val;
 		pstate->VDC2_SteeringWheelTurnCounter= pvdc2->VDC2_SteeringWheelTurnCounter;
+		pstate->VDC2_SteeringWheelAngle= pvdc2->VDC2_SteeringWheelAngle;
 		pstate->VDC2_YawRate= pvdc2->VDC2_YawRate;
 		pstate->VDC2_LateralAcceleration= pvdc2->VDC2_LateralAcceleration;
 		pstate->VDC2_LongitudinalAcceleration= pvdc2->VDC2_LongitudinalAcceleration;

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+slay  -f -Q -s TERM long_trk
 slay  -f -Q -s TERM veh_snd
 slay  -f -Q -s TERM veh_rcv
 slay  -f -Q -s TERM trk_wr

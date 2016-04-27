@@ -80,18 +80,18 @@ typedef struct {
 unsigned long LAT_MULTIPLIER=10E7;
 unsigned long LAT_MIN	=0;
 unsigned long LAT_MAX	=(unsigned int)0x7FFFFFFF;
-unsigned long LAT_OFFSET=-90.000;
+unsigned long LAT_OFFSET=-90;
 
 unsigned long LONGITUDE_MULTIPLIER=10E7;
 unsigned long LONGITUDE_MIN=0;
 unsigned long LONGITUDE_MAX=(unsigned int)0xFFFFFFFF;
-unsigned long LONGITUDE_OFFSET=-180.000;
+unsigned long LONGITUDE_OFFSET=-180;
 
 unsigned long POS_DATA_IS_VALID=0x10000000;
 unsigned long POS_DATA_INVALID=0x7FFFFFFF;
 
 int update_gps_position(path_gps_point_t *hb, char *buf) {
-	int retval;
+//	int retval;
 	int i;
 	unsigned int latitude;
 	unsigned int longitude;
@@ -138,7 +138,7 @@ printf("update_gps_position: hb.latitude %.7f hb.longitude %.7f\n", hb->latitude
 };
 
 int update_gps_time(path_gps_point_t *hb, char *buf) {
-	int retval;
+//	int retval;
 	int year = 2015;
 	char month = 3;
 	short day = 26;
@@ -155,6 +155,8 @@ int update_gps_time(path_gps_point_t *hb, char *buf) {
 	buf[4] |= (hb->utc_time.sec << 4) & 0xF0;
 	buf[5] = (hb->utc_time.sec >> 4) & 0x03;
 	buf[5] |= (hb->utc_time.millisec/100 << 2) & 0xFC;
+	
+	return 0;
 };
 
 /**
@@ -443,7 +445,7 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 	int gps_fd = -1;
 	struct timeb current;
 
-	ftime(&current);	/* use to initialize "last_time" 
+	ftime(&current);	 use to initialize "last_time" 
 	for (i = 0; i < NUM_JBUS_SEND; i++) {
 		send_jbus_type *pm = &msg[i];
 		jbus_cmd_type *cmd = &msg[i].cmd;
@@ -462,7 +464,7 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 		
 		active_message_types++;
 
-		/* same initializations for all types 
+		 same initializations for all types 
 		pm->active = 1;
 		cmd->last_time = current;
 		cmd->pinfo = pinfo;
@@ -482,7 +484,7 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			cmd->heartbeat = 200;
 			cmd->override_limit = 5000;
 			tsc->override_control_mode_priority = TSC_HIGHEST; 
-			/* Cummins only supports speed control condition 01 
+			 Cummins only supports speed control condition 01 
 			tsc->requested_speed_control_conditions = 1;
 			tsc->override_control_modes = TSC_OVERRIDE_DISABLED;
 			tsc->requested_speed_or_limit = 0.0;
@@ -497,10 +499,10 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			pm->cmd_to_pdu = (void *) tsc1_to_pdu;
 			cmd->dbv = DB_J1939_TSC1_RTDR_VAR;
 			cmd->interval = 40;
-			cmd->heartbeat = 0;	/* not used 
-			cmd->override_limit = 0;	/* not used 
+			cmd->heartbeat = 0;	 not used 
+			cmd->override_limit = 0;	 not used 
 			tsc->override_control_mode_priority = TSC_HIGHEST;
-			/* Cummins only supports speed control condition 01 
+			 Cummins only supports speed control condition 01 
 			tsc->requested_speed_control_conditions = 1;
 			tsc->override_control_modes = TSC_OVERRIDE_DISABLED; 
 			tsc->requested_speed_or_limit = 0.0;
@@ -512,13 +514,13 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			pm->slot_number = 13;
 			pm->is_ready_to_send = ready_to_send_ebs;
 			pm->update_command = update_brake_exac;
-			pm->cmd_to_pdu = (void *) exac_to_pdu;
+			pm->cmd_to_pdu = (void *) volvo_xbr_to_pdu;
 			cmd->dbv = DB_J1939_EXAC_VAR;
 			cmd->interval = 40;
 			cmd->heartbeat = 40;	
 			cmd->override_limit = 0;	 not used 
 			exac->ebs_override_control_mode_priority = TSC_HIGHEST;
-			exac->external_deceleration_control_mode = EXAC_NOT_ACTIVE;
+			exac->external_deceleration_control_mode = XBR_NOT_ACTIVE;
 			exac->requested_deceleration_to_ebs = 0.0;
 			exac->edc_override_control_mode_priority = 3;  lowest 
 			exac->override_control_modes = TSC_OVERRIDE_DISABLED; 
@@ -538,7 +540,7 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			cmd->heartbeat = 0;	not used 
 			cmd->override_limit = 0;	 not used 
 			tsc->override_control_mode_priority = TSC_LOW;
-			tsc->requested_speed_control_conditions = 0; /* not used 
+			tsc->requested_speed_control_conditions = 0;  not used 
 			tsc->override_control_modes = TSC_OVERRIDE_DISABLED;
 			tsc->requested_speed_or_limit = 0.0;
 			tsc->requested_torque_or_limit = 0.0;
@@ -789,9 +791,9 @@ int main( int argc, char *argv[] )
 {
 	int ch;		
 	send_jbus_type msg[NUM_JBUS_SEND];
-	struct j1939_pdu pdu;		/* Protocol Data Unit */
+//	struct j1939_pdu pdu;		/* Protocol Data Unit */
         db_clt_typ *pclt = NULL;  	/* Database pointer */
-	long_output_typ ctrl;		/* Variable containing control values */
+//	long_output_typ ctrl;		/* Variable containing control values */
 	posix_timer_typ *ptimer;      	/* Timing proxy */
 	int interval = JBUS_INTERVAL_MSECS; /* Main loop execution interval */
 	int loop_number = 0;		/* Used to space out messages */
@@ -801,16 +803,16 @@ int main( int argc, char *argv[] )
 	int active_mask = (1 << NUM_JBUS_SEND) - 1;	/* all active */  
 	int rtn_jmp = -1;	/* value returned from setjmp */
 	char hostname[MAXHOSTNAMELEN+1]; /* used in opening database */
-	char *progname = argv[0];	/* used in opening database */
+//	char *progname = argv[0];	/* used in opening database */
         int xport = COMM_OS_XPORT;
 	char *domain = DEFAULT_SERVICE;
 	char *vehicle_str = "VLN475";	/* vehicle identifier */
 	info_check_type current_info;	/* info for monitoring safety */
-	FILE *fpin;
+//	FILE *fpin;
 	char use_can = 0;
 	path_gps_point_t hb;
-	gps_position_t gps_position;
-	gps_time_t gps_time;
+//	gps_position_t gps_position;
+//	gps_time_t gps_time;
 	int gps_db_num = DB_GPS_PT_LCL_VAR;
 	unsigned char buf[16];
 

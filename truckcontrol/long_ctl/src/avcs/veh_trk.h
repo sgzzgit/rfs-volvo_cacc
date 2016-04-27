@@ -77,9 +77,6 @@ typedef struct
                                                     * 3=speed/torque limit */
         unsigned char engine_retarder_command_mode; /* 0=disable, 2=torque,
                                                      * 3=torque limit */
-	unsigned char engine_priority;
-	unsigned char engine_retarder_priority;
-	unsigned char brake_priority;
         float acc_pedal_control;      /* Accelerator pedal control (bus only) */
         float ebs_deceleration;
         unsigned char brake_command_mode;   /* 0=not active, 1=active */

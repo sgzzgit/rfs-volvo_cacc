@@ -69,10 +69,9 @@ int main(int argc, char *argv[])
 	int udp_port = 5050;
 
 	veh_comm_packet_t comm_pkt;
-	veh_comm_packet_t comm_pkt_decode;
 	BSMCACC_t *BSMCACC;
 	BSMCACC_t *BSMCACC_decode;
-#define BSMCACCSIZE	10000
+#define BSMCACCSIZE	3000
 	char BSMCACC_buf[BSMCACCSIZE];
 
 	asn_enc_rval_t erv;
@@ -80,7 +79,7 @@ int main(int argc, char *argv[])
 
         int bytes_sent;     		/// received from a call to sendto
 	int verbose = 0;
-	int veryverbose = 0;
+	int debug = 0;
 	short msg_count = 0;
 	char *remote_ipaddr = "10.0.1.9";	/// address of UDP destination
 	char *local_ipaddr = "127.0.0.1";	/// address of UDP destination
@@ -90,7 +89,8 @@ int main(int argc, char *argv[])
 	int interval = 20;	/// milliseconds
 	int do_broadcast = 0;	/// by default do unicast
 	int ret = -1;
-	float fcounter = 0;
+	int counter = 0;
+	float fcounter = 10.0;
 	int i;
 	BSMblob_t *my_blob;
 //	CaccData_t *my_caccdata;
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 			  break;
 		case 'v': verbose = 1; 
 			  break;
-		case 'd': veryverbose = 1; 
+		case 'd': debug = 1; 
 			  verbose = 1; 
 			  break;
                 default:  printf("Usage: %s [-v (verbose)] -A <local IP address, def. 127.0.0.1> -a <remote IP address, def. 10.0.1.9> -u <UDP port, def. 5050> -t <vehicle string, def. Blue> -i <interval, def. 20 ms>\n",argv[0]);
@@ -166,27 +166,36 @@ int main(int argc, char *argv[])
 
                 msg_count++;
 		comm_pkt.sequence_no = msg_count;
-		if(veryverbose) {
+		if(debug) {
 			fcounter += 0.02;
+			counter = (int)(fcounter * 100);
 			comm_pkt.global_time = fcounter;
-			comm_pkt.user_bit_1 = 1;
-			comm_pkt.user_bit_2 = 0;
-			comm_pkt.user_bit_3 = 1;
-			comm_pkt.user_bit_4 = 0;
-			comm_pkt.my_pip = 3; 
-			comm_pkt.maneuver_id = 4;
-			comm_pkt.fault_mode = 5;
-			comm_pkt.maneuver_des_1 = 6;
-			comm_pkt.pltn_size = 7;
-			comm_pkt.acc_traj = 8.12 + fcounter;
-			comm_pkt.vel_traj = 9.23 + fcounter;
-			comm_pkt.range = 10.34 + fcounter;
-			comm_pkt.rate = 2.45 + fcounter;
+			comm_pkt.user_float = fcounter;
+			comm_pkt.user_float1 = fcounter;
+			comm_pkt.user_ushort_1 = (short)(fcounter * 100);
+			comm_pkt.user_ushort_2 = (short)(fcounter * 100);
+			comm_pkt.my_pip = counter; 
+			comm_pkt.maneuver_id = counter;
+			comm_pkt.fault_mode = counter;
+			comm_pkt.maneuver_des_1 = (short)(fcounter * 100);
+			comm_pkt.maneuver_des_2 = (short)(fcounter * 100);
+			comm_pkt.pltn_size = counter;
+			comm_pkt.sequence_no = msg_count;
+			comm_pkt.user_bit_1 = counter;
+			comm_pkt.user_bit_2 = counter;
+			comm_pkt.user_bit_3 = counter;
+			comm_pkt.user_bit_4 = counter;
+			comm_pkt.acc_traj = fcounter;
+			comm_pkt.vel_traj = fcounter;
 			comm_pkt.velocity = fcounter;
+			comm_pkt.accel = fcounter;
+			comm_pkt.range = fcounter;
+			comm_pkt.rate = fcounter;
+			comm_pkt.object_id[GPS_OBJECT_ID_SIZE + 1] = "barf";
 		}
 
 		if(verbose)
-printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f velocity %f\n", 
+printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f velocity %f acceleration %f\n", 
 		BSMCACC->msgID,
 		comm_pkt.sequence_no,
 		comm_pkt.global_time,
@@ -203,7 +212,8 @@ printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d user
 		comm_pkt.vel_traj,
 		comm_pkt.range,
 		comm_pkt.rate,
-		comm_pkt.velocity
+		comm_pkt.velocity,
+		comm_pkt.accel
 		);
 
 		get_current_timestamp(&comm_pkt.ts);
@@ -246,7 +256,7 @@ printf("Got to 2 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d user
 		BSMCACC_decode = 0;
 			rval = ber_decode(0, &asn_DEF_BSMCACC,(void **)&BSMCACC_decode, &BSMCACC_buf[0], erv.encoded);
 			ret = BSM2vehcomm(BSMCACC_decode, &comm_pkt_decode);
-printf("Got to 3 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f velocity %f\n", 
+printf("Got to 3 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d userbit3 %d userbit4 %d my_pip %d maneuver_id %d fault_mode %d maneuver_des_1 %d pltn_size %d acc_traj %f veh_traj %f range %f rate %f velocity %f acceleration %f\n", 
 		BSMCACC_decode->msgID,
 		comm_pkt_decode.sequence_no,
 		comm_pkt_decode.global_time,
@@ -263,7 +273,8 @@ printf("Got to 3 msgID %#x seq_no %d global_time %f userbit1 %d userbit2 %d user
 		comm_pkt_decode.vel_traj,
 		comm_pkt_decode.range,
 		comm_pkt_decode.rate,
-		comm_pkt_decode.velocity
+		comm_pkt_decode.velocity,
+		comm_pkt_decode.accel
 		);
 			ret = xer_fprint(stdout, &asn_DEF_BSMCACC, &BSMCACC_decode);
 			if(ret >= 0) {
@@ -294,24 +305,3 @@ printf("Got to 3 BSMCACC_decode.msgID %#x msgCnt %d lat %d\n",
 	}
 	longjmp(exit_env,1);	/* go to exit code when loop terminates */
 }
-
-/*
-ssize_t AsnJ2735Lib::encode_bsm_payload(const BSM_element_t* ps_bsm,char* ptr,const size_t size,bool withHeader) const
-{
-        asn_enc_rval_t rval;    // Encoder return value
-
-        // BasicSafetyMessage::msgID (INTEGER_t)(size 1)
-        asn_long2INTEGER(&(pbsm->msgID),DSRCmsgID_basicSafetyMessage);
-        // fill mpBsmEncode
-        u_char blob1[BSMBLOB1SIZE] = {};
-        int offset = encode_bsmblob1_payload(&(ps_bsm->bolb1_element),blob1);
-        // BasicSafetyMessage::blob1 (OCTET_STRING_t)
-        OCTET_STRING_fromBuf(&(pbsm->blob1),(char*)blob1,offset);
-        // BasicSafetyMessage::*safetyExt       (OPTIONAL)
-        // BasicSafetyMessage*status (OPTIONAL)
-
-        // encode BSM
-        rval = der_encode_to_buffer(&asn_DEF_BasicSafetyMessage, pbsm, ptr, size);
-        // free pbsm
-        SEQUENCE_free(&asn_DEF_BasicSafetyMessage, pbsm, 0);
-*/
