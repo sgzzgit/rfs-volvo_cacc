@@ -46,10 +46,14 @@ int main(int argc, char *argv[])
 	int option;
 	char datetime_str[30];
 	int hour;
+	char DST = 0;
 
 	/* Read and interpret any user switches. */
-	while ((option = getopt(argc, argv, "v")) != EOF) {
+	while ((option = getopt(argc, argv, "vD:")) != EOF) {
 		switch(option) {
+		case 'D':
+			DST = 1;
+			break;
 		case 'v':
 			verbose = 1;
 			break;
@@ -77,6 +81,7 @@ int main(int argc, char *argv[])
 		}
 		if (strcmp(gps_data.gps_id, "GPRMC") == 0) {
 			gps_rmc_typ *prmc = &gps_data.data.rmc;
+
 			get_current_timestamp(&hb.local_time);
 			hb.utc_time = gpsutc2ts(prmc->utc_time);	
 			hb.latitude = path_gps2degree(prmc->latitude); 
@@ -84,8 +89,12 @@ int main(int argc, char *argv[])
 			hb.speed = path_knots2mps(prmc->speed_knots);
 			hb.heading = prmc->true_track;
 			hour = ((int)(prmc->utc_time/10000)%100);
-			hour = hour < 7 ? (hour + 17) : (hour-7);
-			sprintf(datetime_str, "date %04d%02d%02d%02d%02d.%02d",
+			if(DST)
+				hour = hour < 8 ? (hour + 16) : (hour-8);
+			else
+				hour = hour < 7 ? (hour + 17) : (hour-7);
+
+			sprintf(datetime_str, "date %%+%4.4d%2.2d%2.2d%2.2d%2.2d.%2.2d",
 				2000 + (prmc->date_of_fix%100),
 				(prmc->date_of_fix/100)%100,
 				(prmc->date_of_fix/10000)%100,
@@ -93,13 +102,14 @@ int main(int argc, char *argv[])
 				((int)(prmc->utc_time/100)%100),
 				((int)prmc->utc_time%100)
 				);
-//date 120515, time 222910.000
+			system(datetime_str);
+//date %+201604271927.11
+
 			if (verbose)
 				printf("date %d, time %.3f\n", 
 					    prmc->date_of_fix, prmc->utc_time);
 				printf("datestr %s\n", datetime_str);
 //			clockset2gps(prmc->date_of_fix,prmc->utc_time);	
-			system(datetime_str);
 			break;	// exit after setting clock
 		} 
 	}
