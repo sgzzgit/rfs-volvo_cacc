@@ -45,8 +45,8 @@ BSMblob ::= SEQUENCE {
    msgCnt      MsgCount,             --x- 1 byte
    id          TemporaryID,          --x- 4 bytes
    secMark     DSecond,              --x- 2 bytes, vehicle CAN Bus sync time
-   lat         Latitude,             --x- 4 bytes 
-   long        Longitude,            --x- 4 bytes
+   latitude    Latitude,             --x- 4 bytes 
+   longitude   Longitude,            --x- 4 bytes
    elev        Elevation,            --x- 2 bytes
    accuracy    PositionalAccuracy,   --x- 4 bytes
    speed       TransmissionAndSpeed, --x- 2 bytes
