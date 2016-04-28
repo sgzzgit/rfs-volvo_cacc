@@ -22,6 +22,8 @@
 #define DB_COMM_THIRD_TRK_TYPE	498		/// veh_comm_packet_t 
 #define DB_COMM_THIRD_TRK_VAR	DB_COMM_THIRD_TRK_TYPE
 #define BSM_FLOAT_MULT		100.0
+#define LONG_LAT_MULT		10000000.0
+#define HEADING_MULT		80.0
 
 /* Use this veh_comm_pkt_t variable to write the packet
  * that will be sent.
@@ -57,6 +59,9 @@ typedef struct {
 	float accel;		//Current acceleration (m/s^2)
 	float range;		//Range from *dar (m)
 	float rate;		//Relative velocity from *dar (m/s)
+	double longitude;
+	double latitude;
+	float heading;
 	char object_id[GPS_OBJECT_ID_SIZE + 1];
 } IS_PACKED veh_comm_packet_t;
 

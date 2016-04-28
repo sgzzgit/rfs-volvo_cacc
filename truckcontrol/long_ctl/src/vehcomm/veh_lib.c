@@ -50,6 +50,9 @@ int vehcomm2BSM(BSMCACC_t *BSMCACC, veh_comm_packet_t *comm_pkt) {
 //	BSMCACC->caccData.vehManDes2 = comm_pkt->maneuver_des_2;
 	BSMCACC->caccData.grpSize = comm_pkt->pltn_size;
 	BSMCACC->blob1.msgCnt = comm_pkt->sequence_no;
+	BSMCACC->blob1.longitude = (int)(comm_pkt->longitude * LONG_LAT_MULT);
+	BSMCACC->blob1.latitude = (int)(comm_pkt->latitude * LONG_LAT_MULT);
+	BSMCACC->blob1.heading = (short)(comm_pkt->heading * HEADING_MULT);
 	BSMCACC->caccData.userBit1 = comm_pkt->user_bit_1;
 	BSMCACC->caccData.userBit2 = comm_pkt->user_bit_2;
 	BSMCACC->caccData.userBit3 = comm_pkt->user_bit_3;
@@ -93,6 +96,9 @@ int BSM2vehcomm(BSMCACC_t *BSMCACC, veh_comm_packet_t *comm_pkt) {
 		comm_pkt->accel = BSMCACC->blob1.accelSet.longAcc / BSM_FLOAT_MULT;            //Current acceleration (m/s^2)
         	comm_pkt->range = BSMCACC->caccData.distToPVeh / BSM_FLOAT_MULT;	//Range from *dar (m)
         	comm_pkt->rate = BSMCACC->caccData.relSpdPVeh / BSM_FLOAT_MULT;             //Relative velocity from *dar (m/s)
+		comm_pkt->longitude = (double)(BSMCACC->blob1.longitude / LONG_LAT_MULT);
+		comm_pkt->latitude = (double)(BSMCACC->blob1.latitude / LONG_LAT_MULT);
+		comm_pkt->heading = (double)(BSMCACC->blob1.heading / HEADING_MULT);
 
 //      	BSMCACC->blob1.id = "1"; //comm_pkt->object_id[GPS_OBJECT_ID_SIZE + 1];
         	return 0;
@@ -104,13 +110,55 @@ int BSM2vehcomm(BSMCACC_t *BSMCACC, veh_comm_packet_t *comm_pkt) {
 }
 
 /*
+J2735BSMESSAGE DEFINITIONS AUTOMATIC TAGS ::= 
+BEGIN
+ 
+ 
+BSMCACC ::=  SEQUENCE {
+-- Part I
+    msgID   [0]DSRCmsgID,   -- 1 byte
+    blob1   [1]BSMblob,     -- Sent as a single octet blob 
+
+-- Part II, contains CACC specific data
+    caccData [2]CaccData    -- CACC defined Data
+}
+ 
+ 
+ 
+--CACC DEFINITIONS IMPLICIT TAGS::= BEGIN
+-- Data Frames 
+-- DE_DSRC_MessageID (Desc Name) Record 37
+DSRCmsgID ::= ENUMERATED {
+   reserved                        (0), 
+   alaCarteMessage                 (1),  -- ACM
+   basicSafetyMessage              (2),  -- BSM, heartbeat msg
+   basicSafetyMessageVerbose       (3),  -- used for testing only
+   commonSafetyRequest             (4),  -- CSR
+   emergencyVehicleAlert           (5),  -- EVA
+   intersectionCollisionAlert      (6),  -- ICA
+   mapData                         (7),  -- MAP, GID, intersections 
+   nmeaCorrections                 (8),  -- NMEA
+   probeDataManagement             (9),  -- PDM
+   probeVehicleData                (10), -- PVD
+   roadSideAlert                   (11), -- RSA
+   rtcmCorrections                 (12), -- RTCM
+   signalPhaseAndTimingMessage     (13), -- SPAT
+   signalRequestMessage            (14), -- SRM
+   signalStatusMessage             (15), -- SSM
+   travelerInformation             (16), -- TIM
+   
+   ... -- # LOCAL_CONTENT
+} 
+   -- values to 127 reserved for std use
+   -- values 128 to 255 reserved for local use
+ 
 BSMblob ::= SEQUENCE {
    -- made up of the following 38 packed bytes:
    msgCnt      MsgCount,             --x- 1 byte
    id          TemporaryID,          --x- 4 bytes
    secMark     DSecond,              --x- 2 bytes, vehicle CAN Bus sync time
-   lat         Latitude,             --x- 4 bytes
-   long        Longitude,            --x- 4 bytes
+   latitude    Latitude,             --x- 4 bytes 
+   longitude   Longitude,            --x- 4 bytes
    elev        Elevation,            --x- 2 bytes
    accuracy    PositionalAccuracy,   --x- 4 bytes
    speed       TransmissionAndSpeed, --x- 2 bytes
@@ -118,19 +166,34 @@ BSMblob ::= SEQUENCE {
    angle       SteeringWheelAngle,   --x- 1 byte
    accelSet    AccelerationSet4Way,  --x- accel set  (four way) 7 bytes
    brakes      BrakeSystemStatus,    --x- 2 bytes
-   size        VehicleSize           --x- 3 bytes
+   size        VehicleSize	     --x- 3 bytes
 } 
  
 CaccData ::= SEQUENCE {
     flags       [0]CACCFlags,               -- Radar\Lidar, ACC Switch, ACC Setting type, ACC Resume\Engaged, (ACC) Cancel Button, ACC\CACC Flag
-    setSpeed    [1]Velocity,		    -- Driver selected set speed (regarded as maximum overall speed by controller, without mitigating factors like traffic)
+    setSpeed    [1]Velocity,
     throtPos    [2]ThrottlePosition,
+    lclPN       [3]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint Local Position North in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
+    lclPE       [4]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint Local Position East in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
+    lclPD       [5]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint Local Position Down in mm, (I32) 4-Byte Signed Int. from getLocalPose: Method ID = 9
+    roll        [6]OCTET STRING (SIZE(2)) OPTIONAL,  -- PinPoint Roll; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
+    pitch       [7]OCTET STRING (SIZE(2)) OPTIONAL,  -- PinPoint Pitch; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
+    yaw         [8]OCTET STRING (SIZE(2)) OPTIONAL,  -- PinPoint Yaw; 180 deg/2^15, (I16) 2-Byte Signed Int. from getLocalPose: Method ID = 9
+    hPosAcry    [9]OCTET STRING (SIZE(4)) OPTIONAL,  -- PinPoint North Accuracy m, (F32) 4-Byte Float, getFilterAccuracy: Method ID =6
+    vPosAcry    [10]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint North Accuracy m, (F32) 4-Byte Float, getFilterAccuracy: Method ID =6
+    fwrdVel     [11]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint North Velocity m/s, (F32) 4-Byte Float, newRawGpsData: Signal ID = 6
+    rightVel    [12]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint East Velocity m/s, (F32) 4-Byte Float
+    downVel     [13]OCTET STRING (SIZE(4)) OPTIONAL, -- PinPoint Down Velocity m/s, (F32) 4-Byte Float
+    velAcc      [14]OCTET STRING (SIZE(4)) OPTIONAL, -- Velocity Accuracy m/s, (F32) 4-Byte Float
+    fwrdAcc     [15]OCTET STRING (SIZE(2)) OPTIONAL, -- PinPoint Forward Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18
+    rightAcc    [16]OCTET STRING (SIZE(2)) OPTIONAL, -- PinPoint Right Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18
+    dwnAcc      [17]OCTET STRING (SIZE(2)) OPTIONAL, -- PinPoint Down Acceleration mm/s^2, (I16), 2-Byte Signed Int., getBodyAcceleration: Method ID =18 
     grpID       [18]INTEGER (0..7),         -- Group ID
     grpSize     [19]INTEGER (0..15),        -- Group Size
     grpMode     [20]INTEGER (0..7),         -- Group Mode
     grpManDes   [21]INTEGER (0..127),       -- Group Maneuver desired
     grpManID    [22]INTEGER (0..127),       -- Group Maneuver ID
-    vehID       [23]OCTET STRING (SIZE(1)), -- Vehicle Unique ID
+    vehID       [23]OCTET STRING (SIZE(1)), -- Vehicle Unique ID 
     frntCutIn   [24]INTEGER (0..7),         -- Front cut-in flag
     vehGrpPos   [25]INTEGER (0..15),        -- Vehicles' Position in Group
     vehFltMode  [26]INTEGER (0..15),        -- Vehicle fault mode ID
@@ -146,21 +209,20 @@ CaccData ::= SEQUENCE {
     estDisLVeh  [36]INTEGER (0..150),       -- Estimated distance gap to lead veh in m 0-150 **<try to reduce to 1 Byte, need to know acceptable resolution>
     desSpd      [37]INTEGER (0..35),        -- Desired speed (control) in m/s 0-35
     desTrq      [38]INTEGER (0..2500),      -- Desired torque (control) in N-m 0-2500 **<try to reduce to 1 Byte, need to know acceptable resolution>
-    desAcc      [39]INTEGER (0..500),       -- Desired acceleration in m/s^2, 0.01 m/s^2 resolution
-    userDI1     [40]INTEGER,    -- User Defined integer 1
-    userDI2     [41]INTEGER,    -- User Defined integer 2
-    userDF1     [42]INTEGER,    -- User Defined float 1
-    userDF2     [43]INTEGER,    -- User Defined float 2
-    userDF3     [44]INTEGER,    -- User Defined float 3
+    desAcc	[39]INTEGER (0..500),       -- Desired acceleration in m/s^2, 0.01 m/s^2 resolution
+    userDI1     [40]INTEGER,    -- User Defined integer 1 
+    userDI2     [41]INTEGER,    -- User Defined integer 2 
+    userDF1     [42]INTEGER,    -- User Defined float 1 
+    userDF2     [43]INTEGER,    -- User Defined float 2 
+    userDF3     [44]INTEGER,    -- User Defined float 3 
     utcTime     [45]DDateTime,   -- time with mSec precision
-    globalTime  [46]INTEGER,                    -- Global time in sec, 0.02 sec resolution (actually a counter, starting from when the software
-                                                -- starts up, and incrementing each servo loop, the loop time of which is 0.02 sec)
-    userBit1    [47]BOOLEAN,    -- User Defined bit 1
-    userBit2    [48]BOOLEAN,    -- User Defined bit 2
-    userBit3    [49]BOOLEAN,    -- User Defined bit 3
-    userBit4    [50]BOOLEAN     -- User Defined bit 4
-
-
+    globalTime	[46]INTEGER,			-- Global time in sec, 0.02 sec resolution (actually a counter, starting from when the software
+						-- starts up, and incrementing each servo loop, the loop time of which is 0.02 sec)
+    userBit1	[47]BOOLEAN,    -- User Defined bit 1 
+    userBit2	[48]BOOLEAN,    -- User Defined bit 2 
+    userBit3	[49]BOOLEAN,    -- User Defined bit 3 
+    userBit4	[50]BOOLEAN	-- User Defined bit 4 
+}
    VehicleSize ::=  SEQUENCE {
    width     VehicleWidth,
    length    VehicleLength
