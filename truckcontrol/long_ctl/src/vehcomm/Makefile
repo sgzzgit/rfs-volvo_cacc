@@ -29,6 +29,7 @@ clean:
 
 install:
 	cp $(EXEC) $(TRUCK_DIR)/test
+	cp ./BSM_asn1_dir/BasicSafetyMessage-Volvo.txt .
 
 # DO NOT DELETE
 
