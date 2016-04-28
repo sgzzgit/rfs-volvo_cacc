@@ -74,6 +74,29 @@ shell 'Start everything but longitudinal control and file writing'
 	DATESTR=`date +%m%d%Y_%H%M%S`
 	echo $DATESTR >/big/data/last_start_timestamp.txt
 
+	IPADDR=`ifconfig | grep 172.16.0 | awk '{print $2}'`
+
+	echo $IPADDR | grep 75 
+	if [[ $? -eq 0 ]]
+	then
+	        ITRIADDR=172.16.1.75
+	        TRUCK=Blue
+	fi
+
+	echo $IPADDR | grep 74 
+	if [[ $? -eq 0 ]]
+	then
+	        ITRIADDR=172.16.1.74
+	        TRUCK=Gold
+	fi
+
+	echo $IPADDR | grep 76
+	if [[ $? -eq 0 ]]
+	then
+	        ITRIADDR=172.16.1.76
+	        TRUCK=Silvr
+	fi
+
 	$TEST_DIR/db_slv -Q -S `hostname` &
 	sleep 1
 	$TEST_DIR/trk_cr -t 1000 2>long_input_$DATESTR.dbg &
@@ -90,15 +113,16 @@ shell 'Start everything but longitudinal control and file writing'
 	$TEST_DIR/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg &
 	sleep 1
 # To start jbussendGPS with debugging ON, add -d flag
-	$TEST_DIR/jbussendGPS -c -g /dev/can2 -n 215 >/home/truckcontrol/test/jbussendGPS.dbg &
+	GPSDBNUM=202
+	$TEST_DIR/jbussendGPS -c -g /dev/can2 -n $GPSDBNUM >/home/truckcontrol/test/jbussendGPS.dbg &
 	sleep 1
-	$TEST_DIR/gpsdb -n 202 -d1 </dev/ser1 >/big/data/gpsdb_$DATESTR.dbg &
+	$TEST_DIR/gpsdb -n $GPSDBNUM -d1 </dev/ser1 >/big/data/gpsdb_$DATESTR.dbg &
 	sleep 1
 	/home/truckcontrol/test/trk_wr -t 100 1>/big/data/trk_wr_$DATESTR.txt 2>/big/data/trk_wr.err &
 	sleep 1
-	$TEST_DIR/veh_snd -v -i 100 -A 172.16.0.74 -a 172.16.1.74 -u 15041 -t Gold >/big/data/veh_snd_$DATESTR.dbg &
+	$TEST_DIR/veh_snd -v -i 100 -A $IPADDR -a $ITRIADDR -u 15041 -t Gold >/big/data/veh_snd_$DATESTR.dbg &
 	sleep 1
-	$TEST_DIR/veh_rcv -f $CONFIG_FILE -v -A 172.16.0.74 -a 172.16.1.74 -u 15042 -t Gold >/big/data/veh_rcv_$DATESTR.dbg &
+	$TEST_DIR/veh_rcv -f $CONFIG_FILE -v -A $IPADDR -a $ITRIADDR -u 15042 -t Gold >/big/data/veh_rcv_$DATESTR.dbg &
 
 %)
 ;
