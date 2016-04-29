@@ -66,6 +66,7 @@ shell 'Start everything but longitudinal control and file writing'
 	slay  -f -Q -s TERM veh_snd
 	slay  -f -Q -s TERM veh_rcv
 	slay  -f -Q -s TERM gpsdb
+	slay  -f -Q -s TERM jbussendGPS
 	slay  -f -Q -s TERM jbussend
 	slay  -f -Q -s TERM can_man
 	slay  -f -Q -s TERM trk_cr
@@ -90,7 +91,7 @@ shell 'Start everything but longitudinal control and file writing'
 	$TEST_DIR/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg &
 	sleep 1
 # To start jbussendGPS with debugging ON, add -d flag
-	$TEST_DIR/jbussendGPS -c -g /dev/can2 -n 215 >/home/truckcontrol/test/jbussendGPS.dbg &
+	$TEST_DIR/jbussendGPS -c -g /dev/can2 -n 202 >/home/truckcontrol/test/jbussendGPS.dbg &
 	sleep 1
 	$TEST_DIR/gpsdb -n 202 -d1 </dev/ser1 >/big/data/gpsdb_$DATESTR.dbg &
 	sleep 1
@@ -113,7 +114,7 @@ shell 'Stop everything'
 	slay  -f -Q -s TERM gpsrcv
 	slay  -f -Q -s TERM gpsdb
 	slay  -f -Q -s TERM jbussend
-#	slay  -f -Q -s TERM jbussendGPS
+	slay  -f -Q -s TERM jbussendGPS
 	slay  -f -Q -s TERM can_man
 	slay  -f -Q -s TERM trk_cr
 	slay  -f -Q -s TERM db_slv
