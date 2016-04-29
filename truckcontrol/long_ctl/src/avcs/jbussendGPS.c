@@ -69,7 +69,8 @@ typedef struct {
 	unsigned int hour :5; 	//Max=31, Min=0, resolution=1, offset=0
 	unsigned int minute :6; //Max=63, Min=0, resolution=1, offset=0
 	unsigned int second :6; //Max=63, resolution=1, offset=0
-	unsigned int split_second :10, :12; 	//Max=102.3, Min=0, resolution=0.1, offset=0
+//	unsigned int split_second :10, :12; 	//Max=102.3, Min=0, resolution=0.1, offset=0
+	unsigned int split_second :10, :4; 	//Max=102.3, Min=0, resolution=0.1, offset=0
 	unsigned int id :8; 	//74, 75, or 76
 } IS_PACKED gps_time_t;
 
@@ -87,15 +88,12 @@ unsigned long POS_DATA_IS_VALID=0x10000000;
 unsigned long POS_DATA_INVALID=0x7FFFFFFF;
 
 int update_gps_position(path_gps_point_t *hb, unsigned char *buf) {
-//	int retval;
 	int i;
 	unsigned int latitude;
 	unsigned int longitude;
 	unsigned short checksum = 0;
 
-//	hb->latitude = 37.914773;
-//	hb->longitude = -122.334691;
-printf("update_gps_position: hb.latitude %.7f hb.longitude %.7f\n", hb->latitude, hb->longitude);
+	printf("update_gps_position: hb.latitude %.7f hb.longitude %.7f\n", hb->latitude, hb->longitude);
 	latitude = (unsigned int)( 10000000 * (hb->latitude + 90.0));
 	longitude = (unsigned int)( 10000000 * (hb->longitude + 180.0));
 	if( (latitude >= LAT_MIN) &&
@@ -134,12 +132,14 @@ printf("update_gps_position: hb.latitude %.7f hb.longitude %.7f\n", hb->latitude
 };
 
 int update_gps_time(path_gps_point_t *hb, unsigned char *buf, unsigned char id) {
-//	int retval;
+	int i;
 	int year = 2015;
 	char month = 3;
 	short day = 26;
 	
-
+	year = (hb->date / 10000) + 2000;
+	month = (hb->date / 100) % 100;
+	day = hb->date % 100;
 	buf[0] = year & 0xFF;
 	buf[1] = (year >> 8) & 0x0F;
 	buf[1] |= (month << 4) & 0xF0;
@@ -151,7 +151,21 @@ int update_gps_time(path_gps_point_t *hb, unsigned char *buf, unsigned char id) 
 	buf[4] |= (hb->utc_time.sec << 4) & 0xF0;
 	buf[5] = (hb->utc_time.sec >> 4) & 0x03;
 	buf[5] |= (hb->utc_time.millisec/100 << 2) & 0xFC;
-	buf[6] |= id & 0xFF;
+	buf[7] |= id & 0xFF;
+
+	printf("GPS time msg: ");
+	for(i=0; i<8; i++)
+		printf("%hhx ", buf[i]);
+	printf("%2.2d/%2.2d/%4.4d %2.2d:%2.2d:%f %d",
+		month,
+		day,
+		year,
+		hb->utc_time.hour, 
+		hb->utc_time.min, 
+		hb->utc_time.sec + hb->utc_time.sec/1000.0,
+		hb->date 
+	);
+	printf("\n");
 	
 	return 0;
 };
@@ -251,19 +265,19 @@ int main( int argc, char *argv[] )
 			printf("lat %f long %f\n", hb74.latitude, hb74.longitude);
 			can_write(gps_fd, 0x10, 0, buf74, 12);
 			update_gps_time(&hb74, buf74, 74);
-			can_write(gps_fd, 0x13, 0, buf74, 7);
+			can_write(gps_fd, 0x13, 0, buf74, 8);
 
 			update_gps_position(&hb75, buf75);
 			printf("lat %f long %f\n", hb75.latitude, hb75.longitude);
 			can_write(gps_fd, 0x11, 0, buf75, 12);
 			update_gps_time(&hb75, buf75, 75);
-			can_write(gps_fd, 0x14, 0, buf75, 7);
+			can_write(gps_fd, 0x14, 0, buf75, 8);
 
 			update_gps_position(&hb76, buf76);
 			printf("lat %f long %f\n", hb76.latitude, hb76.longitude);
 			can_write(gps_fd, 0x12, 0, buf76, 12);
 			update_gps_time(&hb76, buf76, 76);
-			can_write(gps_fd, 0x13, 0, buf76, 7);
+			can_write(gps_fd, 0x15, 0, buf76, 8);
 		}
 		/* Now wait for proxy from timer */
 		TIMER_WAIT( ptimer );
