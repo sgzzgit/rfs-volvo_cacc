@@ -140,6 +140,9 @@ int main( int argc, char *argv[] )
 	                &rmc_utc, &rmc_status, &rmc_lat, &rmc_lat_dir, &rmc_long, &rmc_long_dir,
 	                &rmc_sog_knot, &rmc_cog_deg, &rmc_date, &rmc_mag_var,
 	                &rmc_mag_dir, &msg_checksum );
+//		    printf("rmc_date %0d rmc_utc %0f\n", rmc_date, rmc_utc);
+
+//printf("RMC: %x, %x\n", checksum, msg_checksum);
 	        if ( checksum == msg_checksum )
 	            {
 		    printf("rmc_date %0d rmc_utc %0f\n", rmc_date, rmc_utc);
@@ -147,6 +150,9 @@ int main( int argc, char *argv[] )
 		        break;
 	            }
 	        }
+//	    else
+//	        printf("Unknown message from GPS.\n");
+
 	    }
 	close(fpin);
 	return 0;
