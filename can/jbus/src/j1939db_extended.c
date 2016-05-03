@@ -427,7 +427,8 @@ j1939_pgn_index pdu2_254[256] = {
 	{NULL, DB_J1939_IEC_VAR},	/* 246 */
 	{NULL, DB_J1939_VEP_VAR},	/* 247 */
 	{NULL, DB_J1939_TF_VAR},	/* 248 */
-	{NULL, 500}, {NULL, 500},
+	{NULL, 500}, 
+	{NULL, DB_J1939_VOLVO_BRK_VAR},	/* 250 */
 	{NULL, DB_J1939_RF_VAR},	/* 251 */
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500} /* 255 */
 };
@@ -437,26 +438,12 @@ j1939_pgn_index pdu2_255[256] = {
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 15 */
-	{NULL, DB_LAI_CTRLSTAT_VAR},
-	{NULL, DB_LAI_STIN_VAR},
-	{NULL, DB_LAI_STOUT_VAR},
-	{NULL, DB_LAI_LATOUT_VAR},
-	{NULL, DB_LAI_SIGSTAT_VAR}, 
-	{NULL, DB_LAI_SIGOUT_VAR},
-	{NULL, DB_LAI_GYRO_VAR},
-	{NULL, DB_LAI_DVIMON_VAR},
-	{NULL, DB_LAI_LATSENS_VAR},
-	{NULL, DB_LAI_LONGIN1_VAR},
-	{NULL, DB_LAI_LONGIN2_VAR},
-	{NULL, DB_LAI_DVISTAT_VAR},
-	{NULL, DB_LAI_DVISND_VAR},
-	{NULL, DB_LAI_DVIPOS_VAR},
-	{NULL, DB_LAI_CTRLOUT_VAR},
-	{NULL, DB_LAI_LATHEART_VAR},
-	{NULL, DB_LAI_LONGOUT_VAR}, /* 32 */
-	{NULL, 500}, {NULL, 500}, {NULL, 500}, 
-	{NULL, 500}, {NULL, 500}, {NULL, 500}, 
-	{NULL, 500},				    /* 39 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 31 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 47 */
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
@@ -590,64 +577,6 @@ j1939_dbv_info db_ref[] = {
 	{ETC2_E, sizeof(j1939_etc2_e_typ), pdu_to_etc2_e, NULL, print_etc2_e, 0},
 };
 
-/*
- * 	Following array is used for Lane Assist Interface messages,
- * 	sent on the CAN bus using J1939 Proprietary B IDs that have
- *	been selected for this purpose.
- */
-j1939_dbv_info lai_db_ref[] = {
-	{LAICTRLSTAT, sizeof(lai_ctrlstat_typ), pdu_to_lai_ctrlstat,
-		 lai_ctrlstat_to_pdu, print_lai_ctrlstat, 0},
-	{LAISTIN, sizeof(lai_stin_typ), pdu_to_lai_stin,
-		 lai_stin_to_pdu, print_lai_stin, 0},
-	{LAISTOUT, sizeof(lai_stout_typ), pdu_to_lai_stout,
-		 lai_stout_to_pdu, print_lai_stout, 0},
-	{LAILATOUT, sizeof(lai_latout_typ), pdu_to_lai_latout, 
-		lai_latout_to_pdu, print_lai_latout, 0},
-	{LAISIGSTAT, sizeof(lai_sigstat_typ), pdu_to_lai_sigstat, 
-		lai_sigstat_to_pdu, print_lai_sigstat, 0},
-	{LAISIGOUT, sizeof(lai_sigout_typ), pdu_to_lai_sigout, 
-		lai_sigout_to_pdu, print_lai_sigout, 0},
-	{LAIGYRO, sizeof(lai_gyro_typ), pdu_to_lai_gyro, 
-		lai_gyro_to_pdu, print_lai_gyro, 0},
-	{LAIDVIMON, sizeof(lai_dvimon_typ), pdu_to_lai_dvimon, 
-		lai_dvimon_to_pdu, print_lai_dvimon, 0},
-	{LAILATSENS, sizeof(lai_latsens_typ), pdu_to_lai_latsens, 
-		lai_latsens_to_pdu, print_lai_latsens, 0},
-	{LAILONGIN1, sizeof(lai_longin1_typ), pdu_to_lai_longin1, 
-		lai_longin1_to_pdu, print_lai_longin1, 0},
-	{LAILONGIN2, sizeof(lai_longin2_typ), pdu_to_lai_longin2, 
-		lai_longin2_to_pdu, print_lai_longin2, 0},
-	{LAIDVISTAT, sizeof(lai_dvistat_typ), pdu_to_lai_dvistat, 
-		lai_dvistat_to_pdu, print_lai_dvistat, 0},
-	{LAIDVISND, sizeof(lai_dvisnd_typ), pdu_to_lai_dvisnd, 
-		lai_dvisnd_to_pdu, print_lai_dvisnd, 0},
-	{LAIDVIPOS, sizeof(lai_dvipos_typ), pdu_to_lai_dvipos, 
-		lai_dvipos_to_pdu, print_lai_dvipos, 0},
-	{LAICTRLOUT, sizeof(lai_ctrlout_typ), pdu_to_lai_ctrlout, 
-		lai_ctrlout_to_pdu, print_lai_ctrlout, 0},
-	{LAILATHEART, sizeof(lai_latheart_typ), pdu_to_lai_latheart, 
-		lai_latheart_to_pdu, print_lai_latheart, 0},
-	{LAILONGOUT, sizeof(lai_longout_typ), pdu_to_lai_longout, 
-		lai_longout_to_pdu, print_lai_longout, 0},
-};
-
-/**
- * Table for J1587 variables, created in order to use update_local_database
- * for both J1939 and J1587. Must be consistent with order of assignment
- * of J1587 database variable numbers, index into array with database
- * variable number minus J1587_DB_OFFSET. 
- */
-j1939_dbv_info j1587_db_ref[] = {
-	{J1587_PGN, sizeof(j1587_enga_typ), NULL, NULL, print_enga},
-	{J1587_PGN, sizeof(j1587_engb_typ), NULL, NULL, print_engb},
-	{J1587_PGN, sizeof(j1587_engc_typ), NULL, NULL, print_engc},
-	{J1587_PGN, sizeof(j1587_engd_typ), NULL, NULL, print_engd},
-	{J1587_PGN, sizeof(j1587_enge_typ), NULL, NULL, print_enge},
-	{J1587_PGN, sizeof(j1587_engf_typ), NULL, NULL, print_engf},
-	{J1587_PGN, sizeof(j1587_engg_typ), NULL, NULL, print_engg},
-	{J1587_PGN, sizeof(j1587_trans_typ), NULL, NULL, print_trans},
-};
 /**
  * 	Convenience routine for opening database on the current host.
  *	argv is passed to get the progran name (argv[0]) to register
@@ -699,14 +628,6 @@ j1939_database_init(char **argv)
 	if ((pclt = open_local_database(argv)) == NULL)
 		return NULL;
 	for ( i = DB_J1939_PDU_VAR; i < DB_J1939_VOLVO_XBR_VAR; i++) {
-		info = get_jdbv_info(i);
-		n += clt_create(pclt, i, i, info->dbv_size);
-	}
-	for ( i = DB_J1587_ENGA_VAR; i < DB_J1587_TRANS_VAR; i++) {
-		info = get_jdbv_info(i);
-		n += clt_create(pclt, i, i, info->dbv_size);
-	}
-	for ( i = DB_LAI_CTRLSTAT_VAR; i < DB_LAI_LONGOUT_TYPE; i++) {
 		info = get_jdbv_info(i);
 		n += clt_create(pclt, i, i, info->dbv_size);
 	}
@@ -802,8 +723,6 @@ get_pgn_dbv(int pgn, struct j1939_pdu *pdu, j1939_dbv_info **pinfo)
 	}
 	if (MIN_J1939_DBNUM <= dbv && dbv <= MAX_J1939_DBNUM)
 		*pinfo = &db_ref[dbv - MIN_J1939_DBNUM];
-	else if (MIN_LAI_DBNUM <= dbv && dbv <= MAX_LAI_DBNUM)
-		*pinfo = &lai_db_ref[dbv - MIN_LAI_DBNUM];
 	else {
 		fprintf(stderr, "BAD DBNUM, pgn %d\n", pgn);
 		fflush(stderr);
@@ -890,10 +809,6 @@ j1939_dbv_info *get_jdbv_info(int db_num)
 
 	if (db_num >= MIN_J1939_DBNUM && db_num <= MAX_J1939_DBNUM)
 		pinfo = &db_ref[db_num - MIN_J1939_DBNUM];
-	else if (db_num >= MIN_J1587_DBNUM && db_num <= MAX_J1587_DBNUM)
-		pinfo = &j1587_db_ref[db_num - MIN_J1587_DBNUM]; 
-	else if (db_num >= MIN_LAI_DBNUM && db_num <= MAX_LAI_DBNUM)
-		pinfo = &lai_db_ref[db_num - MIN_LAI_DBNUM];
 	else {	
 		pinfo = &dummy;	
 		pinfo->active = 1;

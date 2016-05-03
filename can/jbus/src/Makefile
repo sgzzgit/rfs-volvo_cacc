@@ -41,7 +41,6 @@ PATH_OBJS += $(JBUS_OBJS)
 
 EXECS = $(OBJDIR)/canj1939 \
 	$(OBJDIR)/initj1939 \
-	$(OBJDIR)/rdj1587 \
 	$(OBJDIR)/rdj1708 \
 	$(OBJDIR)/rdj1939 \
 	$(OBJDIR)/rqstj1939\
@@ -50,6 +49,7 @@ EXECS = $(OBJDIR)/canj1939 \
 	$(OBJDIR)/tmtj1939 \
 	$(OBJDIR)/tmtstb \
 	$(OBJDIR)/trigj1939 
+#	$(OBJDIR)/rdj1587 \
 
 all:	$(OBJDIR) $(OBJDIR)/libjbus.a $(EXECS)
 

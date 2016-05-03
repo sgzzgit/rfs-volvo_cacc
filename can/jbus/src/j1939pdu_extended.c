@@ -278,6 +278,48 @@ print_ebc1(void *pdbv, FILE  *fp, int numeric)
 	}
 }
 
+/** Volvo Brakes from Bendix*/
+void
+pdu_to_volvo_brake(struct j1939_pdu *pdu, void *pdbv)
+{
+	j1939_volvo_brk_t *volvo_brk = (j1939_volvo_brk_t *)pdbv;
+	unsigned char byte;
+
+	volvo_brk->VBRK_BrkAppPressure = pdu->data_field[0] * 0.1;
+	volvo_brk->VBRK_BrkPrimaryPressure = pdu->data_field[1] * 0.1;
+	volvo_brk->VBRK_BrkSecondaryPressure = pdu->data_field[2] * 0.1;
+	byte = (unsigned char)pdu->data_field[3];
+	volvo_brk->VBRK_BrkStatParkBrkActuator = BITS21(byte);
+	volvo_brk->VBRK_ParkBrkRedWarningSignal = BITS43(byte);
+	volvo_brk->VBRK_ParkBrkReleaseInhibitStat = BITS65(byte);
+}
+
+void 
+print_volvo_brk(void *pdbv, FILE  *fp, int numeric)
+
+{
+	j1939_volvo_brk_t *volvo_brk = (j1939_volvo_brk_t *)pdbv;
+	fprintf(fp, "VBRK ");
+	print_timestamp(fp, &volvo_brk->timestamp);
+	if (numeric) {
+		fprintf(fp, "%.2f ", volvo_brk->VBRK_BrkAppPressure);
+		fprintf(fp, "%.2f ", volvo_brk->VBRK_BrkPrimaryPressure);
+		fprintf(fp, "%.2f ", volvo_brk->VBRK_BrkSecondaryPressure);
+		fprintf(fp, "%d ", volvo_brk->VBRK_BrkStatParkBrkActuator);
+		fprintf(fp, "%d ", volvo_brk->VBRK_ParkBrkRedWarningSignal);
+		fprintf(fp, "%d ", volvo_brk->VBRK_ParkBrkReleaseInhibitStat);
+		fprintf(fp, "\n");
+
+	} else {
+		fprintf(fp, "Volvo Brake Applied Pressure %.2f\n ", volvo_brk->VBRK_BrkAppPressure);
+		fprintf(fp, "Volvo Brake Primary Pressure %.2f\n ", volvo_brk->VBRK_BrkPrimaryPressure);
+		fprintf(fp, "Volvo Brake Secondary Pressure %.2f\n ", volvo_brk->VBRK_BrkSecondaryPressure);
+		fprintf(fp, "Volvo Brake Status Parking Brake Actuator %d\n ", volvo_brk->VBRK_BrkStatParkBrkActuator);
+		fprintf(fp, "Volvo Brake Parking Brake Red Warning Signal %d\n ", volvo_brk->VBRK_ParkBrkRedWarningSignal);
+		fprintf(fp, "Volvo Brake Parking Brake Release Inhibit Status %d\n ", volvo_brk->VBRK_ParkBrkReleaseInhibitStat);
+	}
+}
+
 
 /** ETC1 (Electronic Retarder Controller #1) documented in J1939 - 71, p 150 */
 void
