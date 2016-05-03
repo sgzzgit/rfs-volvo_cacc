@@ -93,6 +93,13 @@ typedef struct {
   unsigned char EBC5_XBRAccelerationLimit;
   unsigned char EBC5_XBRActiveControlMode;
 
+  float VBRK_BrkAppPressure;
+  float VBRK_BrkPrimaryPressure;
+  float VBRK_BrkSecondaryPressure;
+  unsigned char VBRK_BrkStatParkBrkActuator;
+  unsigned char VBRK_ParkBrkRedWarningSignal;
+  unsigned char VBRK_ParkBrkReleaseInhibitStat;
+
   unsigned char CCVS_ParkingBrakeSwitch;
   unsigned char CCVS_TwoSpeedAxleSwitch;
   float CCVS_VehicleSpeed;

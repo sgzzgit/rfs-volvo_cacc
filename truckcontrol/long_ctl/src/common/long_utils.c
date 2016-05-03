@@ -453,6 +453,7 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
         j1939_ebc1_typ *pebc1;
         j1939_ebc2_typ *pebc2;
         j1939_ebc5_typ *pebc5;
+	j1939_volvo_brk_t *pvolvo_brk;
         j1939_ccvs_typ *pccvs;
         j1939_etc1_typ *petc1;
 	j1939_etc2_typ *petc2;
@@ -644,6 +645,15 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 		pstate->EBC2_RelativeSpeedRearAxle2LeftWheel = pebc2->EBC2_RelativeSpeedRearAxle2LeftWheel ;
 		pstate->EBC2_RlativeSpeedRearAxle2RightWheel = pebc2->EBC2_RlativeSpeedRearAxle2RightWheel;
 		break;
+        case DB_J1939_VOLVO_BRK_VAR:
+		pvolvo_brk = (j1939_volvo_brk_t *) pdata_val;
+		pstate->VBRK_BrkAppPressure  = pvolvo_brk->VBRK_BrkAppPressure ;
+		pstate->VBRK_BrkPrimaryPressure  = pvolvo_brk->VBRK_BrkPrimaryPressure ;
+		pstate->VBRK_BrkSecondaryPressure  = pvolvo_brk->VBRK_BrkSecondaryPressure ;
+		pstate->VBRK_BrkStatParkBrkActuator  = pvolvo_brk->VBRK_BrkStatParkBrkActuator ;
+		pstate->VBRK_ParkBrkRedWarningSignal  = pvolvo_brk->VBRK_ParkBrkRedWarningSignal ;
+		pstate->VBRK_ParkBrkReleaseInhibitStat  = pvolvo_brk->VBRK_ParkBrkReleaseInhibitStat ;
+		break;
         case DB_J1939_EBC5_VAR:
 		pebc5 = (j1939_ebc5_typ *) pdata_val;
 		pstate->EBC5_FoundationBrakeUse = pebc5->EBC5_FoundationBrakeUse ;
@@ -784,10 +794,6 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 		pstate->ERC1ERDrvrsDmandRtdrPerctTorque = perc1->ERC1ERDrvrsDmandRtdrPerctTorque ;
 		pstate->ERC1ERRetarderSelectionNonEng = perc1->ERC1ERRetarderSelectionNonEng ;
 		pstate->ERC1ERActlMxAvlbRtdrtPerctTorque = perc1->ERC1ERActlMxAvlbRtdrtPerctTorque;
-		break;
-        case DB_J1587_ENGC_VAR:
-                pengc = (j1587_engc_typ *) pdata_val;
-                pstate->boost_pressure = pengc->boost_pressure;
 		break;
         case DB_EVT300_RADAR1_VAR:
                 pevt300 = (evt300_radar_typ *) pdata_val;
