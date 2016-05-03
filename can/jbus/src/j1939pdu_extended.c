@@ -280,14 +280,14 @@ print_ebc1(void *pdbv, FILE  *fp, int numeric)
 
 /** Volvo Brakes from Bendix*/
 void
-pdu_to_volvo_brake(struct j1939_pdu *pdu, void *pdbv)
+pdu_to_volvo_brk(struct j1939_pdu *pdu, void *pdbv)
 {
 	j1939_volvo_brk_t *volvo_brk = (j1939_volvo_brk_t *)pdbv;
 	unsigned char byte;
 
-	volvo_brk->VBRK_BrkAppPressure = pdu->data_field[0] * 0.1;
-	volvo_brk->VBRK_BrkPrimaryPressure = pdu->data_field[1] * 0.1;
-	volvo_brk->VBRK_BrkSecondaryPressure = pdu->data_field[2] * 0.1;
+	volvo_brk->VBRK_BrkAppPressure = pdu->data_field[0] * 0.145038 * 4; // kPa * 0.145038 = psi, 4 = CAN scaling factor
+	volvo_brk->VBRK_BrkPrimaryPressure = pdu->data_field[1] * 0.145038 * 4;
+	volvo_brk->VBRK_BrkSecondaryPressure = pdu->data_field[2] * 0.145038 * 4;
 	byte = (unsigned char)pdu->data_field[3];
 	volvo_brk->VBRK_BrkStatParkBrkActuator = BITS21(byte);
 	volvo_brk->VBRK_ParkBrkRedWarningSignal = BITS43(byte);

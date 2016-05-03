@@ -386,6 +386,9 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 		fprintf(fp, "%.3f ", pv->Volvo_TargetAvailable);
 		fprintf(fp, "%.3f ", pv->Volvo_EgoVel);
 		fprintf(fp, "%.3f ", pv->Volvo_EgoAcc);			//210
+		fprintf(fp, "%.3f ", pv->VBRK_BrkAppPressure);
+		fprintf(fp, "%.3f ", pv->VBRK_BrkPrimaryPressure);
+		fprintf(fp, "%.3f ", pv->VBRK_BrkSecondaryPressure);	//213
 
 		fprintf(fp, "\n");
 

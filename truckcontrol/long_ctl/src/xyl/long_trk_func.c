@@ -9,6 +9,7 @@
 *********************************************************************************/
 
 #include <sys_os.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <timestamp.h>
 #include <coording.h>
@@ -21,7 +22,7 @@
 #include "long_trk.h"
 
 
-/* comm - Verifies communication among trucks. Using vehicle_info_pt->pltn_size,
+/* comm - Verifies communication among trucks. Using veh_info_pt->pltn_size,
 **	comm checks whether a message from each of the other trucks has been
 **	received, and whether the timestamp from each truck has changed 
 **	correctly. 
@@ -29,27 +30,28 @@
 **	Returns: 0 on success, or a positive bit-mapped integer containing 
 **	the identit(ies) of the offending truck(s).
 */
-int comm(float local_t, float *pglobal_time, float delta_t, 
+int cacc_comm(float local_t, float *pglobal_time, float delta_t, 
 	control_state_typ *con_st_pt, vehicle_info_typ *veh_info_pt,
-	comm_info_typ *comm_info_pt, fault_index_typ *f_index_pt,
+	comm_info_typ *comm_info_pt, fault_index_typ *f_ind_pt,
 	//unsigned short *pcomm_err_bound,
 	veh_comm_packet_t *comm_receive_pt,
 	veh_comm_packet_t *comm_send_pt, pltn_info_typ* pltn_inf_pt) 
 {
 
 	static int comm_counter[MAX_TRUCK]={0,0,0,0,0};
-	static int comm_counter_old[MAX_TRUCK]={0,0,0,0,0}; 
+	//static int comm_counter_old[MAX_TRUCK]={0,0,0,0,0}; 
 	static int comm_f_counter[MAX_TRUCK]={0,0,0,0,0};
-	static float comm_time_old[MAX_TRUCK]={0,0,0,0,0};
+	static float comm_time_old[MAX_TRUCK]={0.0,0.0,0.0,0.0,0.0};
 	unsigned short handshake_start = OFF;                    // for passing out info
-	static unsigned short handshake_start_arr[MAX_TRUCK] = {0,0,0,0,0};    // local only; indicating link with one in the platoon with ID=pip
+	//static unsigned short handshake_start_arr[MAX_TRUCK] = {0,0,0,0,0};    // local only; indicating link with one in the platoon with ID=pip
 	float global_time = *pglobal_time;                                     // globl time of the latoon
 	int error = 0;
 	int pip;
 	static int first_time=1;
-    static unsigned short g_t_init_count=0, N_veh_comm=0;
+    static unsigned short g_t_init_count=0;
+	static unsigned short N_veh_comm=0; // number of veh in comm range and taking to each other
 	static unsigned short comm_prt_sw=ON, comm_prt1_sw = ON;
-	static unsigned short synchrn_sw = 1,  global_t_sw=OFF;            
+	static unsigned short synchrn_sw = 1,  global_t_sw=OFF; 
 
 
 /******************************************************************************
@@ -61,17 +63,12 @@ int comm(float local_t, float *pglobal_time, float delta_t,
     con_st_pt-> comm_coord=OFF;   // Not used since coodination communication is not independent
     
     if (pltn_inf_pt-> pltn_size == 1)
-    {
-             con_st_pt-> comm_leader=ON;
-             con_st_pt-> comm_pre=ON;
-             con_st_pt-> comm_back=ON;
-             f_index_pt-> comm_leader=0;
-             f_index_pt-> comm_pre=0;
-             f_index_pt-> comm_back=0;
-             handshake_start=ON;
-             handshake_start_arr[1]=ON;
-             //comm_reply_arr[1]=ON;
-             f_index_pt-> comm=0;                                                                                                                       
+    {                          
+         veh_info_pt-> comm_p[0]=0;            
+         handshake_start=ON;
+		 comm_info_pt->comm_reply = 1;            
+//         comm_reply_arr[1]=ON;
+         f_ind_pt-> comm=0;                                                                                                                       
     } 
     else                                   // Platoon size >= 2
     {  
@@ -81,9 +78,7 @@ int comm(float local_t, float *pglobal_time, float delta_t,
 	     
 	    N_veh_comm=0;
 	    for(pip = 1; pip <= pltn_inf_pt->pltn_size; pip++) // Logic deal with subject vehicle with each individual veh in platoon
-	    {
-		   if (local_t <0.03)      // Initialization
-              handshake_start_arr[pip] = OFF;
+	    {		  
 		   if(pip != veh_info_pt-> veh_id)                                        // IF LOOP 1
 		   {              
               if (comm_receive_pt[pip]. global_time != comm_time_old[pip])
@@ -91,102 +86,63 @@ int comm(float local_t, float *pglobal_time, float delta_t,
                  comm_counter[pip]++; 
                  if (comm_counter[pip] > 100) 
                     comm_counter[pip] = 0;                                                               
-                 comm_time_old[pip] = comm_receive_pt[pip].global_time;   
+                 comm_time_old[pip] = comm_receive_pt[pip].global_time;   				 
+				 comm_f_counter[pip] = 0;
+				 veh_info_pt-> comm_p[pip-1]=0;
                  N_veh_comm++;          
               }
               else   // IF LOOP 2
               {
                  comm_f_counter[pip]++;
-                 if ((comm_f_counter[pip] > COMM_ERR_BOUND) && (comm_prt1_sw == ON) && (handshake_start_arr[pip] == ON))
+                 //if ((comm_f_counter[pip] > COMM_ERR_BOUND) && (comm_prt1_sw == ON) && (handshake_start_arr[pip] == ON))
+				 if ((comm_f_counter[pip] > COMM_ERR_BOUND) && (comm_prt1_sw == ON) )   // changed on 03/18/16
                  {
-                    handshake_start_arr[pip] = OFF;
+                   // handshake_start_arr[pip] = OFF;
                     comm_prt1_sw = OFF;
-                    comm_prt_sw = ON;
-					//veh_info_pt->fault_mode = 3;
-                    fprintf(stderr, "Communication Error with truck no. %d!\n", pip ); 
-                    //f_index_pt-> comm_back=1;  //assigned later
-                    //f_index_pt-> comm=1;       //assigned later
+                    comm_prt_sw = ON;					
+                    fprintf(stderr, "Communication Error with truck no. %d!\n", pip );                     
 				 	error |= 0x01 << pip;
                  }
-              }
-                            
-              
-			
-              if (comm_counter[pip] != comm_counter_old[pip])               // IF LOOP 2; Problem 1  05_09_10, XYL              
-              {
-				   if(first_time)
-				   {
-					first_time = 0;
-					fprintf(stderr,"Initializing comm_reply to 1\n");
-				   }			   		                                
-                   handshake_start_arr[pip] = ON;     // It is on only when it communicates with the veh pip;                                 
-                   comm_f_counter[pip] = 0;	
-                   comm_counter_old[pip] = comm_counter[pip];       // Update buffer 	
-			  }	   
-			  else 
-			  {
-				   handshake_start_arr[pip]  = OFF;
-				        
-		      }	
-		      	                                 
-              //}  // IF LOOP 2
-           }  // IF LOOP 1               
-	    }     // for loop end
-	    
-	    
-	    if (handshake_start_arr[1] == ON)  
-           {                      	
-               con_st_pt-> comm_leader=ON;
-               f_index_pt-> comm_leader=0;
-           }
-        else
-           {	                             
-               con_st_pt-> comm_leader=OFF;
-               if ((comm_f_counter[1] > COMM_ERR_BOUND) && (handshake_start == 1) )
-               {
-               	  f_index_pt-> comm_leader=1;
-               	  f_index_pt-> comm=1;
-           	   }           
-           }
-           
-        if (handshake_start_arr[2] == ON)
-           {  
-               con_st_pt-> comm_pre=ON;               
-               f_index_pt-> comm_pre=0;
-           }
-        else
-           {
-           	   con_st_pt-> comm_pre=OFF;
-           	   if ( (comm_f_counter[2] > COMM_ERR_BOUND) && (handshake_start == 1) )
-           	   {
-                  f_index_pt-> comm_pre=1;
-                  f_index_pt-> comm=1;
-           	   }   
-           }
-        if (handshake_start_arr[3] == ON)
-           {  
-               con_st_pt-> comm_back=ON;
-               f_index_pt-> comm_back=0;
-           }
-        else
-           {  
-               con_st_pt-> comm_back=OFF;
-               if ( (comm_f_counter[3] > COMM_ERR_BOUND) && (handshake_start == 1) )
-               {
-                  f_index_pt-> comm_back=1;
-                  f_index_pt-> comm=1;
-           	   }   
-           }
-    }  // end of pltn size > 1
+              }                                         
 
-   
-	
+		  	  if (comm_f_counter[pip] > COMM_ERR_BOUND)				
+			  {
+               	  veh_info_pt-> comm_p[pip-1]=1;
+			  }
+			  if (veh_info_pt-> comm_p[1] ==1)  //lead veh only
+               	  f_ind_pt-> comm=1;
+			  else
+				  f_ind_pt-> comm=0;
+				
+           }  // IF LOOP end 
+	    }     // for loop end
+		
+		if (veh_info_pt-> comm_p[0] == 0)  // comm with leader; for CACC only
+		{		
+			handshake_start = 1;		
+			comm_info_pt->comm_reply = 1;				
+        }  
+		if (veh_info_pt-> veh_id == 1)     // added on 03/22/16
+		{
+			handshake_start = 1;		
+			//comm_info_pt->comm_reply = 1;	
+			//f_ind_pt-> comm=0; 
+		}
+    }  // end of pltn size > 1    
+
+#ifdef FOR_PLATOONING
 	if (N_veh_comm == (pltn_inf_pt->pltn_size - 1) )
 	{
-		handshake_start = 1;
+		handshake_start = 1;		
 		comm_info_pt->comm_reply = 1;
 	}
-	
+	else
+	{
+		handshake_start = 0;		
+		comm_info_pt->comm_reply = 0;
+	}
+#endif
+
 		
 	if ((comm_prt_sw == ON) && (handshake_start == ON))
 		{
@@ -195,9 +151,12 @@ int comm(float local_t, float *pglobal_time, float delta_t,
 			fprintf(stderr, "Handshaking with all ON!\n");
 		}
 
+
+
+
     if (veh_info_pt-> veh_id == 1)
-       global_time = local_t;                  // It is the same as t_ctrl
-    else                            // When vehicle_pip >1, use leader vehicle timing as global time
+       global_time = local_t;         // It is the same as t_ctrl
+    else                              // When vehicle_pip >1, use leader vehicle timing as global time
        {
          //if ( (synchrn_sw == 1) && (con_st_pt-> comm_leader == ON))
          if ( (synchrn_sw == 1) && (handshake_start == ON))                   // changed 05/20/10
@@ -218,16 +177,11 @@ int comm(float local_t, float *pglobal_time, float delta_t,
             global_time += delta_t;
        }
 
-    if (f_index_pt-> comm == 0)
+    if (f_ind_pt-> comm == 0)
         {
 
-             if (veh_info_pt-> veh_id == 1)
-			    {
-				                        
-			    }
-             else
-                {
-                   //if ( time_filter<=0.001 )  // To avoid comm remainder problem
+             if (veh_info_pt-> veh_id > 1)			  
+                {                   
 				   if ( local_t <= 0.2 )  // To avoid comm remainder problem
                      {
                        con_st_pt-> pre_v = 0.0;
@@ -238,20 +192,20 @@ int comm(float local_t, float *pglobal_time, float delta_t,
                      }
                    else
                      {
-                       con_st_pt-> pre_v = comm_receive_pt[veh_info_pt-> veh_id - 1].vel_traj;     //velocity;  // Due to comm error,12_03_03
-                       con_st_pt-> pre_a = comm_receive_pt[veh_info_pt-> veh_id - 1].acc_traj;     //accel;
-                       con_st_pt-> lead_v = comm_receive_pt[1].vel_traj;
-                       con_st_pt-> lead_a = comm_receive_pt[1].acc_traj;
+						con_st_pt-> pre_v = comm_receive_pt[veh_info_pt-> veh_id - 1].vel_traj;        //velocity; 
+						con_st_pt-> pre_a = comm_receive_pt[veh_info_pt-> veh_id - 1].acc_traj;        //accel;
+						con_st_pt-> lead_v = comm_receive_pt[1].vel_traj;
+						con_st_pt-> lead_a = comm_receive_pt[1].acc_traj;
 //                     con_st_pt-> pre_mag_counter = comm_receive_pt1-> marker_counter;    // Should come from communication.
                      }
                 }
-             for (pip=1; pip<= (pltn_inf_pt->pltn_size); pip++)      	
-                pltn_inf_pt-> pltn_fault_mode=max_i(pltn_inf_pt-> pltn_fault_mode, comm_receive_pt[pip]. fault_mode);
+             //for (pip=1; pip<= (pltn_inf_pt->pltn_size); pip++)      	
+             //   pltn_inf_pt-> pltn_fault_mode=max_i(pltn_inf_pt-> pltn_fault_mode, comm_receive_pt[pip]. fault_mode);
         }
 	else
 		{
-			veh_info_pt-> fault_mode=3;                  // added on 09_13_10
-			pltn_inf_pt-> pltn_fault_mode=3;
+			//veh_info_pt-> fault_mode=3;                  // added on 09_13_10
+			//pltn_inf_pt-> pltn_fault_mode=3;
 		}
 
     // To be updated when communication is setup
@@ -318,9 +272,10 @@ int read_sw(long_vehicle_state *pv_can, switch_typ* sw_rd_pt)
 } // read_sw end
 
 // read other JBus info
-int read_jbus(float t_filter, long_vehicle_state *pv_can, long_params *pparams, jbus_read_typ* jbus_rd_pt, sens_read_typ* sens_rd_pt, switch_typ* sw_rd_pt) 
+int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_params *pparams, jbus_read_typ* jbus_rd_pt, sens_read_typ* sens_rd_pt, 
+			  switch_typ* sw_rd_pt, vehicle_info_typ* veh_info_pt)
 {
-	static float we_old=0.0;
+	static float we_old=0.0, target_d_buff=0.0;
 	float we=0.0;
 
     /************* read JBus info *****************/
@@ -405,7 +360,52 @@ int read_jbus(float t_filter, long_vehicle_state *pv_can, long_params *pparams, 
 	 sens_rd_pt->ego_v=pv_can-> Volvo_EgoVel*0.2778;  // from [km/hr] ==> [m/s]
 	 sens_rd_pt->target_a=pv_can->Volvo_TargetAcc; 
 	 sens_rd_pt->target_v=pv_can-> Volvo_TargetVel;   // [m/s]
-	 sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+	 
+	 if (t_filter < 1.0)
+	 {
+		target_d_buff=pv_can-> Volvo_TargetDist;
+		sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+	 }
+	 else
+	 {
+		 if ((int)pv_can-> Volvo_TargetAvailable == 1)
+		 {
+			if (pv_can-> Volvo_TargetDist > target_d_buff+10.0*delta_t)
+			{
+				veh_info_pt-> cut_out=ON;
+				veh_info_pt-> cut_in=OFF;
+			}
+			else if (pv_can-> Volvo_TargetDist < target_d_buff-10.0*delta_t)
+			{
+				veh_info_pt-> cut_in=ON;
+				veh_info_pt-> cut_out=OFF;
+			}
+			else
+			{
+				veh_info_pt-> cut_in=OFF;
+				veh_info_pt-> cut_out=OFF;
+			}
+			target_d_buff=pv_can-> Volvo_TargetDist;
+		 }
+		 else
+		 {
+			 veh_info_pt-> cut_in=OFF;
+			 veh_info_pt-> cut_out=OFF;
+		 }
+
+		 if (pv_can-> Volvo_TargetDist > target_d_buff+0.04)
+			sens_rd_pt->target_d=target_d_buff+0.04;
+		 else if (pv_can-> Volvo_TargetDist > target_d_buff-0.04)
+			sens_rd_pt->target_d=target_d_buff-0.04;
+		 else
+			sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+		 target_d_buff=sens_rd_pt->target_d;
+
+	 }
+	 
+	
+	 //sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+
 	 sens_rd_pt->target_avail=(int)pv_can-> Volvo_TargetAvailable;
 
 	/*************** read JBus info end ***************/
@@ -448,51 +448,118 @@ int read_jbus(float t_filter, long_vehicle_state *pv_can, long_params *pparams, 
 	Control actuations
 *******************************************************************************
 ******************************************************************************/
-int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ* con_st_pt,
+int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ* con_st_pt,
 	long_params *pparams, long_output_typ *inactive_ctrl, manager_cmd_typ * mng_cmd_pt, 
-	switch_typ *sw_pt, jbus_read_typ* jbus_rd_pt, control_config_typ* cnfg_pt) 
+	switch_typ *sw_pt, jbus_read_typ* jbus_rd_pt, control_config_typ* cnfg_pt, fault_index_typ* f_ind_pt) 
 {       
-  //float tmp_rate;
   float max_tq_we, tmp_rate;
+  static float eng_tq_tmp=0.0, eng_tq_buff=0.0, eng_torq_buff=0.0, eng_retard_buff=0.0;
+  static int eng_tq_ini=1, eng_retard_ini=1;
+  static float trans_t=0.0, tq_f_t=0.0, jk_f_t=0.0, we_buff=600.0;
+  static int cmd_count=0;
+
+	cmd_count++;
+	if (cmd_count > 40)
+		cmd_count=0;
 
      if (tq_we(jbus_rd_pt-> we, &max_tq_we) != 1)
 		 fprintf(stderr, "Call tq_we err!");
 	 con_st_pt-> max_tq_we = max_tq_we;
 	 
-	 //max_tq_we=ENGINE_REF_TORQUE;
-	    
-
+	 
      if (con_out_pt-> con_sw_1 == 1)  // Tq cmd
       {
 
 	      pcmd->engine_command_mode = TSC_TORQUE_CONTROL;
-		  if (sw_pt-> gshift_sw == 0)
-		//	pcmd->engine_priority=TSC_HIGH;           /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */
-		    pcmd->engine_priority=TSC_MEDIUM; 
+		  if (sw_pt-> gshift_sw == 0)			      
+		    pcmd->engine_priority=TSC_MEDIUM;     /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */
 		  else
 			pcmd->engine_priority=TSC_LOW;
-          pcmd->engine_torque = (con_out_pt-> y1)/ENGINE_REF_TORQUE;
-          if (pcmd->engine_torque < (MIN_TORQUE/ENGINE_REF_TORQUE) )
-             pcmd->engine_torque = (MIN_TORQUE/ENGINE_REF_TORQUE);
+          eng_tq_tmp = (con_out_pt-> y1)/ENGINE_REF_TORQUE;
+          if (eng_tq_tmp < (MIN_TORQUE/ENGINE_REF_TORQUE) )
+             eng_tq_tmp = (MIN_TORQUE/ENGINE_REF_TORQUE);
 		
-		 /* tmp_rate=(con_st_pt-> ref_v - con_st_pt-> spd)/3.0;
-		   if (tmp_rate > 0.25)
-              tmp_rate = 0.25;      
-           if (tmp_rate < -0.25)
-              tmp_rate = -0.25;   */ 
-		  
-		   pcmd->engine_torque = (pcmd->engine_torque)*100.0;
-		  // pcmd->engine_torque = (1.0+tmp_rate)*(pcmd->engine_torque)*100.0;
+	if (cnfg_pt-> MyPltnPos == 1)
+	{
+		if (con_st_pt-> max_spd < 26.0*mph2mps)
+		{
+			tmp_rate=(con_st_pt-> ref_v - con_st_pt-> spd)/3.0;
+			if (tmp_rate > 0.3)
+				tmp_rate = 0.3;      
+			if (tmp_rate < -0.3)
+				tmp_rate = -0.3;    	
+			eng_tq_tmp = (1.0+tmp_rate)*(eng_tq_tmp)*108.0;	
+		}
+		else
+		  eng_tq_tmp = (eng_tq_tmp)*100.0;			
+	}
+	else
+	    eng_tq_tmp = (eng_tq_tmp)*100.0;
 
-		  if (pcmd->engine_torque > 99.0)
-             pcmd->engine_torque = 99.0;
+	      if (mng_cmd_pt-> trans_mode == 0)
+		  {			  
+			  eng_tq_buff=pcmd->engine_torque;
+			  trans_t=0.0;
+		  }
+		  if (mng_cmd_pt-> trans_mode > 12) // except manual to auto
+		  //if (mng_cmd_pt-> trans_mode > 11) // all transition
+		  {
+			  trans_t += delta_t;
+			  pcmd->engine_torque=eng_tq_buff*(1.0-trans_t/TRANS_T) + (trans_t/TRANS_T)*eng_tq_tmp;
+			  //pcmd->engine_torque=0.6*pcmd->engine_torque+0.4*eng_tq_tmp;
+		  }
+		  else
+			  pcmd->engine_torque=eng_tq_tmp;
+
+			// added on 04_14_16
+		   if (eng_tq_ini==1 && mng_cmd_pt-> drive_mode > 1)
+	       {
+				eng_torq_buff=pcmd->engine_torque;
+				eng_tq_ini=0;
+		   }
+		   if (mng_cmd_pt-> drive_mode <= 1)
+				eng_tq_ini=1;
+
+		   if ((pcmd->engine_torque > 40.0) && (pcmd->engine_torque > eng_torq_buff+10.0*delta_t) )
+			   pcmd->engine_torque = eng_torq_buff+10.0*delta_t;
+		   if ((pcmd->engine_torque > 60.0) && (pcmd->engine_torque > eng_torq_buff+9.0*delta_t) )
+			   pcmd->engine_torque = eng_torq_buff+9.0*delta_t;
+		   if ((pcmd->engine_torque > 80.0) && (pcmd->engine_torque > eng_torq_buff+8.0*delta_t) )
+			   pcmd->engine_torque = eng_torq_buff+8.0*delta_t;
+		   eng_torq_buff=pcmd->engine_torque;
+
+	      if (pcmd->engine_torque > 98.5)
+			pcmd->engine_torque = 98.5;
 	
-          pcmd->engine_torque =pcmd->engine_torque +0.1*rand()/RAND_MAX; 
+		  
+		  if (cmd_count == 20)
+			   pcmd->engine_torque =pcmd->engine_torque + 1.0;
+		  if (cmd_count == 40)
+			   pcmd->engine_torque =pcmd->engine_torque - 1.0;
+		  
+		  // tq contr fault
+		  //if ( (pcmd->engine_torque > 90.0) && ( jbus_rd_pt-> long_accel <=0.1) )
+		  if ( (pcmd->engine_torque > 80.0) && ( jbus_rd_pt-> we - we_buff < 2.0) )
+			  tq_f_t += delta_t;
+		  else
+			  tq_f_t=0.0;
+		  we_buff=jbus_rd_pt-> we;
+
+		  if (tq_f_t > 0.5)
+			f_ind_pt-> torq =1;
+		  else
+			f_ind_pt-> torq =0;
+
+		  if (f_ind_pt-> torq == 1)
+		 	pcmd->engine_priority=TSC_HIGHEST;
 
 		  pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;   
-          pcmd->engine_retarder_torque = -0.0; // Negative percentage torque                                                              
-                                                                   
+          //pcmd->engine_retarder_priority=TSC_LOW;  // removed on 03/22/16
+          //pcmd->engine_retarder_torque = -0.0;     // removed on 03/22/16
+		  pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;
           pcmd->brake_command_mode = XBR_NOT_ACTIVE; //04_09_03
+
+		  eng_retard_ini=1;
       }
       else                                                         
       {                                                        
@@ -500,34 +567,75 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
 		  pcmd->engine_priority=TSC_LOW;           /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */
           pcmd->engine_torque = 100.0*(MIN_TORQUE/ENGINE_REF_TORQUE); 			 
           pcmd->engine_speed = +0.0;                           
-      }                                                        
+      }  
+
       if( (jbus_rd_pt-> accel_pedal_pos1 > 2.0) || ( sw_pt-> brk_sw == 1) )
-		pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; // indicating driver taking over                                                            
+		pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; // indicating driver taking over   
+
+	 
+
+	  /*******************************************
+
+	     Engine retarder command
+
+	  *******************************************/
                    
       if (con_out_pt-> con_sw_3 == 1)  //jk_cmd                 
-      {   
-	     pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;
-		// if (sw_pt-> gshift_sw == 0)
-			pcmd->engine_retarder_priority=TSC_HIGHEST;  /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */ 
-		// else
-			
-	    
-		  tmp_rate=(con_st_pt-> ref_v - con_st_pt-> spd)/2.0;
-		   if (tmp_rate > 0.45)
-              tmp_rate = 0.45;      
-           if (tmp_rate < -0.45)
-              tmp_rate = -0.45;    
-         //pcmd->engine_retarder_torque = -100.0*(con_out_pt-> y17)/JK_REF_TORQUE;
-		 pcmd->engine_retarder_torque = -100.0*(1.0-tmp_rate)*(con_out_pt-> y17)/max_f(con_st_pt-> max_jk_we,1.0);
-		 
-         pcmd->engine_command_mode = TSC_TORQUE_CONTROL; //Use this if possible                                                                
-         pcmd->engine_torque = 0.0;
-		 pcmd->brake_command_mode = XBR_NOT_ACTIVE; //04_09_03
+      {   	  		
+		 pcmd->engine_retarder_torque = 100.0*(con_out_pt-> y12)/JK_REF_TORQUE;	
 		 if (pcmd->engine_retarder_torque > 0.0)
-			 pcmd->engine_retarder_torque = 0.0;
-		 if (pcmd->engine_retarder_torque < -99.0)
-			pcmd->engine_retarder_torque = -99.0;
-		 pcmd->engine_retarder_torque = pcmd->engine_retarder_torque + 0.5*rand()/RAND_MAX; 
+			pcmd->engine_retarder_torque = 0.0;
+
+		 if (eng_retard_ini==1 && mng_cmd_pt-> drive_mode > 1)
+	       {
+				eng_retard_buff=pcmd->engine_retarder_torque;
+				eng_retard_ini=0;
+		   }
+		 if (mng_cmd_pt-> drive_mode <= 1)
+				eng_retard_ini=1;
+
+		 if ((pcmd->engine_retarder_torque < -60.0) && (pcmd->engine_retarder_torque < eng_retard_buff-10.0*delta_t) )		
+		 	pcmd->engine_retarder_torque = eng_retard_buff-10.0*delta_t;
+		 if ((pcmd->engine_retarder_torque < -75.0) && (pcmd->engine_retarder_torque < eng_retard_buff- 9.0*delta_t) )		
+		 	pcmd->engine_retarder_torque = eng_retard_buff-9.0*delta_t;
+		 if ((pcmd->engine_retarder_torque < -90.0) && (pcmd->engine_retarder_torque < eng_retard_buff-8.0*delta_t) )		
+		 	pcmd->engine_retarder_torque = eng_retard_buff-8.0*delta_t;
+
+		 eng_retard_buff=pcmd->engine_retarder_torque;
+		
+		if (pcmd->engine_retarder_torque < -20.0)
+		   pcmd->engine_retarder_torque=0.75*(pcmd->engine_retarder_torque);
+		  
+		 if (pcmd->engine_retarder_torque < -98.5)
+			pcmd->engine_retarder_torque = -98.5;
+
+         pcmd->engine_command_mode = TSC_TORQUE_CONTROL;   
+		 pcmd->engine_priority=TSC_LOW; 
+         pcmd->engine_torque = 0.0;
+
+		 pcmd->brake_command_mode = XBR_NOT_ACTIVE; 
+		 pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;
+		 pcmd->engine_retarder_priority=TSC_MEDIUM;  /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */ 
+		 
+		  if (cmd_count == 20)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque - 1.0;
+		  if (cmd_count == 40)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque + 1.0;
+		 
+		 // jk fault
+		 if ( (pcmd->engine_retarder_torque <= -90.0) && (jbus_rd_pt-> long_accel > -0.1) )
+			jk_f_t +=delta_t;
+		 else
+			jk_f_t=0.0;
+		 if (jk_f_t > 0.5)
+			f_ind_pt-> jake =1;
+		 else
+			f_ind_pt-> jake =0;
+		 if (f_ind_pt-> jake == 1)
+			pcmd->engine_retarder_priority=TSC_HIGHEST;
+		 
+		 
+		 eng_tq_ini=1;
       }                                                        
       else
       {   
@@ -535,22 +643,38 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
 		  pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;	             
           pcmd->engine_retarder_torque = -0.0;                 
       }   // jk cmd end                                                     
-                                                                        
-          
+        
+	 
+	  /*******************************************
+
+	    Service brake
+
+	  *******************************************/        
       if (con_out_pt-> con_sw_5 == 1)                           // E brk cmd           
       {  		  
-	      pcmd->brake_command_mode = XBR_ACTIVE; 
-		  // if (sw_pt-> gshift_sw == 0)
-			pcmd->brake_priority=TSC_HIGHEST;            /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */    
+	     pcmd->brake_command_mode = XBR_ACTIVE; 		  
+	     pcmd->brake_priority=TSC_MEDIUM;              /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */    
+         if (con_out_pt-> y11 < 0.0)                             // using usyn 03_01_16              
+			pcmd->ebs_deceleration = 0.0*0.2*(con_out_pt-> y14);     // changed on 11_03_15
+       //  if (pcmd->ebs_deceleration > - 1.4)
+	//		 pcmd->ebs_deceleration = - 1.4;          
+	//	 if (pcmd->ebs_deceleration < - 2.5)
+	//		 pcmd->ebs_deceleration = - 2.5;          
 
-          if (con_st_pt-> pre_v > 9.0)
-              pcmd->ebs_deceleration = - 0.05*(con_out_pt-> y16);               
-          else
-              pcmd->ebs_deceleration = - 0.085*(con_out_pt-> y16);                 
+/*		 if (mng_cmd_pt-> man_des == 29)
+		   {
+			   if (con_st_pt-> ref_v < 5.0)
+				pcmd->ebs_deceleration = - 1.4;
+		   }
+		   if (mng_cmd_pt-> man_des == 30) 
+				pcmd->ebs_deceleration = - 2.5;
            
-           //pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; 
-           pcmd->engine_command_mode = TSC_TORQUE_CONTROL; //Use this if possible                                                                
+*/
+           pcmd->engine_command_mode = TSC_TORQUE_CONTROL; //Use this if possible   
+		   pcmd->engine_priority=TSC_LOW; 
            pcmd->engine_torque = 0.0;
+
+		   eng_tq_ini=1;
       }                                                        
       else                                                         
       {       
@@ -558,7 +682,11 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
             pcmd->brake_command_mode = XBR_NOT_ACTIVE;
             pcmd->ebs_deceleration = -0.0;                       
       }   // E-brake end 
-                                                              
+              
+	  if ( (pcmd->ebs_deceleration <= -1.4) && (jbus_rd_pt-> long_accel >=0.0) )
+		  f_ind_pt-> brk = 1;
+	  else
+		  f_ind_pt-> brk = 0;
                                                                              
                                                                    
       if ((mng_cmd_pt-> drive_mode == 0) || (mng_cmd_pt-> drive_mode == 1) || 
@@ -573,6 +701,7 @@ int actuate(long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ
     other functions
 
 ********************************************************************************/
+
 int max_i(int a, int b)
 {
     if (a >= b)
@@ -608,3 +737,4 @@ float min_f(float a, float b)
         return a; 
     
 }
+

@@ -575,6 +575,7 @@ j1939_dbv_info db_ref[] = {
 	{VOLVO_XBR_WARN, sizeof(j1939_volvo_xbr_warn_typ), pdu_to_volvo_xbr_warn, NULL, print_volvo_xbr_warn, 0},
 	{VOLVO_XBR, sizeof(j1939_volvo_xbr_typ), pdu_to_volvo_xbr, NULL, print_volvo_xbr, 0},
 	{ETC2_E, sizeof(j1939_etc2_e_typ), pdu_to_etc2_e, NULL, print_etc2_e, 0},
+	{VOLVO_BRK, sizeof(j1939_volvo_brk_t), pdu_to_volvo_brk, NULL, print_volvo_brk, 0},
 };
 
 /**

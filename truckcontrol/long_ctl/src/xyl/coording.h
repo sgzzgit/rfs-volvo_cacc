@@ -32,8 +32,9 @@
 
 typedef struct      // To be sent from each vehicle to coordination manager
 {
+	int	comm_p[MAX_PLTN_LEN];
     int ready;
-    int fault_mode;  // Define the level of fault of a vehicle
+    int fault_mode;    // Define the level of fault of a vehicle
 	int grp_id;
 	int pltn_id;
     int veh_id;
@@ -101,7 +102,7 @@ typedef struct   // From each vehicle to coordination manager
     unsigned   radar   :1;
     unsigned   mag_meter  :1; // Determined in mag_dist
     unsigned   gps  :1;
-    unsigned   throt  :1;
+    unsigned   tq  :1;
     unsigned   air_brk  :1;
     unsigned   jake_brk  :1;
     unsigned   trans_rtdr  :1;
@@ -155,9 +156,11 @@ typedef struct    // From coordination manager to each vehicle
 	int auto_contr;
     int man_des;    
     int f_manage_index;             // For platoon fault mode    
-	unsigned short drive_mode;      // 0-stay, 1-manual,  2-ACC,  3-CACC
-	unsigned short trans_mode;	    // 0: no transition; 1:manual=>ACC; 2:ACC=>CACC; 3:CACC=> ACC; 4:ACC=> Manual; 5:CACC=>Manual
-    unsigned short drive_mode_buff;  // used as buffer state of previous step
+	int drive_mode;      // 0-stay, 1-manual,  2-ACC,  3-CACC
+	int trans_mode;	    // 0: no transition; 1:manual=>ACC; 2:ACC=>CACC; 3:CACC=> ACC; 4:ACC=> Manual; 5:CACC=>Manual
+    int drive_mode_buff; // used as buffer state of previous step
+	int following_mode;  // added on 11_15_15
+	int control_mode;    // moved from config_typ  03/08/16
 	float set_v;
 	//float t_gap;
 	//float d_gap;

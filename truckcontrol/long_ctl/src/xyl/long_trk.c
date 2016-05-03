@@ -104,14 +104,9 @@
 
 
 //#define COMM_DATA
+//#define TASK_CONTROL
+//#define TEST_BRK
 
-
-//#define USE_REF_DIST
-//#define USE_REF_DIST_1
-
-#define USE_CACC 
-//#define USE_CONTROL 
-       
 static float track_length=260.0;
 static float stop_period=0.0;
 static float stop_dist=250.0;              
@@ -137,7 +132,7 @@ db_data_typ db_data_comm_1;
 db_data_typ db_data_comm_2;
 db_data_typ db_data_comm_3;
 db_data_typ db_data_comm_send;
-veh_comm_packet_t comm_receive_pt[MAX_TRUCK];   //find def of MAX_TRUCK
+veh_comm_packet_t comm_receive_pt[MAX_TRUCK];   // including GPS from other vehicles; find def of MAX_TRUCK
 veh_comm_packet_t comm_send_pt;
 
 // GPS and road grade
@@ -176,9 +171,11 @@ static comm_info_typ comm_info;
 static comm_info_typ* comm_info_pt = &comm_info;
 static manager_cmd_typ manager_cmd;
 static manager_cmd_typ* manager_cmd_pt = &manager_cmd;
-static path_gps_point_t self_gps_point;       // read from self GPS database variable
-static path_gps_point_t gps_point_2;       // take from veh_comm_packet_t; accroding to position sequence
-static path_gps_point_t gps_point_3;       // take from veh_comm_packet_t
+//static path_gps_point_t self_gps_point;    // read from self GPS database variable
+//static path_gps_point_t gps_point_2;       // take from veh_comm_packet_t; accroding to position sequence
+//static path_gps_point_t gps_point_3;       // take from veh_comm_packet_t
+
+static path_gps_point_t gps_point[3];
 
 //static evrd_out_typ evrd_out;
 //static evrd_out_typ* evrd_out_pt;
@@ -217,7 +214,7 @@ and transitions
 static long_output_typ inactive_ctrl =
 {
         600.0,                   /* engine speed, truck idle, don't care since disabled */
-        400.0,                   /* engine torque, truck idle, don't care since disabled */
+        MIN_TORQUE/ENGINE_REF_TORQUE,              /* engine torque, truck idle, don't care since disabled */
         0.0,                     /* retarder torque, don't care since disabled */
         TSC_OVERRIDE_DISABLED,   /* engine command mode */
         TSC_OVERRIDE_DISABLED,   /* engine retarder command mode */
@@ -292,7 +289,7 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
     config.run=(unsigned short)get_ini_long( pfin1,"Run", 1L );
     config.dir=(unsigned short)get_ini_long( pfin1,"Dir", 1L );    // 1 EB; 2 WB
      
-    config.max_spd=((float)get_ini_double(pfin1, "MaxSpeed", 15.0 ));
+    config.max_spd=((float)get_ini_double(pfin1, "MaxSpeed", 1.0L ));
     config.max_acc=(float)get_ini_double(pfin1, "max_acc", 1.0L ); // Initialization
     config.max_dcc=(float)get_ini_double(pfin1, "max_dcc", 1.0L );
     config.para1=(float)get_ini_double(pfin1, "k_1", 1.0L );
@@ -306,7 +303,6 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
     config.truck_platoon = get_ini_bool( pfin1, "TruckPlatoon", TRUE );
 	config.truck_platoon = FALSE;
 	config.pltn_size = get_ini_long( pfin1, "PlatoonSize", 2L );	
-	config.control_mode=(unsigned short)get_ini_long( pfin1, "ControlMode", 1L );
 	config.truck_CACC = get_ini_bool( pfin1, "CACC", FALSE );  
 	config.truck_ACC = get_ini_bool( pfin1, "ACC", FALSE );  
 
@@ -330,6 +326,8 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
     config.spd_cmd_coeff = (float)get_ini_double( pfin1, "SpdCmdCoeff", 1.0 );
     config.jk_cmd_coeff = (float)get_ini_double( pfin1, "JKCmdCoeff", 1.0 );
     config.trtd_cmd_coeff = (float)get_ini_double( pfin1, "TrtdCmdCoeff", 1.0 );   
+	config.MyPltnPos = get_ini_long( pfin1, "MyPltnPos", 2L );	
+	config.FollowingMode = get_ini_long( pfin1, "FollowingMode", 1L );	
 
     fclose(pfin1);
     
@@ -359,12 +357,12 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 
      
      memset(&con_state, 0, sizeof(con_state));
-     con_state. comm_coord=OFF;
-     con_state. comm_leader=OFF;
-     con_state. comm_pre=OFF;
-     con_state. comm_back=OFF;
-    // con_state. des_f_dist=DES_FOLLOW_DIST; // Necesary to update for maneuvers // But changed according to  task number for support of USC & UCR
-     con_state. des_f_dist=10.0;
+     //con_state. comm_coord=OFF;
+     //con_state. comm_leader=OFF;
+     //con_state. comm_pre=OFF;
+     //con_state. comm_back=OFF;
+     con_state. des_f_dist=DES_FOLLOW_DIST; // Necesary to update for maneuvers // But changed according to  task number for support of USC & UCR
+     //con_state. des_f_dist=10.0;
 	   
      manager_cmd. drive_mode=0;           
      con_state. max_brake=MAX_BRAKE;        
@@ -397,12 +395,14 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
      // GPS & road grade
     // memset(&EB_start,0,sizeof(EB_start));
     // memset(&WB_start,0,sizeof(WB_start));
-    // memset(&gps_trk,0,sizeof(gps_trk));
-     memset(&self_gps_point,0,sizeof(self_gps_point));
-     memset(&gps_point_2,0,sizeof(gps_point_2));
-     memset(&gps_point_3,0,sizeof(gps_point_3));
+     memset(&gps_trk,0,sizeof(gps_trk));
+     //memset(&self_gps_point,0,sizeof(self_gps_point));
+     //memset(&gps_point_2,0,sizeof(gps_point_2));
+     //memset(&gps_point_3,0,sizeof(gps_point_3));
+
+	 memset(gps_point,0,3 * sizeof(path_gps_point_t));
 	
-     
+     vehicle_info. fault_mode = 1;   // default value
      vehicle_info_pt = &vehicle_info;
 
 	 pltn_info.handshake=OFF;
@@ -436,7 +436,6 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
     gps_trk_pt=&gps_trk;
     road_info_pt=&road_info;    
     config.max_dcc=MAX_DCC;   
-    //vehicle_info. veh_id=1;
     
   
        
@@ -453,13 +452,11 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
         init_circular_buffer(pbuff1, pcparams->gather_data, sizeof(buffer_item));  // Using pbuff1
         ftime(&pctrl->start_time);
         
-     
+		vehicle_info_pt-> veh_id = config.MyPltnPos;		
 
         /*** Protection for Safety ***/ 
 
-        //if (con_state. des_f_dist < 6.0)
-        //   con_state. des_f_dist=6.0;
-  
+      
         ref_ini(config_pt, v_p, c, d);  // To use config_pt, moved back.
         
         if (long_setled(pclt, LONG_CTL_ACTIVE ) != 0)                          
@@ -484,7 +481,7 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 
 	static float mytimer = 0;
 	static char do_once = 0;
-    const int radar_sw = 8;
+    //const int radar_sw = 8;
 /*--- All the time related variables ---*/
 
     static float global_time=0.0, local_time=0.0; 
@@ -496,36 +493,28 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
     /*--- Sensor Readings From Data Base---*/
 
     float v1=0.0, v2=0.0, v3=0.0;
-    static float v=0.0;       //v0=0.0;
-  
-    //static float acl=0.0;
-   
-    static float /*gear=0.0,*/ tg=0.0; // , rg=0.0;
+    static float v=0.0; // max_spd_buff=25.0;       //v0=0.0;
+	static int max_spd_ini=1, jk_ini=0, brk_ini=0;
+    static float tg=0.0;
  
-   
-   
-    /*--- Vehicle Parameters ---*/
-    
-    //static int  vehicle_pip = 1;             // Initialization
-    
-
     /*--- Maneuver Coordination ---*/
 
     static int maneuver_id[2]={0,0};
-	//static int maneuver_des=0;          // for single vehicle use
     static int pre_maneuver_id[2]={0,0};
     
-    static float run_dist=0.0;                              
+    static float run_dist=0.0;   
+	static double tmp_frac=0.0;
+	int tmp_int;
+	static int f_torq_buff=0, f_radar_buff=0, f_lidar_buff=0, f_jake_buff=0, f_brk_buff=0, f_comm_buff=0;
 
-    //float engine_reference_torque;
     int ctrl_interval;
-	//static int my_torque_counter = 0;
-
-// declarations for timing checking                    // For DBG on Aug 6 03
-
+	
         static struct timespec prev, curr;
         double difference;
         static int time_sw = 1;
+
+	float min_main(float, float);
+	int max_int(int, int);
 
      // At initialization  for timing                                        // For DBG on Aug 6 03
         if (time_sw == 1)
@@ -535,120 +524,21 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
            }
 
 
-        /** Set up pointer to input values from data server in
-	 *  in vehicle_state that has been read by long_read_vehicle_state
-	 *  in ../common/long_ctl.c main program.
-	 */
         
         pv = &pctrl->vehicle_state;
-
-	/** Set up pointer to configuration information set up in
-	 *  ../common/long_ctl.c man program
-	 */ 
 		pparams = &pctrl->params;
-
-		/* Set up pointers for data gathering
-		 */
 		pbuff1 = &pctrl->buff;
-		pdata = (buffer_item *) pbuff1->data_array;
-		
-		ppriv = (long_private *) pctrl->plong_private;  // Control switch to different cases
-		
+		pdata = (buffer_item *) pbuff1->data_array;		
+		ppriv = (long_private *) pctrl->plong_private;  	
 		pcparams = &ppriv->cmd_params;
-		
-	   
-
-		/* copy execution state for reference after update */
-		//int current_state = ppriv->execution_state;                  // Directly control switch to different cases
-
-        /* copy unchanging parameters to local variables for easy reference */
-        //engine_reference_torque = pparams->engine_reference_torque;
-        //desired_vehicle_speed = pcparams->desired_vehicle_speed; 
-        //delta_torque = pcparams->delta_torque;
-        //trq_time_limit = pcparams->trq_time_limit;
-        
-        ctrl_interval = pparams->ctrl_interval;   /* in milliseconds */
-
-		
-
+        ctrl_interval = pparams->ctrl_interval;   
 		pltn_info_pt->pltn_size=config_pt-> pltn_size;
 
 		if (pltn_info_pt->pltn_size==1)
 			vehicle_info_pt-> ready = 1;
 
-      /****************************************************
-	                   Define Variable Max Spd
-	                      
-	    ****************************************************/ 
-        
-     if( test_site == RFS )
-     {
-		 con_state. des_f_dist=10.0;		 
-		 
 
-		 if (config_pt-> task == 1)    
-		 {
-		     vehicle_info. veh_id=1;
-			
-			if (config_pt-> run == 1)
-			{
-				track_length = 330.0;
-				config.max_spd=25.0*mph2mps;
-			}
-				
-			if (config_pt-> run == 2)
-			{
-				track_length = 9550.0;
-				config.max_spd=55.0*mph2mps;
-			}
-				              	
-			stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
-        	stop_dist = track_length - ((config.max_spd)*stop_period - 0.25*(config.max_dcc)*stop_period*stop_period);  
-		 }
-		 if ( (config_pt-> task == 2) || (config_pt-> task == 3) )   // ACC
-		 {		
-			 vehicle_info. veh_id=2;
-			 track_length = 380.0;
-			 config_pt->truck_ACC=TRUE;
-			 config_pt-> truck_CACC=FALSE;
-			 config_pt->  ACC_tGap=1.6;
-
-			 stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
-        	 stop_dist = track_length - ((config.max_spd)*stop_period - 0.25*(config.max_dcc)*stop_period*stop_period);  		
-		 }		
-		 if (config_pt-> task == 4)  // CACC 
-		 {		
-			 vehicle_info_pt-> veh_id=2;
-			 track_length = 380.0;
-			 config_pt->truck_CACC=TRUE;
-			 config_pt->truck_ACC=FALSE;
-			 config_pt-> CACC_tGap=1.1;
-
-			 stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
-        	 stop_dist = track_length - ((config.max_spd)*stop_period - 0.25*(config.max_dcc)*stop_period*stop_period);  		
-		 }
-		 if (config_pt-> task == 5)  // HIA
-		 {		
-			 vehicle_info_pt-> veh_id=2;
-			 track_length = 380.0;
-			 config_pt->truck_CACC=TRUE;
-			 config_pt->truck_ACC=FALSE;
-			 config_pt-> CACC_tGap=1.3;
-
-			 stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
-        	 stop_dist = track_length - ((config.max_spd)*stop_period - 0.25*(config.max_dcc)*stop_period*stop_period);  		
-		 }
-
-
-		 if (config_pt->max_spd > 55.0*mph2mps)      
-				config_pt->max_spd=55.0*mph2mps;  
-    		
-    } // RFS end
-	
-    con_state_pt->ACC_tGap=config_pt-> ACC_tGap;
-    con_state_pt->CACC_tGap=config_pt-> CACC_tGap;
-
-       /********************************/
+		/********************************/
        /*----  From Communication  ----*/
        /********************************/
 
@@ -666,7 +556,103 @@ if(config.use_comm == TRUE)
 	comm_receive_pt[3] = pv->third_trk;
     }
 }
-    
+
+	  
+
+      /****************************************************
+	                   Define Variable Max Spd
+	                      
+	    ****************************************************/ 
+
+#ifdef TASK_CONTROL
+     if( test_site == RFS )
+     {
+		 con_state. des_f_dist=10.0;		 
+		 
+		 if (config_pt-> task == 1)    
+		 {
+		     //vehicle_info_pt-> veh_id=1;
+			
+			if (config_pt-> run == 1)
+			{
+				track_length = 250.0;				
+			}
+				
+			if (config_pt-> run == 2)
+			{
+				track_length = 19550.0;				
+			}			
+		    con_state. des_f_dist=DES_FOLLOW_DIST;				              	 
+		 }
+		 if ( (config_pt-> task == 2) || (config_pt-> task == 3) )   // ACC
+		 {					 
+			 track_length = 19990.0;
+			 config_pt->truck_ACC=TRUE;
+			 config_pt-> truck_CACC=FALSE;			 
+			 config_pt->  ACC_tGap=1.1;
+		 }		
+		 if (config_pt-> task == 4)  // CACC 
+		 {					 
+			 track_length = 20000.0;
+			 config_pt->truck_CACC=TRUE;
+			 config_pt->truck_ACC=FALSE;			
+			 config_pt-> CACC_tGap=0.9;	
+		 }
+		 if (config_pt-> task == 5)  // HIA
+		 {					 
+			 track_length = 20000.0;
+			 config_pt->truck_CACC=TRUE;
+			 config_pt->truck_ACC=FALSE;			 
+			 config_pt-> CACC_tGap=1.0;				
+		 } 	
+    } // RFS end
+#endif
+
+    if (vehicle_info_pt-> veh_id == 1)
+	{
+		 config_pt->truck_ACC=TRUE;
+		 config_pt-> truck_CACC=FALSE;	
+		 config_pt-> ACC_tGap=1.6;
+	}
+	else
+	{
+		 config_pt->truck_CACC=TRUE;
+		 config_pt->truck_ACC=FALSE;	
+		 config_pt-> CACC_tGap=1.1;	
+	}
+
+	config_pt-> max_spd=55.0*mph2mps;
+	manager_cmd_pt-> set_v=55.0*mph2mps;
+
+	if (config_pt->max_spd > 55.0*mph2mps)      
+		config_pt->max_spd=55.0*mph2mps;  
+	if (manager_cmd_pt-> set_v > 55.0*mph2mps)      
+		manager_cmd_pt-> set_v=55.0*mph2mps;  
+
+
+	con_state_pt-> max_spd=manager_cmd_pt-> set_v;
+
+	if (max_spd_ini==1)
+	{		
+		if (config_pt->truck_ACC == TRUE)			
+			con_state. des_f_dist=(con_state_pt-> spd)*(config_pt-> ACC_tGap);
+		if (config_pt->truck_CACC == TRUE)			
+			con_state. des_f_dist=(con_state_pt-> spd)*(config_pt-> CACC_tGap);
+		max_spd_ini=0;
+		if (con_state. des_f_dist < DES_FOLLOW_DIST)
+			con_state. des_f_dist=DES_FOLLOW_DIST;
+	}
+
+    track_length=200000.0;
+	
+	
+	stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
+    stop_dist = track_length - ((config.max_spd)*stop_period - 0.25*(config.max_dcc)*stop_period*stop_period);  
+
+    con_state_pt->ACC_tGap=config_pt-> ACC_tGap;
+    con_state_pt->CACC_tGap=config_pt-> CACC_tGap;
+
+       
 
 
 
@@ -674,9 +660,39 @@ if(config.use_comm == TRUE)
                 GPS and Volvo Distanvce Sensors
    ************************************************/
    
-	self_gps_point = pv->self_gps;  /// read from self GPS unit
+	/*gps_point[vehicle_info_pt-> veh_id-1] = pv->self_gps;  /// read from self GPS unit
 	
-   
+	if (vehicle_info_pt-> veh_id == 1)
+	{
+		gps_point[1].longitude = comm_receive_pt[2].longitude;
+		gps_point[1].latitude = comm_receive_pt[2].latitude;
+		gps_point[1].heading = comm_receive_pt[2].heading;
+
+		gps_point[2].longitude = comm_receive_pt[3].longitude;
+		gps_point[2].latitude = comm_receive_pt[3].latitude;
+		gps_point[2].heading = comm_receive_pt[3].heading;
+	}
+	if (vehicle_info_pt-> veh_id == 2)
+	{
+		gps_point[0].longitude= comm_receive_pt[1].longitude;
+		gps_point[0].latitude = comm_receive_pt[1].latitude;
+		gps_point[0].heading = comm_receive_pt[1].heading;
+
+		gps_point[2].longitude = comm_receive_pt[3].longitude;
+		gps_point[2].latitude = comm_receive_pt[3].latitude;
+		gps_point[2].heading = comm_receive_pt[3].heading;
+	}
+	if (vehicle_info_pt-> veh_id == 3)
+	{
+		gps_point[0].longitude = comm_receive_pt[1].longitude;
+		gps_point[0].latitude = comm_receive_pt[1].latitude;
+		gps_point[0].heading = comm_receive_pt[1].heading;
+
+		gps_point[1].longitude = comm_receive_pt[2].longitude;
+		gps_point[1].latitude = comm_receive_pt[2].latitude;
+		gps_point[1].heading = comm_receive_pt[2].heading;
+
+	}*/
    
 	/**************************************
 	                      Timing               
@@ -686,7 +702,6 @@ if(config.use_comm == TRUE)
     dt = 0.02;
     local_time += dt;  
 	time_filter=local_time;
-
 	t_ctrl=local_time;
 
 
@@ -699,10 +714,34 @@ if(config.use_comm == TRUE)
 	/***************************************************/
 
 if(config.use_comm == TRUE) 
-	comm( local_time, &global_time, dt, con_state_pt, vehicle_info_pt, comm_info_pt, 
+	cacc_comm( local_time, &global_time, dt, con_state_pt, vehicle_info_pt, comm_info_pt, 
 	    f_index_pt, comm_receive_pt, &comm_send_pt, pltn_info_pt);
 
+	   /**********************************/
+       /*----  String Configuration  ----*/
+       /**********************************/
 
+		
+
+		/*
+		if (vehicle_info_pt-> comm_p[0] == 1)
+		{
+			if (vehicle_info_pt-> veh_id == 2)
+				vehicle_info_pt-> veh_id = 1;
+			if (vehicle_info_pt-> veh_id == 3)
+			{
+				if (vehicle_info_pt-> comm_p[(vehicle_info_pt-> veh_id)-1] == 0)
+				{
+					if ((sens_read_pt->target_avail == 1) && (sens_read_pt->target_d < COUPLE_COEFF*(con_state_pt-> des_f_dist)) )
+						vehicle_info_pt-> veh_id = 2;
+					else
+						vehicle_info_pt-> veh_id = 1;
+				}
+				else
+					vehicle_info_pt-> veh_id = 1;
+			}
+		}
+		*/
 
           /**************************************/
           /*  Read in sensor measurement        */ 
@@ -710,11 +749,9 @@ if(config.use_comm == TRUE)
           /*                                    */
           /**************************************/
 
-read_jbus(time_filter, pv, pparams, jbus_read_pt, sens_read_pt, sw_read_pt);
+read_jbus(dt, time_filter, pv, pparams, jbus_read_pt, sens_read_pt, sw_read_pt, vehicle_info_pt);
 
 read_sw(pv, sw_read_pt);
-
-
 
         
 	/***************************************/
@@ -744,20 +781,6 @@ read_sw(pv, sw_read_pt);
      con_state_pt-> auto_jake2=0.0;
      con_state_pt-> auto_jake4=0.0;
      con_state_pt-> auto_jake6=0.0; 
-
-#ifdef USE_XPC_MEASURE
-	 con_state_pt-> spd=sens_read_pt->ego_v;
-	 con_state_pt-> acc=sens_read_pt->ego_a;
-     con_state_pt-> auto_acc=sens_read_pt->ego_a;
-	 con_state_pt-> auto_speed=sens_read_pt->ego_v;
-#endif
-
-	if (sens_read_pt-> target_avail != 1)
-	{	
-		sens_read_pt->target_a=con_state_pt-> acc;
-		sens_read_pt->target_v=con_state_pt-> spd;
-		sens_read_pt->target_d=con_state_pt-> des_f_dist;
-	}
 
 
      //veh_pos(config_pt, comm_info_pt, vehicle_info_pt, pltn_info_pt);
@@ -794,42 +817,109 @@ read_sw(pv, sw_read_pt);
             ( vehicle_info_pt-> veh_id != 1))    ) 
      {
 	     // Add Volvo radar dist here
-          est_dist(dt, sens_read_pt, con_state_pt, maneuver_id, pre_maneuver_id, f_index_pt, radar_sw);  // SW added on 07_25_03                                
+          est_dist(dt, sens_read_pt, con_state_pt, maneuver_id, pre_maneuver_id, f_index_pt, manager_cmd_pt);  // SW added on 07_25_03                                
 
      }             
 
 	/*******************************************/
 	/*                                         */
 	/*       Fault Detect and Management       */
-	/*       Setting LED                       */
+	/*       Also Setting LED                  */
 	/*                                         */
 	/*******************************************/
 	
-if( (config.handle_faults == TRUE) && (manager_cmd_pt-> man_des > 1) && (maneuver_id[0] != 30))
-{ 
-   
-   if (pltn_info_pt-> pltn_size >= 1)       
-     {
-	    if (vehicle_info_pt-> veh_id == 1)
-	       {
-		      if(f_index_pt-> comm == 1) 		         
-			     vehicle_info_pt-> fault_mode = max_i( vehicle_info_pt-> fault_mode,3);
+//if( (config.handle_faults == TRUE) && (manager_cmd_pt-> man_des > 1) && (maneuver_id[0] != 30))
+if( (config.handle_faults == TRUE) && (manager_cmd_pt-> drive_mode > 1))
+{    
+  
+			  if (f_index_pt-> torq == 1 && f_torq_buff == 0)			  
+				 vehicle_info_pt-> fault_mode=(vehicle_info_pt-> fault_mode)*3;
+			  if (f_index_pt-> torq == 0 && f_torq_buff == 1)	
+			  {
+				if (vehicle_info_pt-> fault_mode >= 3)
+				{
+				  tmp_frac=modf((double)((vehicle_info_pt-> fault_mode)/3), &tmp_int);
+				  if (tmp_frac < 0.001)
+					vehicle_info_pt-> fault_mode=max_int(tmp_int,1);
+				}
+			  }	
+			  f_torq_buff=f_index_pt-> torq;
+
+			  if (f_index_pt-> radar == 1 && f_radar_buff == 0)
+				   vehicle_info_pt-> fault_mode=(vehicle_info_pt-> fault_mode)*7;
+			  if (f_index_pt-> radar == 0 && f_radar_buff == 1)
+			  {
+				if (vehicle_info_pt-> fault_mode >= 7)
+				{
+				  tmp_frac=modf((double)((vehicle_info_pt-> fault_mode)/7), &tmp_int);
+				  if (tmp_frac < 0.001)
+					vehicle_info_pt-> fault_mode=max_int(tmp_int,1);
+				}
+			  }
+			  f_radar_buff=f_index_pt-> radar;
+
+			  if(f_index_pt-> lidar == 1 && f_lidar_buff == 0)
+				   vehicle_info_pt-> fault_mode=(vehicle_info_pt-> fault_mode)*11;
+			  if(f_index_pt-> lidar == 0 && f_lidar_buff == 1)
+			  {
+				if (vehicle_info_pt-> fault_mode >= 11)
+				{
+				  tmp_frac=modf((double)((vehicle_info_pt-> fault_mode)/11), &tmp_int);
+				  if (tmp_frac < 0.001)
+					vehicle_info_pt-> fault_mode=max_int(tmp_int,1);
+				}
+			  }
+			  f_lidar_buff=f_index_pt-> lidar;
+
+			  if(f_index_pt-> jake == 1 && f_jake_buff == 0)
+				   vehicle_info_pt-> fault_mode=(vehicle_info_pt-> fault_mode)*13;
+			  if(f_index_pt-> jake == 0 && f_jake_buff == 1)
+			  {
+				if (vehicle_info_pt-> fault_mode >= 13)
+				{
+				  tmp_frac=modf((double)((vehicle_info_pt-> fault_mode)/13), &tmp_int);
+				  if (tmp_frac < 0.001)
+					vehicle_info_pt-> fault_mode=max_int(tmp_int,1);
+				}
+			  }
+			  f_jake_buff = f_index_pt-> jake;
+
+			  if(f_index_pt-> brk == 1 && f_brk_buff == 0)
+				   vehicle_info_pt-> fault_mode=(vehicle_info_pt-> fault_mode)*17;
+			   if(f_index_pt-> brk == 0 && f_brk_buff == 1)
+			  {
+				if (vehicle_info_pt-> fault_mode >= 17)
+				{
+				  tmp_frac=modf((double)((vehicle_info_pt-> fault_mode)/17), &tmp_int);
+				  if (tmp_frac < 0.001)
+					vehicle_info_pt-> fault_mode=max_int(tmp_int,1);
+				}
+			  }
+			  f_brk_buff = f_index_pt-> brk;
+
+
+		  if (vehicle_info_pt-> veh_id == 1)
+	       {    
+			  if(f_index_pt-> comm == 1 && f_comm_buff == 0)
+				   vehicle_info_pt-> fault_mode=(vehicle_info_pt-> fault_mode)*5;
+			  if(f_index_pt-> comm == 0 && f_comm_buff == 1)
+			  {
+				if (vehicle_info_pt-> fault_mode >= 5)
+				{
+				  tmp_frac=modf((double)((vehicle_info_pt-> fault_mode)/5), &tmp_int);
+				  if (tmp_frac < 0.001)
+					vehicle_info_pt-> fault_mode=max_int(tmp_int,1);
+				}	
+			  }
+			  f_comm_buff=f_index_pt-> comm;
 	       }
-	    else
-	       {
-		       if (f_index_pt-> comm == 1)
-		          vehicle_info_pt-> fault_mode = max_i( vehicle_info_pt-> fault_mode,3);
-		       if (((f_index_pt-> e_vrd==1)&&(f_index_pt-> lidar==0)) || ((f_index_pt-> e_vrd==0)&&(f_index_pt-> lidar==1)) )		                    		       	  
-                  vehicle_info_pt-> fault_mode = max_i( vehicle_info_pt-> fault_mode,2);                                                      
-               if ( (f_index_pt-> e_vrd==1) && (f_index_pt-> lidar==1) )                                            
-                  vehicle_info_pt-> fault_mode = max_i( vehicle_info_pt-> fault_mode,3);                     		          
-           }       
-     } 
-     
-     if ( (f_index_pt-> spd == 1) || (f_index_pt-> J_bus_1 == 1) )         
-           vehicle_info_pt-> fault_mode = max_i( vehicle_info_pt-> fault_mode,3); 
+		  else
+		  {
+		  }
+         
            
-    manager_cmd_pt-> f_manage_index = max_i(vehicle_info_pt-> fault_mode, pltn_info_pt-> pltn_fault_mode);    	    
+    //manager_cmd_pt-> f_manage_index = max_i(vehicle_info_pt-> fault_mode, pltn_info_pt-> pltn_fault_mode);    	// temporarily removed on     
+	 manager_cmd_pt-> f_manage_index = 0;
                
      if (manager_cmd_pt-> f_manage_index == 1)        
         {
@@ -839,7 +929,7 @@ if( (config.handle_faults == TRUE) && (manager_cmd_pt-> man_des > 1) && (maneuve
      if (manager_cmd_pt-> f_manage_index == 2)
         {  
 	        if (long_setled(pclt, FLT_MED) != 0)
-                fprintf(stderr, " Setting FTL_MED fail! \n");            
+                fprintf(stderr, " Setting FTL_MED fail! \n");   
         }
      if (manager_cmd_pt-> f_manage_index  == 3)
         {	        
@@ -859,69 +949,38 @@ if( (config.handle_faults == TRUE) && (manager_cmd_pt-> man_des > 1) && (maneuve
     // if ( dvi(time_filter, sw_read_pt, con_state_pt, vehicle_info_pt, &maneuver_des) != 1 )    // Vehicle id is resigned here.
     //     fprintf(stderr, " Calling DVI fail! \n");
                
-    if (t_ctrl > 0.001)                                //05/20/10                  
+    if (t_ctrl > 0.001)                                //  05/20/10                  
     {
-     	if ((vehicle_info_pt-> veh_id == 0) || (vehicle_info_pt-> veh_id == 1))  //05_05_10                                                     
-         {
-            if (coording(dt, track_length, con_state_pt, sens_read_pt, config_pt, sw_read_pt, f_mode_comm_pt, vehicle_info_pt, pltn_info_pt, manager_cmd_pt) != 1)				
-                  fprintf(stderr, "\n Calling Coordination fail! \n");			
-			
-			if (config_pt-> task == 3) 
-				con_state. des_f_dist=(con_state. spd)*(config_pt->ACC_tGap);
-			else
-				con_state. des_f_dist=DES_FOLLOW_DIST;
-         }
-     	else           // veh_id > 1     
-         {
-            if (coording(dt, track_length, con_state_pt, sens_read_pt, config_pt, sw_read_pt, f_mode_comm_pt, vehicle_info_pt, pltn_info_pt, manager_cmd_pt) != 1)
-                 fprintf(stderr, "\n Calling Coordination fail! \n");   
-			if (config_pt->task == 1)
-				con_state. des_f_dist=DES_FOLLOW_DIST;
-			if ((config_pt->task == 2) || (config_pt->task == 3))
-				con_state. des_f_dist=(con_state. spd)*(config_pt->ACC_tGap);
-			if ((config_pt->task == 4) || (config_pt->task == 5))
-				con_state. des_f_dist=(con_state. spd)*(config_pt->CACC_tGap);
-         }  
-	   
-	   if (con_state. des_f_dist < 6.0)
-           con_state. des_f_dist=6.0;
+		if (config_pt->truck_ACC == TRUE)
+			con_state_pt-> des_f_dist=(con_state_pt-> spd)*(config_pt->ACC_tGap);
+		if (config_pt->truck_CACC == TRUE)
+			con_state_pt-> des_f_dist=(con_state_pt-> spd)*(config_pt->CACC_tGap);
+		if (con_state. des_f_dist < DES_FOLLOW_DIST)
+			con_state. des_f_dist=DES_FOLLOW_DIST;
+     
+        if (coording(dt, track_length, con_state_pt, sens_read_pt, config_pt, sw_read_pt, f_mode_comm_pt, vehicle_info_pt, pltn_info_pt, manager_cmd_pt) != 1)				
+           fprintf(stderr, "\n Calling Coordination fail! \n");			      
 	   
        if (run_dist > stop_dist)
 		   manager_cmd_pt-> man_des=29;  
 
-       if ( maneuver(dt, t_ctrl, time_filter, v_p, c, d, road_info_pt, config_pt, con_state_pt, sens_read_pt, vehicle_info_pt,  // time filter removed on 05_22_11
+       if ( maneuver(dt, t_ctrl, time_filter, v_p, c, d, road_info_pt, config_pt, con_state_pt, sens_read_pt, sw_read_pt, vehicle_info_pt,  // time filter removed on 05_22_11
                  f_index_pt, maneuver_id, manager_cmd_pt, pltn_info_pt) != 1 )
             fprintf(stderr, " Calling maneuver fail! \n");                
     } 
 
-	// for temporary use   06_19_15
-	if (config_pt->truck_ACC=TRUE)
-		con_state_pt-> radar_rg=sens_read_pt->target_d;
 
-
-//#ifdef USE_REF_DIST_1
-
-if (vehicle_info_pt-> veh_id == 1)
-{
-	 if (time_filter > 0.0)
-        {
-           if (ref_dist_1(dt, maneuver_id, sens_read_pt, vehicle_info_pt, manager_cmd_pt, f_index_pt, con_state_pt, config_pt, pltn_info_pt) != 1)
-              fprintf(stderr, " Calling ref_dist_1 fail! \n");
-        }
-}	 	
-//#endif
-//#ifdef USE_REF_DIST
-else{
 	if (time_filter > 0.0)
         {
-           if (ref_dist(dt, time_filter, maneuver_id, vehicle_info_pt, f_index_pt, con_state_pt, config_pt, pltn_info_pt) != 1)
-              fprintf(stderr, " Calling ref_dist fail! \n");
+           if (ref_dist(dt, maneuver_id, sens_read_pt, vehicle_info_pt, manager_cmd_pt, f_index_pt, con_state_pt, config_pt, pltn_info_pt) != 1)
+              fprintf(stderr, " Calling ref_dist_1 fail! \n");
         }
-    
-     if (local_time <= t_wait)
-        con_state_pt-> temp_dist = con_state_pt-> front_range;
-}
-//#endif
+	 	
+	/*if (vehicle_info_pt-> veh_id > 1)
+	{	
+		if (local_time <= t_wait)
+			con_state_pt-> temp_dist = con_state_pt-> front_range;
+	}*/
 
      if (vehicle_info_pt-> veh_id == 1)
         {
@@ -941,14 +1000,10 @@ else{
 	/*                                                 */
 	/***************************************************/
 
-#ifdef USE_CONTROL   
-     if ( control( dt, time_filter, maneuver_id,jbus_read_pt, manager_cmd_pt, config_pt, con_state_pt, sw_read_pt, vehicle_info_pt, con_output_pt) != 1)
-        fprintf(stderr, " Calling control fail! \n");  
-#endif
-#ifdef USE_CACC
-	  if ( cacc( dt, time_filter, maneuver_id,jbus_read_pt, manager_cmd_pt, config_pt, con_state_pt, sw_read_pt, vehicle_info_pt, con_output_pt) != 1)
+
+	  if ( cacc( dt, maneuver_id,jbus_read_pt, manager_cmd_pt, config_pt, con_state_pt, sw_read_pt, vehicle_info_pt, con_output_pt) != 1)
         fprintf(stderr, " Calling control fail! \n"); 
-#endif
+
 
 
 	/*****************************/
@@ -957,11 +1012,46 @@ else{
 	/*                           */
 	/*****************************/
 
-actuate(pcmd, con_output_pt, con_state_pt, pparams, &inactive_ctrl, manager_cmd_pt, sw_read_pt, jbus_read_pt, config_pt);
+actuate(dt, pcmd, con_output_pt, con_state_pt, pparams, &inactive_ctrl, manager_cmd_pt, sw_read_pt, jbus_read_pt, config_pt, f_index_pt);
 
 if( (jbus_read_pt-> accel_pedal_pos1) > 5.0)
 	pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; // indicating driver taking over
 
+// Test brake control
+
+#ifdef TEST_BRK
+if (jbus_read_pt-> v > 10.0)
+{
+   brk_ini=1;
+   jk_ini=1;
+}
+
+if (jk_ini == 1)
+{
+         pcmd->engine_retarder_torque = -30.0;
+
+         pcmd->engine_command_mode = TSC_TORQUE_CONTROL;   
+		 pcmd->engine_priority=TSC_LOW; 
+         pcmd->engine_torque = 0.0;
+
+		 pcmd->brake_command_mode = XBR_NOT_ACTIVE;
+		 pcmd->engine_retarder_torque = pcmd->engine_retarder_torque + 0.1*rand()/RAND_MAX; 
+}
+if(brk_ini == 1)
+{
+		pcmd->ebs_deceleration = -1.4;     // 
+
+        pcmd->engine_command_mode = TSC_TORQUE_CONTROL;   
+		pcmd->engine_priority=TSC_LOW; 
+        pcmd->engine_torque = 0.0;
+
+		pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;   
+        pcmd->engine_retarder_priority=TSC_HIGHEST;  
+        pcmd->engine_retarder_torque = -0.0; // Negative percentage torque      
+
+}
+
+#endif
 	/************************************/
 	/*                                  */
 	/*     Update Communication data.   */
@@ -971,18 +1061,18 @@ if( (jbus_read_pt-> accel_pedal_pos1) > 5.0)
 if(config.use_comm == TRUE) 
 {
       comm_send_pt.global_time = local_time;  // Each vehicle has a local time to broadcast. 
-	  if ((config_pt->task == 4) || (config_pt->task == 5))  // only in CACC mode
+	  if (vehicle_info_pt-> veh_id == 1 && f_index_pt-> torq == 1 )
 	  {
-		  comm_send_pt.acc_traj = con_state_pt-> pre_a; 
-		  comm_send_pt.vel_traj = con_state_pt-> pre_v;
+		comm_send_pt.vel_traj = min_main(con_state_pt-> ref_v, sens_read_pt->ego_v);   // composite	 
+		comm_send_pt.acc_traj = min_main(con_state_pt-> ref_a, sens_read_pt->ego_a);    // composite   
 	  }
 	  else
 	  {
-		  comm_send_pt.acc_traj = jbus_read_pt-> long_accel;
-		  comm_send_pt.vel_traj = jbus_read_pt-> v;			 
+		  comm_send_pt.vel_traj = con_state_pt-> ref_v;   // composite	 
+		  comm_send_pt.acc_traj = con_state_pt-> ref_a;    // composite   
 	  }
-      comm_send_pt.velocity = con_state_pt-> spd;
-      comm_send_pt.accel = con_state_pt-> acc;
+      comm_send_pt.velocity = con_state_pt-> spd;     // measured
+      comm_send_pt.accel = con_state_pt-> acc;        // measured
 	  if (config_pt->truck_ACC == TRUE)
 		comm_send_pt.range = (con_state_pt-> ACC_tGap)*(con_state_pt-> spd);
 	  if (config_pt->truck_CACC == TRUE)
@@ -998,7 +1088,8 @@ if(config.use_comm == TRUE)
       comm_send_pt.maneuver_des_1 = maneuver_id[0];
       comm_send_pt.maneuver_des_2 = maneuver_id[1];
       //memcpy(&comm_send_pt.gps, &self_gps_point, sizeof(path_gps_point_t);
-      comm_send_pt.user_ushort_1 = comm_info_pt-> comm_reply;         // acknowledge receiving; 03_09_09      
+      //comm_send_pt.user_ushort_1 = comm_info_pt-> comm_reply;         // acknowledge receiving; 03_09_09   
+	  comm_send_pt.user_ushort_1 = (unsigned short) config_pt-> MyPltnPos;
       comm_send_pt.user_ushort_2 = (unsigned short) manager_cmd_pt-> drive_mode;  // acknowledge the vehicle is in automade; 11_20_09
       comm_send_pt.user_float=con_state_pt-> ref_a;                   //jbus_read_pt-> bp; // Added on 11_25_09
 	  comm_send_pt.user_float1=con_state_pt-> ref_v;
@@ -1067,6 +1158,34 @@ if( (config.save_data == TRUE) && ((data_log_count++ % config.data_log) == 0) ) 
 			comm_receive_pt[2].user_float1,
 			comm_receive_pt[2].pltn_size,
 			pltn_info_pt-> handshake);
+		fprintf(pout, "%02d:%02d:%02.3f %4.3f %3i %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %4.3f %4.3f %3i %3i\n",	
+             timestamp->tm_hour,
+             timestamp->tm_min,
+             seconds, 
+			 time_filter,
+			 vehicle_info_pt-> veh_id,
+			 comm_receive_pt[3].global_time, 
+			comm_receive_pt[3].acc_traj, 
+			comm_receive_pt[3].vel_traj,
+			comm_receive_pt[3].velocity,
+			comm_receive_pt[3].accel,
+			comm_receive_pt[3].range,
+			comm_receive_pt[3].rate,
+			comm_receive_pt[3].user_bit_1,
+			comm_receive_pt[3].user_bit_2,
+			comm_receive_pt[3].user_bit_3,
+			comm_receive_pt[3].user_bit_4,
+			comm_receive_pt[3].my_pip,                  
+			comm_receive_pt[3].maneuver_id,
+			comm_receive_pt[3].fault_mode,
+			comm_receive_pt[3].maneuver_des_1,
+			comm_receive_pt[3].maneuver_des_2,
+			comm_receive_pt[3].user_ushort_1,              
+			comm_receive_pt[3].user_ushort_2,
+			comm_receive_pt[3].user_float,                   
+			comm_receive_pt[3].user_float1,
+			comm_receive_pt[3].pltn_size,
+			pltn_info_pt-> handshake);
 	}
 	if ( vehicle_info_pt-> veh_id == 2)
 	{
@@ -1098,131 +1217,206 @@ if( (config.save_data == TRUE) && ((data_log_count++ % config.data_log) == 0) ) 
 			comm_receive_pt[1].user_float1,
 			comm_receive_pt[1].pltn_size,
 			pltn_info_pt-> handshake);
-
+		fprintf(pout, "%02d:%02d:%02.3f %4.3f %3i %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %4.3f %4.3f %3i %3i\n",	
+             timestamp->tm_hour,
+             timestamp->tm_min,
+             seconds, 
+			 time_filter,
+			 vehicle_info_pt-> veh_id,
+			 comm_receive_pt[3].global_time, 
+			comm_receive_pt[3].acc_traj, 
+			comm_receive_pt[3].vel_traj,
+			comm_receive_pt[3].velocity,
+			comm_receive_pt[3].accel,
+			comm_receive_pt[3].range,
+			comm_receive_pt[3].rate,
+			comm_receive_pt[3].user_bit_1,
+			comm_receive_pt[3].user_bit_2,
+			comm_receive_pt[3].user_bit_3,
+			comm_receive_pt[3].user_bit_4,
+			comm_receive_pt[3].my_pip,                  
+			comm_receive_pt[3].maneuver_id,
+			comm_receive_pt[3].fault_mode,
+			comm_receive_pt[3].maneuver_des_1,
+			comm_receive_pt[3].maneuver_des_2,
+			comm_receive_pt[3].user_ushort_1,              
+			comm_receive_pt[3].user_ushort_2,
+			comm_receive_pt[3].user_float,                   
+			comm_receive_pt[3].user_float1,
+			comm_receive_pt[3].pltn_size,
+			pltn_info_pt-> handshake);
+	}
+	if ( vehicle_info_pt-> veh_id == 3)
+	{
+		fprintf(pout, "%02d:%02d:%02.3f %4.3f %3i %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %4.3f %4.3f %3i %3i\n",	
+             timestamp->tm_hour,
+             timestamp->tm_min,
+             seconds, 
+			 time_filter,
+			 vehicle_info_pt-> veh_id,
+			 comm_receive_pt[1].global_time, 
+			comm_receive_pt[1].acc_traj, 
+			comm_receive_pt[1].vel_traj,
+			comm_receive_pt[1].velocity,
+			comm_receive_pt[1].accel,
+			comm_receive_pt[1].range,
+			comm_receive_pt[1].rate,
+			comm_receive_pt[1].user_bit_1,
+			comm_receive_pt[1].user_bit_2,
+			comm_receive_pt[1].user_bit_3,
+			comm_receive_pt[1].user_bit_4,
+			comm_receive_pt[1].my_pip,                  
+			comm_receive_pt[1].maneuver_id,
+			comm_receive_pt[1].fault_mode,
+			comm_receive_pt[1].maneuver_des_1,
+			comm_receive_pt[1].maneuver_des_2,
+			comm_receive_pt[1].user_ushort_1,              
+			comm_receive_pt[1].user_ushort_2,
+			comm_receive_pt[1].user_float,                   
+			comm_receive_pt[1].user_float1,
+			comm_receive_pt[1].pltn_size,
+			pltn_info_pt-> handshake);
+		fprintf(pout, "%02d:%02d:%02.3f %4.3f %3i %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %4.3f %4.3f %3i %3i\n",	
+             timestamp->tm_hour,
+             timestamp->tm_min,
+             seconds, 
+			 time_filter,
+			 vehicle_info_pt-> veh_id,
+			 comm_receive_pt[2].global_time, 
+			comm_receive_pt[2].acc_traj, 
+			comm_receive_pt[2].vel_traj,
+			comm_receive_pt[2].velocity,
+			comm_receive_pt[2].accel,
+			comm_receive_pt[2].range,
+			comm_receive_pt[2].rate,
+			comm_receive_pt[2].user_bit_1,
+			comm_receive_pt[2].user_bit_2,
+			comm_receive_pt[2].user_bit_3,
+			comm_receive_pt[2].user_bit_4,
+			comm_receive_pt[2].my_pip,                  
+			comm_receive_pt[2].maneuver_id,
+			comm_receive_pt[2].fault_mode,
+			comm_receive_pt[2].maneuver_des_1,
+			comm_receive_pt[2].maneuver_des_2,
+			comm_receive_pt[2].user_ushort_1,              
+			comm_receive_pt[2].user_ushort_2,
+			comm_receive_pt[2].user_float,                   
+			comm_receive_pt[2].user_float1,
+			comm_receive_pt[2].pltn_size,
+			pltn_info_pt-> handshake);
 	}
 
 #endif
 
 if( config.run_data == TRUE ) {
-        fprintf(pout, "%02d:%02d:%02.3f %4.3f %4.3f %3i %3i %3i %3i %3i %3i %3i %3i %3i %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",
-             timestamp->tm_hour,
-             timestamp->tm_min,
-             seconds, 
-			 time_filter,                        
-             t_ctrl,    
-             maneuver_id[0],  
-			 manager_cmd_pt-> drive_mode,
-			 manager_cmd_pt-> drive_mode_buff, 
-             manager_cmd_pt-> man_des,                       
-             pltn_info_pt-> handshake,                    
-             vehicle_info_pt-> veh_id,                                  
-             pltn_info_pt->pltn_size,         
-			 sw_read_pt-> CC_enable_sw,
-			 sw_read_pt-> brk_sw,
-             //global_time,
-			 con_state_pt-> max_tq_we,
-			 config_pt-> max_spd,
-			 jbus_read_pt->CC_set_v,	
-			 con_state_pt-> spd,
-			 jbus_read_pt-> lat_accel,			
-			 jbus_read_pt-> long_accel,						 			
-			 jbus_read_pt-> yaw_rt,			 
-			 //jbus_read_pt-> jk_des_percent_tq, 
-			 con_state_pt-> max_jk_we,
-			 jbus_read_pt-> jk_actual_percent_tq,  	
-			 jbus_read_pt-> jk_max_percent_tq, 
-			 pcmd->engine_torque,
-			 pcmd->engine_retarder_torque
-             //comm_receive_pt[1]. global_time,         
-             //comm_receive_pt[2]. global_time,                                        
+        fprintf(pout, "%02d:%02d:%4.3f %4.3f %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",
+             timestamp->tm_hour,			//1
+             timestamp->tm_min,				//2
+             seconds,						//3 
+			 time_filter,					//4                       
+             //t_ctrl,    
+             //maneuver_id[0],  
+			 vehicle_info_pt-> cut_in,		//5
+			 vehicle_info_pt-> cut_out,		//6
+			 manager_cmd_pt-> drive_mode,		//7
+			 manager_cmd_pt-> drive_mode_buff,	//8 
+             manager_cmd_pt-> man_des,			//9                       
+             pltn_info_pt-> handshake,			//10                    
+             vehicle_info_pt-> veh_id,			//11                                  
+             pltn_info_pt->pltn_size,			//12         
+			 sw_read_pt-> CC_enable_sw,			//13
+			 sw_read_pt-> brk_sw,				//14            
+			 con_state_pt-> max_tq_we,			//15
+			 con_state_pt-> max_spd,			//16
+			 jbus_read_pt->CC_set_v,			//17	
+			 con_state_pt-> spd,				//18
+			 jbus_read_pt-> lat_accel,			//19			
+			 jbus_read_pt-> long_accel,			//20						 			
+			 jbus_read_pt-> yaw_rt,				//21			 			 
+			 con_state_pt-> max_jk_we,			//22
+			 jbus_read_pt-> jk_actual_percent_tq,		//23  	
+			 jbus_read_pt-> jk_max_percent_tq,			//24 
+			 pcmd->engine_torque,						//25
+			 pcmd->engine_retarder_torque				//26                                                 
         );
-        /*fprintf(pout, "%4.3f %3i %3i %3i ",      	            
-             con_state_pt-> front_range,         //18                             
-             vehicle_info_pt-> fault_mode,       //19
-             pltn_info_pt-> pltn_fault_mode,  //20
-             manager_cmd_pt-> f_manage_index     //21       
-        );
-        fprintf(pout, "%3i %3i %3i %3i %3i ",
-             f_index_pt-> J_bus_1,	             //22
-             comm_info_pt-> comm_reply,          //23
-             f_index_pt-> comm_pre,              //24
-             f_index_pt-> comm_back,             //25
-             f_index_pt-> comm                   //26
-        );*/ 
-		fprintf(pout, "%3i %3i %3i %3i %3i %3i %3i %3i ",
-			(int) sw_read_pt->  CC_pause_sw,
-			(int) sw_read_pt->  CC_enable_sw,
-			(int) sw_read_pt->  CC_active,
-			(int) sw_read_pt->  CC_acel_sw,
-			(int) sw_read_pt->  CC_resume_sw,
-			(int) sw_read_pt->  CC_coast_sw,
-			(int) sw_read_pt->  CC_set_sw,
-			(int) sw_read_pt->  CC_state             
-        );
-        fprintf(pout,"%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",
-			 con_output_pt-> y1,                  
-             con_output_pt-> y2,                
-             con_output_pt-> y3,                  
-             con_output_pt-> y4,               				
-             con_output_pt-> y5,                
-             con_output_pt-> y6,                 
-             con_output_pt-> y7,                  
-             con_output_pt-> y8,                 
-             con_output_pt-> y9,                  
-             con_output_pt-> y10,               
-             con_output_pt-> y11,                 
-             con_output_pt-> y12,                 
-             con_output_pt-> y13,                
-             con_output_pt-> y14,                   
-             con_output_pt-> y15,                    
-             con_output_pt-> y16                 
+        
+		  fprintf(pout, "%4.3f %4.3f %4.3f %3i %3i %3i %3i %3i ",
+		     //comm_receive_pt[1]. user_float1,        
+             //comm_receive_pt[2]. user_float1, 
+			 //comm_receive_pt[3]. user_float1,  
+			 comm_receive_pt[1]. global_time,			//27      
+             comm_receive_pt[2]. global_time,			//28 
+			 comm_receive_pt[3]. global_time,			//29
+			 vehicle_info_pt->comm_p[0],				//30
+			 vehicle_info_pt->comm_p[1],				//31
+			 vehicle_info_pt->comm_p[2],				//32			                           
+			 vehicle_info_pt-> fault_mode,				//33                  
+             //manager_cmd_pt-> f_manage_index 
+			 f_index_pt-> torq							//34
+        ); 
+		
+        fprintf(pout,"%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %3i ",
+			 con_output_pt-> y1,						//35              
+             con_output_pt-> y2,						//36               
+             con_output_pt-> y3,						//37                 
+             con_output_pt-> y4,						//38               				
+             con_output_pt-> y5,						//39               
+             con_output_pt-> y6,						//40                 
+             con_output_pt-> y7,						//41                  
+             con_output_pt-> y8,						//42                 
+             con_output_pt-> y9,						//43                  
+             con_output_pt-> y10,						//44
+             con_output_pt-> y11,   // usyn				//45		           
+             con_output_pt-> y12,   // jk				//46
+			 con_output_pt-> y13,   // pb_s2_b			//47              
+             con_output_pt-> y14,   // brk				//48 
+			 con_state_pt-> man_dist_var2,				//49
+             manager_cmd_pt->control_mode				//50                                          
         );
         fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",               
-             con_state_pt-> pre_v,              //37
-             con_state_pt-> pre_a,              //38
-             con_state_pt-> lead_v,             //39
-             con_state_pt-> lead_a,             //40                     
-             vehicle_info_pt-> run_dist,        //42
-             //manager_cmd_pt-> stop_dist,        //43  
-			 jbus_read_pt-> actual_eng_tq,   // actual engine torque, not percentage
-             con_state_pt-> temp_dist,           //44  
-             con_state_pt-> ref_v,              //45    
-             con_state_pt-> ref_a,              //46 
-             con_state_pt-> des_f_dist,         //47    // manu_speed, changed on 04_24_11
-             jbus_read_pt-> fuel_m                         //con_state_pt-> manu_acc            //48                       
+             con_state_pt-> pre_v,              //51
+             con_state_pt-> pre_a,              //52
+             con_state_pt-> lead_v,             //53
+             con_state_pt-> lead_a,             //54                     
+             vehicle_info_pt-> run_dist,        //55             
+			 jbus_read_pt-> actual_eng_tq,		//56
+             con_state_pt-> temp_dist,          //57  
+             con_state_pt-> ref_v,              //58    
+             con_state_pt-> ref_a,              //59
+             con_state_pt-> des_f_dist,         //60    // manu_speed, changed on 04_24_11
+             jbus_read_pt-> fuel_m              //61           //con_state_pt-> manu_acc                                   
         );         
         fprintf(pout, "%3i %3i %3i %4.3f %4.3f %4.3f %4.3f %4.3f ",
-             manager_cmd_pt-> trans_mode,                              
-			 manager_cmd_pt-> auto_contr,
-             sw_read_pt-> gshift_sw,            
-             jbus_read_pt-> gear,                    
-             pcmd->ebs_deceleration,               
-             jbus_read_pt-> bp,                    
-             jbus_read_pt-> we,              
-			 con_state_pt-> front_range
-
-			 //pparams->engine_reference_torque
-             //vehicle_info_pt->ready,             //60
-             //comm_receive_pt[1].user_ushort_2,   //61
-             //comm_receive_pt[2].user_ushort_2    //62
-        ); 
-     /*fprintf(pout, "%4.8f  %4.8f %4.3f %4.3f %4.3f %4.3f", 
-             gps_trk_pt-> latitude,                                //63
-             gps_trk_pt-> longitude,                            //64  
-			 jbus_read_pt-> lat_accel,			//42
-			 jbus_read_pt-> long_accel,			//43
-			 jbus_read_pt-> steer_angle,			//44	
-			 jbus_read_pt-> yaw_rt				//45
-        );*/
-	  fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %3i ",
-		  sens_read_pt->ego_a,
-		  sens_read_pt->ego_v,
-		  sens_read_pt->target_a,
-		  sens_read_pt->target_v,
-		  sens_read_pt->target_d,
-		  sens_read_pt->target_avail);		  
-	 
+             manager_cmd_pt-> trans_mode,		//62                            
+			 manager_cmd_pt-> auto_contr,		//63
+             sw_read_pt-> gshift_sw,			//64            
+             jbus_read_pt-> gear,				//65                   
+             pcmd->ebs_deceleration,			//66               
+             jbus_read_pt-> bp,					//67                   
+             jbus_read_pt-> we,					//68              
+			 con_state_pt-> front_range			//69			
+        );      
+	  fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %3i %4.3f ",
+		  sens_read_pt->ego_a,					//70
+		  sens_read_pt->ego_v,					//71
+		  sens_read_pt->target_a,				//72
+		  sens_read_pt->target_v,				//73
+		  sens_read_pt->target_d,				//74
+		  sens_read_pt->target_avail,			//75
+		  jbus_read_pt-> steer_angle);			//76
+/*	  fprintf(pout, "%4.8f %4.8f %4.3f %4.8f %4.8f %4.3f %4.8f %4.8f %4.3f", 
+             gps_point[0]-> latitude,             //77
+             gps_point[0]-> longitude,            //78 
+			 gps_point[0]-> heading,			  //79		
+			 gps_point[1]-> latitude,             //80
+             gps_point[1]-> longitude,            //81 
+			 gps_point[1]-> heading,			  //82		
+			 gps_point[2]-> latitude,             //83
+             gps_point[2]-> longitude,            //84 
+			 gps_point[2]-> heading				  //85
+			 );	*/		  			 			 
 }
+
 if( config.read_data == TRUE ) {
     fprintf(pout, "%3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i  %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i %3i ",  // 31 int
 	 (int) sw_read_pt->  park_brk_sw,
@@ -1397,7 +1591,7 @@ int exit_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 
 float trq_to_acc_voltage(long_ctrl *pctrl, float engine_torque)
 {
-        float idle_torque = 400.0;      /* idle torque, param later? */
+        float idle_torque = MIN_TORQUE/ENGINE_REF_TORQUE;      /* idle torque, param later? */
         float max_torque = pctrl->params.engine_reference_torque;
         float trq_range = max_torque - idle_torque;
         float vlow = 1.0;       /* active voltage lower and upper bounds */
@@ -1406,4 +1600,20 @@ float trq_to_acc_voltage(long_ctrl *pctrl, float engine_torque)
         float trq_val = engine_torque - idle_torque;
         if (trq_val < 0) trq_val = 0;
         return (vlow + (trq_val/trq_range) * vrange);
+}
+
+float min_main(float a, float b)
+{
+	if (a>=b)
+		return b;
+	else
+		return a;
+}
+
+int max_int(int a, int b)
+{
+	if (a>=b)
+		return a;
+	else
+		return b;
 }

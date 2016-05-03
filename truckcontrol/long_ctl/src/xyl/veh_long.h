@@ -37,10 +37,10 @@
 #endif
 
 #define SIM                       1
-#define pi                          3.14159265
+#define pi               3.14159265
 #define mph2mps          0.44694
 #define rpm2radps		 0.1047
-#define v_threshold      0.1
+#define v_threshold      0.02
 #define N_pt                    25
 #define OFF                     0
 #define ON                       1
@@ -57,11 +57,12 @@
 #define we_max             2100.0         //[rpm]
 #define MASS               8339.0        //[kg]            
 #define bool_typ           int
-#define MAX_DCC                                  0.8
-#define DES_FOLLOW_DIST              10.0     
-#define COMB_LENGTH                      19.3                     // Truck length in meters
+#define MAX_DCC                     0.8
+#define DES_FOLLOW_DIST             10.0     
+#define COMB_LENGTH                 19.3                     // Truck length in meters
 #define TRACTOR_LENGTH              13.7                      // Tractor length in meters
-#define TRANS_T			            3.0  // Tranistion time between drive_modes
+#define TRANS_T0			        1.0  // Tranistion time between drive_modes
+#define TRANS_T			            2.0  
 #define SET_SPEED			25.0	//in [m/s]; ~25mph
 //#define T_GAP				1.5     //[s]
 #define MIN_CONTR_SPD		5.0	//[m/s]	~ 10[mph] ~ 16.09[k/hr]	
@@ -72,6 +73,8 @@
 #define MIN_TORQUE			320.0
 #define ENGINE_REF_TORQUE	2589.0  // N.m for Volvo truck
 #define JK_REF_TORQUE		1543.0  // N.m for Volvo truck
+#define COUPLE_COEFF		2.0		// coupling distance coeff w.r.t. front vehicle
+#define ACC_DIST			2.0
 
 /*        
 #define SPLIT_DIST                               2.0                 // 6.0 for NVD
@@ -82,12 +85,13 @@
 #define JOIN_T                                        8.0                 //35.0 for NVD
 */
 
-#define SPLIT_DIST                               4.0 
+#define SPLIT_DIST                                4.0 
 #define JOIN_DIST                                 4.0
-#define E_SPLIT_DIST                          4.0
-#define CRUISE_T                                 30.0
-#define SPLIT_T                                     25.0
-#define JOIN_T                                       35.0
+#define E_SPLIT_DIST                              4.0
+#define CRUISE_T                                  30.0
+#define SPLIT_T                                   25.0
+#define JOIN_T                                    35.0
+#define ACC_SPLIT_T								  8.0
 
 
 #define MAX_BUFFER_SIZE               80000                          
@@ -106,34 +110,30 @@
 #define t_ctrl_2                         (-5.05)
 //#define comm_err_bound                   20
 
-//#include "track.h" 
+/*const double GPS_ref_PATH[2]={37.925561, -122.334863};
+const double GPS_ref_SR87[2]={37.327436, -122.893613};
+const float ACC_TGap[3]={1.1, 1.3, 1.6};
+const float CACC_TGap[5]={0.6, 0.8, 1.0, 1.2, 1.5};
+*/
 
 /* Struct for fault bedect */
 typedef struct
-{
+{		 
          unsigned   comm_coord   :1;
-         unsigned   comm_leader  :1;
-         unsigned   comm_pre  :1;
-         unsigned   comm_back  :1;
+        // unsigned   comm_leader  :1;
+        // unsigned   comm_pre  :1;
+        // unsigned   comm_back  :1;
          unsigned   comm  :1;
          unsigned   J_bus_1  :1;
          unsigned   J_bus_2  :1;
-         unsigned   e_vrd  :1;     //  dtermined in vrd_dist
+         unsigned   radar  :1;     //  dtermined in vrd_dist
          unsigned   lidar  :1;       // determined in ldr_dist
          unsigned   mdl    :1;     // Added on 04/05/10  XYL
          unsigned   mag_meter  :1; // Determined in mag_dist
          unsigned   gps  :1;
-         unsigned   throt  :1;
-         unsigned   brk  :1;
-         unsigned   brk_1  :1;
-         unsigned   brk_2  :1;
-         unsigned   brk_3  :1;
-         unsigned   brk_4  :1;
-         unsigned   brk_5  :1;
-         unsigned   brk_6  :1;
-         unsigned   jake_2  :1;
-         unsigned   jake_4  :1;
-         unsigned   jake_6  :1;
+         unsigned   torq  :1;
+         unsigned   brk  :1;     
+         unsigned   jake   :1;        
          unsigned   trans_rtdr  :1;
          unsigned   spd  :1;
          unsigned   wh_spd_1  :1;
@@ -242,6 +242,8 @@ typedef struct
         float para4;
         int data_log;               // Data log interval                
         int pltn_size;              // Platoon size
+		int MyPltnPos;				// My Position in Platoon
+		int FollowingMode;          // Added on 11_15_15
         bool_typ static_run;        // Static (1) or dynamic (0) run            
         bool_typ test_actuators;    // Test throttle and brake actuators (1) or not (0).    
         bool_typ truck_platoon;     // Truck platooning is on (1) or off (0) 
@@ -249,7 +251,6 @@ typedef struct
 		bool_typ truck_ACC;	
 		float ACC_tGap;
 		float CACC_tGap;
-		int control_mode;
 
         bool_typ use_comm;          // Truck platooning is on (1) or off (0)   
         bool_typ eaton_radar;       // Eaton radar (1) ON or (0) OFF. 
@@ -275,17 +276,19 @@ typedef struct
 /*      Struct for state variables    */
 
 typedef struct
-{
+{		
         unsigned short comm_coord;
-        unsigned short comm_leader;
-        unsigned short comm_pre;
-        unsigned short comm_back;
+		//unsigned short comm_p[MAX_PLTN_LEN];
+        //unsigned short comm_leader;
+        //unsigned short comm_pre;
+        //unsigned short comm_back;
         float des_f_dist;
         float split_f_dist;
         float join_f_dist;
         float temp_dist;
         float man_dist_var2;
         float man_dist_var3;
+		float max_spd;  // added 03/11/16 for all control
         float max_brake;
         float min_brake;
         float ini_brake;
@@ -331,11 +334,9 @@ typedef struct
 		float ACC_tGap;
 		float ACC_dGap;
 		float CACC_tGap;
-		float CACC_dGap;
-       
+		float CACC_dGap;     
         float radar_rg;			// Fused from radar raneg and relative v
-        float radar_rt;			// Fused radar rt and relative v		
-       
+        float radar_rt;			// Fused radar rt and relative v		       
 		float max_tq_we;
 		float max_jk_we;
         //float mdl_rg;        
