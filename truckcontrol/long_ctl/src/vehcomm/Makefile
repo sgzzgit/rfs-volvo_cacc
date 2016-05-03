@@ -23,9 +23,10 @@ $(OBJDIR):
 
 $(OBJDIR)/veh_rcv: $(OBJDIR)/veh_rcv.o
 $(OBJDIR)/veh_snd: $(OBJDIR)/veh_snd.o
-
+$(ASNDIR)/*.o:
+	make -C $(ASNDIR)
 clean:
-	rm -f $(OBJDIR)/*.o $(OBJDIR)/*.err *.*~ $(EXEC)
+	rm -f $(ASNDIR)/*.o $(OBJDIR)/*.o $(OBJDIR)/*.err *.*~ $(EXEC)
 
 install:
 	cp $(EXEC) $(TRUCK_DIR)/test
