@@ -125,6 +125,18 @@ typedef struct {
 	int ERC1ERActlMxAvlbRtdrtPerctTorque;
 } IS_PACKED j1939_erc1_typ;
 
+/** PDU VBRK (Volvo brake type, Bendix brakes) */
+typedef struct {
+	timestamp_t timestamp;
+        float VBRK_BrkAppPressure;
+        float VBRK_BrkPrimaryPressure;
+        float VBRK_BrkSecondaryPressure;
+        unsigned char VBRK_BrkStatParkBrkActuator;
+        unsigned char VBRK_ParkBrkRedWarningSignal;
+        unsigned char VBRK_ParkBrkReleaseInhibitStat;
+} IS_PACKED j1939_volvo_brk_t;
+
+
 /** PDU EBC1 (Electronic Brake Controller #1) doc. in J1939 - 71, p151 */
 typedef struct {
 	timestamp_t timestamp;

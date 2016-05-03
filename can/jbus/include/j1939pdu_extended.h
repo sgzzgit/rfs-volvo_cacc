@@ -135,6 +135,7 @@ extern int check_timestamp(timestamp_t *raw);
 #define IEC     0xfef6  /* (254, 246) inlet/exhaust conditions */
 #define VEP     0xfef7  /* (254, 247) vehicle electric power */
 #define TF      0xfef8  /* (254, 248) transmission fluids */
+#define VOLVO_BRAKE      0xfefa  /* (254, 250) Volvo service brake pressure */
 #define RF      0xfefb  /* (254, 251) retarder fluids */
 #define VOLVO_XBR_WARN 0xff10  /* (255, 16) XBR Bendix proprietary warning message */
 #define VP39	0xff27  /* (255, 39)  Status of the buttons in the steering wheel. With key in 'Radio'-position: sent on state changes. With key in 'Ignition'-position: sent periodically and on state changes */
