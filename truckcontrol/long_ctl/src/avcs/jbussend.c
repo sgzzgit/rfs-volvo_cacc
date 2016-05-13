@@ -40,21 +40,25 @@ static void sig_hand(int code)
 #define MAX_LOOP_NUMBER 20
 
 /**
- * main calls active_loop every 5 milliseconds, loop numbers range from 0 to 8
- * Engine message can be sent every 10 milliseconds, retarders and brake
- * every 40 milliseconds, with 10 millisecond start-up latency for engine,
- * 20 ms for brake and 40 ms for retarders..
+ * main calls active_loop every 5 milliseconds, loop numbers range from 0 to 20 
+ * Engine, retarders, and brake messages can be sent every 20 milliseconds, 
+ * brake warning message every 100 milliseconds,
+ * with 20 millisecond start-up latency for engine, brakes, and retarders,
+ * and 100 millisecond start-up latency for brake warning.
+ * N.B.: Sending of different messages is spaced by one millisecond - see the
+ * logic below. This was done in the original code; I found later (JAS, 5/6/2016)
+ * that if you send them simultaneously, one of them gets lost!
  */
 int active_loop(int i, int loop_number)
 
 {
 	switch(i) {
 	case JBUS_SEND_ENGINE_SRC_ACC:
-		 return (loop_number % 4 == 0);
+		 return (loop_number == 1) || (loop_number == 5) || (loop_number == 9) || (loop_number == 13) || (loop_number == 17);
 	case JBUS_SEND_ENGINE_RETARDER_SRC_ACC:
-		 return (loop_number % 4 == 0);
+		 return (loop_number == 2) || (loop_number == 6) || (loop_number == 10) || (loop_number == 14) || (loop_number == 18);
 	case JBUS_SEND_XBR: 
-		 return (loop_number % 4 == 0);
+		 return (loop_number == 3) || (loop_number == 7) || (loop_number == 11) || (loop_number == 15) || (loop_number == 19);
 	case JBUS_SEND_XBR_WARN: 
 		 return (loop_number % 20 == 0);
 	}
@@ -116,18 +120,7 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 	int old_mode = tsc1_e_acc->EnOvrdCtrlM;
 
 	ftime(&current);
- 
-	return  /* send heartbeat message */
-		(((TIMEB_SUBTRACT(last_sent, &current) >= cmd->heartbeat)
-				&& cmd->heartbeat))
-		|| 
-		/* send message to disable control */ 
-		(new_mode == TSC_OVERRIDE_DISABLED
-			 && old_mode != TSC_OVERRIDE_DISABLED)
-		||
-		/* called at 10 ms intervals, always send active engine msg */
-        	(new_mode != TSC_OVERRIDE_DISABLED) 
-		;
+	return (TIMEB_SUBTRACT(last_sent, &current) >= cmd->heartbeat); /* send heartbeat message */ 
 }
 
 int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd) 
@@ -140,15 +133,8 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 
 	ftime(&current);
  
-	return  /* no heartbeat message for engine retarder */ 
-		/* send message to disable control */ 
-		((new_mode == TSC_OVERRIDE_DISABLED
-			 && old_mode != TSC_OVERRIDE_DISABLED)
-		||
-		/* send active message every 50 milleseconds */
-        	((new_mode != TSC_OVERRIDE_DISABLED) 
-		&& (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval)))
-		;
+	/* message sent every 20 ms whether active or inactive */
+	return  (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval) ;
 }
 
 int ready_to_send_xbr (long_output_typ *ctrl, jbus_cmd_type *cmd) 
@@ -157,7 +143,7 @@ int ready_to_send_xbr (long_output_typ *ctrl, jbus_cmd_type *cmd)
 	struct timeb *last_sent = &cmd->last_time;
 
 	ftime(&current);
- 
+
 	/* message sent every 20 ms whether active or inactive */
 	return (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval);
 }
@@ -184,43 +170,7 @@ int ready_to_send_xbr_warn (long_output_typ *ctrl, jbus_cmd_type *cmd)
  * retarder should not be enabled.
  */
 #define ACC_OFF_VOLTAGE	0.0
-/*
-int ready_to_send_trans_retarder (long_output_typ *ctrl, jbus_cmd_type *cmd) 
-{
-	struct timeb current;
-	struct timeb *last_sent = &cmd->last_time;
-	j1939_tsc1_er_acc_typ *tsc1_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
-	int new_mode = ctrl->trans_retarder_command_mode;
-	int old_mode = tsc1_er_acc->EnOvrdCtrlM;
-	
 
-	ftime(&current);
- 
-#if 0
-	 make sure not to turn on during acceleration, and to turn
-	 off if active during acceleration.
-	
-	if (new_mode == TSC_TORQUE_CONTROL) {
-		if (pinfo->percent_engine_torque > IDLE_PERCENT_TORQUE || 
-		    pinfo->accelerator_pedal_position > 0.0 ||
-		    ctrl->acc_pedal_control > ACC_OFF_VOLTAGE ) {
-			printf("both acc and trans retarder active\n");
-			ctrl->trans_retarder_command_mode = new_mode =
-				TSC_OVERRIDE_DISABLED;
-		}
-	}
-#endif
-	return   no heartbeat message for transmission retarder 
-		 send message to disable control 
-		((new_mode == TSC_OVERRIDE_DISABLED
-			 && old_mode != TSC_OVERRIDE_DISABLED)
-		||
-		 send active message every 50 milleseconds
-        	((new_mode != TSC_OVERRIDE_DISABLED) 
-		&& (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval)))
-		;
-}
-*/
 void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd, int dosend)
 {
 	struct timeb current;
@@ -383,8 +333,8 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			pm->update_command = update_engine_tsc;
 			pm->cmd_to_pdu = (void *)tsc1_to_pdu;
 			cmd->dbv = DB_J1939_TSC1_E_ACC_VAR;
-			cmd->interval = 10;
-			cmd->heartbeat = 200;
+			cmd->interval = 20;
+			cmd->heartbeat = 20;
 			cmd->override_limit = 5000;
 //			tsc1_e_acc->EnOvrdCtrlMPr = TSC_HIGHEST; 
 			tsc1_e_acc->EnOvrdCtrlMPr = TSC_HIGH; 
@@ -396,6 +346,7 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			tsc1_e_acc->EnRSpdSpdLm = 0.0;
 			tsc1_e_acc->EnRTrqTrqLm = 0.0;
 			tsc1_e_acc->destination_address = J1939_ADDR_ENGINE;
+			tsc1_e_acc->destination_address = 0;
 			tsc1_e_acc->src_address = J1939_ADDR_ACC;
 			break;
 		case JBUS_SEND_ENGINE_RETARDER_SRC_ACC:
@@ -404,8 +355,8 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			pm->update_command = update_engine_retarder_tsc;
 			pm->cmd_to_pdu = (void *)tsc1_to_pdu;
 			cmd->dbv = DB_J1939_TSC1_ER_ACC_VAR;
-			cmd->interval = 40;
-			cmd->heartbeat = 0;	/* not used */
+			cmd->interval = 20;
+			cmd->heartbeat = 20;	/* not used */
 			cmd->override_limit = 0;	/* not used */
 //			tsc1_er_acc->EnOvrdCtrlMPr = TSC_HIGHEST;
 			tsc1_er_acc->EnOvrdCtrlMPr = TSC_HIGH;
@@ -417,6 +368,7 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			tsc1_er_acc->EnRSpdSpdLm = 0.0;
 			tsc1_er_acc->EnRTrqTrqLm = 0.0;
 			tsc1_er_acc->destination_address = J1939_ADDR_ENG_RTDR;
+			tsc1_er_acc->destination_address = 0x0F;
 			tsc1_er_acc->src_address = J1939_ADDR_ACC;
 			break;
 
@@ -451,8 +403,8 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 			pm->update_command = update_brake_volvo_xbr_warn;
 			pm->cmd_to_pdu = (void *) volvo_xbr_warn_to_pdu;
 			cmd->dbv = DB_J1939_VOLVO_XBR_WARN_VAR;
-			cmd->interval = 40;
-			cmd->heartbeat = 40;	
+			cmd->interval = 100;
+			cmd->heartbeat = 100;	
 			cmd->override_limit = 0;	//not used
 			volvo_xbr_warn->byte1 = 0xFF;
 			volvo_xbr_warn->byte2 = 0x31;
@@ -498,13 +450,10 @@ int send_jbus_init (jbus_func_t *pjbf, send_jbus_type *msg,
 		printf("engine_fd %d\n", engine_fd);	
 	}
 	if (msg[JBUS_SEND_XBR].active && brake_file != NULL) {
-printf("jbussend: Got to 1\n");
 		if (strcmp(brake_file, engine_file) == 0 && engine_fd >= 0)  
 			brake_fd = engine_fd;
 		else {
-printf("jbussend: Got to 2\n");
 			brake_fd = (pjbf->init)(brake_file, O_WRONLY, NULL);
-printf("jbussend: Got to 3\n");
 			if (brake_fd < 0) {
 				printf("open error, brake file");
 				printf(" %s fd %d\n", brake_file, brake_fd);
@@ -516,10 +465,8 @@ printf("jbussend: Got to 3\n");
 				fflush(stdout);
 			}
 		}
-printf("jbussend: Got to 4\n");
 		msg[JBUS_SEND_XBR].fd = brake_fd;
 		msg[JBUS_SEND_XBR_WARN].fd = brake_fd;
-printf("jbussend: Got to 5\n");
 	}
 	if (debug) {
 		printf("Initialized %d messages\n ", active_message_types);
@@ -721,10 +668,6 @@ int main( int argc, char *argv[] )
 
 	get_local_name(hostname, MAXHOSTNAMELEN);
 
-	/* default, use STB serial port converter */
-//	jfunc.send = send_stb;
-//	jfunc.receive = receive_stb;
-
         while ((ch = getopt(argc, argv, "a:b:cde:t:v:")) != EOF) {
                 switch (ch) {
 		case 'a': active_mask = atoi(optarg);
@@ -819,21 +762,43 @@ int main( int argc, char *argv[] )
 		tmg.exec_num++;
 		
 		ctrl = get_ctrl_var(&pclt, hostname, progname);
-
+//printf("Got to 5.5 loop number %d\n", loop_number);
 		for (i = 0; i < NUM_JBUS_SEND; i++) { 
 			send_jbus_type *pm = &msg[i];
 
-if (i == JBUS_SEND_XBR) 
-printf("xbr command active %d\n", msg[i].active);
 			if (pm->active) {	
 				int can_send;
 				jbus_cmd_type *cmd = &pm->cmd;
 				can_send = active_loop(i, loop_number)
 					&& (pm->is_ready_to_send)(&ctrl, cmd);
 				pm->update_command(&ctrl, cmd, can_send);
+//printf("Got to 5.5 i %d pm->active %d can_send %d\n", i, pm->active, can_send);
 				if (can_send) {
+					if (i == JBUS_SEND_ENGINE_SRC_ACC) {
+						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.tsc1);	
+/*
+						printf("jbussend: Got to 5.5 %d millisec src_address %#hhx dest address %#hhx loop num %d\n",
+							cmd->last_time.millitm,
+							cmd->cmd.tsc1.src_address,
+							cmd->cmd.tsc1.destination_address,
+							loop_number
+						);
+*/
+					}
+					if (i == JBUS_SEND_ENGINE_RETARDER_SRC_ACC) {
+						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.tsc1);	
+/*
+						printf("jbussend: Got to 5.5 %d millisec src_address %#hhx dest address %#hhx \n",
+							cmd->last_time.millitm,
+							cmd->cmd.tsc1.src_address,
+							cmd->cmd.tsc1.destination_address
+						);
+*/
+					}
+
 					if (i == JBUS_SEND_XBR) {
 						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.volvo_xbr);	
+/*
 						printf("jbussend: Got to 6 %d millisec src_address %#hhx dest address %#hhx XBREBIMode #%hhx XBRPriority %#hhx XBRControlMode %#hhx XBRUrgency %#hhx spare1 %#hhx spare2 %#hhx spare3 %#hhx XBRMessageCounter %#hhx XBRMessageChecksum %#hhx \n",
 							cmd->last_time.millitm,
 							cmd->cmd.volvo_xbr.src_address,
@@ -848,10 +813,11 @@ printf("xbr command active %d\n", msg[i].active);
 							cmd->cmd.volvo_xbr.XBRMessageCounter,
 							cmd->cmd.volvo_xbr.XBRMessageChecksum
 						);
+*/
 					}
 					else if (i == JBUS_SEND_XBR_WARN) {
 						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.volvo_xbr_warn);	
-//						printf("jbussend: Got to 6.5 %d millisec src_address %#hhx dest address %#hhx Byte1 #%hhx Byte2 %#hhx Byte3 %#hhx Byte4 %#hhx Byte5 %#hhx Byte6 %#hhx Byte7 %#hhx Byte8 %#hhx\n",
+/*
 						printf("jbussend: Got to 6.5 %d millisec src_address %#hhx dest address %#hhx priority %d R %d DP %d pdu_format %#hhx pdu_specific %#hhx src_address %#hhx \n",
 							cmd->last_time.millitm,
 							cmd->cmd.volvo_xbr_warn.src_address,
@@ -863,9 +829,12 @@ printf("xbr command active %d\n", msg[i].active);
 							pdu.pdu_specific,
 							pdu.src_address
 						);
+*/
 					}
+
 				else {
 						(pm->cmd_to_pdu)(&pdu, &cmd->cmd.tsc1);	
+/*
 						printf("jbussend: Got to 7 src_address %#hhx dest address %#hhx EnOvrdCtrlMPr #%hhx EnRSpdCtrlC %#hhx EnOvrdCtrlM %#hhx EnRSpdSpdLm %.3f EnRTrqTrqLm %.3f\n",
 							cmd->cmd.tsc1.src_address,
 							cmd->cmd.tsc1.destination_address,
@@ -875,14 +844,13 @@ printf("xbr command active %d\n", msg[i].active);
 							cmd->cmd.tsc1.EnRSpdSpdLm,
 							cmd->cmd.tsc1.EnRTrqTrqLm
 						);
+*/
 				}
 					jfunc.send(pm->fd, &pdu, pm->slot_number);
 					if (debug) {	
-//						if ( (i == 3) || (i == 2) ){
 							j1939_pdu_typ pdu_out;
 							pdu_to_pdu(&pdu, &pdu_out);
 							print_pdu(&pdu_out, stdout, 1);
-//						}
 					}
 					pm->total_sent++;
 				}
