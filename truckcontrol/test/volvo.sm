@@ -121,9 +121,9 @@ shell 'Start everything but longitudinal control and file writing'
 	sleep 1
 	/home/truckcontrol/test/trk_wr -t 100 1>/big/data/trk_wr_$DATESTR.txt 2>/big/data/trk_wr.err &
 	sleep 1
-	$TEST_DIR/veh_snd -v -i 100 -A $IPADDR -a $ITRIADDR -u 15041 -t Gold >/big/data/veh_snd_$DATESTR.dbg &
+	$TEST_DIR/veh_snd -v -i 100 -A $IPADDR -a $ITRIADDR -u 15041 -t $TRUCK >/big/data/veh_snd_$DATESTR.dbg &
 	sleep 1
-	$TEST_DIR/veh_rcv -f $CONFIG_FILE -v -A $IPADDR -a $ITRIADDR -u 15042 -t Gold >/big/data/veh_rcv_$DATESTR.dbg &
+	$TEST_DIR/veh_rcv -f $CONFIG_FILE -v -A $IPADDR -a $ITRIADDR -u 15042 -t $TRUCK >/big/data/veh_rcv_$DATESTR.dbg &
 
 %)
 ;
