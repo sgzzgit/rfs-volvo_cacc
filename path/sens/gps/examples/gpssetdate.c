@@ -20,6 +20,7 @@
 #include <local.h>
 #include <timing.h>
 #include <timestamp.h>
+#include <sys/utsname.h>
 #include "path_gps_lib.h"
 
 jmp_buf env;
@@ -46,7 +47,9 @@ int main(int argc, char *argv[])
 	int option;
 	char datetime_str[30];
 	int hour;
+	int day_of_month;
 	char DST = 0;
+	struct utsname utsname;
 
 	/* Read and interpret any user switches. */
 	while ((option = getopt(argc, argv, "vD:")) != EOF) {
@@ -89,19 +92,34 @@ int main(int argc, char *argv[])
 			hb.speed = path_knots2mps(prmc->speed_knots);
 			hb.heading = prmc->true_track;
 			hour = ((int)(prmc->utc_time/10000)%100);
-			if(DST)
-				hour = hour < 8 ? (hour + 16) : (hour-8);
+			if(hour < 12) 
+				day_of_month = (prmc->date_of_fix/100)%100 - 1;
 			else
+				day_of_month = (prmc->date_of_fix/100)%100;
+			if(DST)
 				hour = hour < 7 ? (hour + 17) : (hour-7);
-
-			sprintf(datetime_str, "date %%+%4.4d%2.2d%2.2d%2.2d%2.2d.%2.2d",
+			else
+				hour = hour < 8 ? (hour + 16) : (hour-8);
+			uname(&utsname);
+			if( (strcmp(utsname.sysname, "Linux")) == 0)
+			    sprintf(datetime_str, "date %2.2d%2.2d%2.2d%2.2d%4.4d.%2.2d",
+				day_of_month,
+				(prmc->date_of_fix/10000)%100,
+				hour,
+				((int)(prmc->utc_time/100)%100),
 				2000 + (prmc->date_of_fix%100),
-				(prmc->date_of_fix/100)%100,
+				((int)prmc->utc_time%100)
+			    );
+			else
+			if( (strcmp(utsname.sysname, "QNX")) == 0)
+			    sprintf(datetime_str, "date %%+%4.4d%2.2d%2.2d%2.2d%2.2d.%2.2d",
+				2000 + (prmc->date_of_fix%100),
+				day_of_month,
 				(prmc->date_of_fix/10000)%100,
 				hour,
 				((int)(prmc->utc_time/100)%100),
 				((int)prmc->utc_time%100)
-				);
+			    );
 			system(datetime_str);
 //date %+201604271927.11
 
