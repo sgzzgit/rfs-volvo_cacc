@@ -46,7 +46,11 @@ int main(int argc, char *argv[])
 	path_gps_point_t hb;	/// fill in from GPS messages received
 	int option;
 	char datetime_str[30];
+	int year;
 	int hour;
+	int month;
+	int minute;
+	int second;
 	int day_of_month;
 	char DST = 0;
 	struct utsname utsname;
@@ -93,32 +97,37 @@ int main(int argc, char *argv[])
 			hb.heading = prmc->true_track;
 			hour = ((int)(prmc->utc_time/10000)%100);
 			if(hour < 12) 
-				day_of_month = (prmc->date_of_fix/100)%100 - 1;
+				day_of_month = (prmc->date_of_fix/10000)%100 - 1;
 			else
-				day_of_month = (prmc->date_of_fix/100)%100;
+				day_of_month = (prmc->date_of_fix/10000)%100;
 			if(DST)
 				hour = hour < 7 ? (hour + 17) : (hour-7);
 			else
 				hour = hour < 8 ? (hour + 16) : (hour-8);
+			month = ((int)(prmc->date_of_fix/100)%100);
+			year = 2000 + (prmc->date_of_fix%100);
+			minute = ((int)(prmc->utc_time/100)%100);
+			second = ((int)prmc->utc_time%100);
+
 			uname(&utsname);
 			if( (strcmp(utsname.sysname, "Linux")) == 0)
 			    sprintf(datetime_str, "date %2.2d%2.2d%2.2d%2.2d%4.4d.%2.2d",
+				month,
 				day_of_month,
-				(prmc->date_of_fix/10000)%100,
 				hour,
-				((int)(prmc->utc_time/100)%100),
-				2000 + (prmc->date_of_fix%100),
-				((int)prmc->utc_time%100)
+				minute,
+				year,
+				second
 			    );
 			else
 			if( (strcmp(utsname.sysname, "QNX")) == 0)
 			    sprintf(datetime_str, "date %%+%4.4d%2.2d%2.2d%2.2d%2.2d.%2.2d",
-				2000 + (prmc->date_of_fix%100),
+				year,
+				month,
 				day_of_month,
-				(prmc->date_of_fix/10000)%100,
 				hour,
-				((int)(prmc->utc_time/100)%100),
-				((int)prmc->utc_time%100)
+				minute,
+				second
 			    );
 			system(datetime_str);
 //date %+201604271927.11
@@ -126,7 +135,16 @@ int main(int argc, char *argv[])
 			if (verbose)
 				printf("date %d, time %.3f\n", 
 					    prmc->date_of_fix, prmc->utc_time);
+				printf("year %d month %d day %d hour %d minute %d second %d\n",
+					year,		
+					month,		
+					day_of_month,		
+					hour,		
+					minute,		
+					second		
+				);
 				printf("datestr %s\n", datetime_str);
+//date 140516, time 13223.000 May 14, 2016
 //			clockset2gps(prmc->date_of_fix,prmc->utc_time);	
 			break;	// exit after setting clock
 		} 
