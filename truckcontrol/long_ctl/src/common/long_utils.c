@@ -262,6 +262,7 @@ static int trk_jdbv_list[] = {
 		DB_J1939_TSC1_ER_V_VAR,
 		DB_J1939_VOLVO_TARGET_VAR,
 		DB_J1939_VOLVO_EGO_VAR,
+		DB_J1939_VOLVO_BRK_VAR,
 };
 
 static db_id_t trk_in_dbv_list[] = {
