@@ -113,7 +113,10 @@ int main(int argc, char *argv[])
                           break;
                 }
         }
-printf("Got to 1\n");
+
+	// Leave this here! Do not move it below the db_list_init! Doing so created a huge
+	// problem with binding sockets, probably because somehow db_clt_login closes the stdin
+	// and stdout file descriptors. When I tried to open a socket, it returned a zero.
 	if( ( sd = OpenTCPConnection(local_ipaddr, remote_ipaddr, local_port, remote_port)) < 0) {
 		perror("OpenTCPConnection");
 		printf("Failure %d to initialize socket from %s:%hd to %s:%d\n",
@@ -125,7 +128,6 @@ printf("Got to 1\n");
                 exit(EXIT_FAILURE);
         }
 
-printf("Got to 2\n");
         get_local_name(hostname, MAXHOSTNAMELEN);
 
 	/**  assumes DB_COMM variables were aleady created by another process
@@ -140,7 +142,6 @@ printf("Got to 2\n");
 	} else
 		sig_ign(sig_list, sig_hand);
 	while (1) {
-printf("Got to 3\n");
 		db_clt_read(pclt, DB_COMM_LEAD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt1);
 		db_clt_read(pclt, DB_COMM_SECOND_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt2);
 		db_clt_read(pclt, DB_COMM_THIRD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt3);
