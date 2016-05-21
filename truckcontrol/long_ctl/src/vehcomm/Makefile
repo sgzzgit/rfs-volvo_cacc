@@ -14,7 +14,7 @@ PATH_CFLAGS += -I$(ASNDIR) -I$(J2735INC)
 PATH_LDFLAGS += -L$(ASNDIR)
 PATH_OBJS += $(ASNDIR)/*.o $(OBJDIR)/veh_lib.o
 
-EXEC =  $(OBJDIR)/veh_rcv $(OBJDIR)/veh_snd $(OBJDIR)/veh_snd_test
+EXEC =  $(OBJDIR)/veh_rcv $(OBJDIR)/veh_snd $(OBJDIR)/veh_snd_test $(OBJDIR)/dvi_rcv $(OBJDIR)/dvi_snd
 
 all:    $(OBJDIR) $(PATH_OBJS) $(EXEC)
 
@@ -23,6 +23,9 @@ $(OBJDIR):
 
 $(OBJDIR)/veh_rcv: $(OBJDIR)/veh_rcv.o
 $(OBJDIR)/veh_snd: $(OBJDIR)/veh_snd.o
+$(OBJDIR)/dvi_rcv: $(OBJDIR)/dvi_rcv.o
+$(OBJDIR)/dvi_snd: $(OBJDIR)/dvi_snd.o
+
 $(ASNDIR)/*.o:
 	make -C $(ASNDIR)
 clean:

@@ -146,7 +146,7 @@ int main( int argc, char *argv[] )
 	} else
 		sig_ign( sig_list, sig_hand );
 
-	if ( (sd = udp_unicast_init(&dst_addr, remote_ipaddr, local_ipaddr, udp_port)) < 0) {
+	if ( (sd = udp_peer2peer_init(&dst_addr, remote_ipaddr, local_ipaddr, udp_port, 0)) < 0) {
 		printf("Failure to initialize socket from %s to %s on port %d\n",
 			remote_ipaddr, local_ipaddr, udp_port);
 		longjmp(exit_env, 2);
