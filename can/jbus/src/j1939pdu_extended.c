@@ -320,6 +320,61 @@ print_volvo_brk(void *pdbv, FILE  *fp, int numeric)
 	}
 }
 
+void
+pdu_to_volvo_vp15(struct j1939_pdu *pdu, void *pdbv)
+{
+	j1939_volvo_vp15_t *volvo_vp15 = (j1939_volvo_vp15_t *)pdbv;
+	unsigned char byte;
+
+        volvo_vp15->VP15_PowerDownAcknowledge = (pdu->data_field[0] >> 2) & 0x03;
+        volvo_vp15->VP15_DirectionGearAllowed = (pdu->data_field[0] >> 4) & 0x07;
+        volvo_vp15->VP15_ClutchOverloadStatus = pdu->data_field[1] & 0x03;
+        volvo_vp15->VP15_EcoRollStatus = (pdu->data_field[1] >> 2) & 0x03;
+        volvo_vp15->VP15_RecommendedGearshift = (pdu->data_field[1] >> 4) & 0x07;
+        volvo_vp15->VP15_EcoRollActiveStatus = pdu->data_field[2] & 0x03;
+        volvo_vp15->VP15_AutomaticHSARequest = (pdu->data_field[2] >> 2) & 0x03;
+        volvo_vp15->VP15_EngineShutdownRequest = (pdu->data_field[2] >> 4) & 0x03;
+        volvo_vp15->VP15_PermittedHillHolderP = pdu->data_field[3] * 0.4; //percent
+        volvo_vp15->VP15_RoadInclinationVP15 = (pdu->data_field[4] * 0.2) - 25.0; //percent
+        volvo_vp15->VP15_VehicleWeightVP15 = pdu->data_field[5] * 1000.0; //kg
+
+}
+
+void 
+print_volvo_vp15(void *pdbv, FILE  *fp, int numeric)
+
+{
+	j1939_volvo_vp15_t *volvo_vp15 = (j1939_volvo_vp15_t *)pdbv;
+	fprintf(fp, "VP15 ");
+	print_timestamp(fp, &volvo_vp15->timestamp);
+	if (numeric) {
+		fprintf(fp, "%.2f ", volvo_vp15->VP15_RoadInclinationVP15);
+		fprintf(fp, "%.2f ", volvo_vp15->VP15_VehicleWeightVP15);
+		fprintf(fp, "%.1f ", volvo_vp15->VP15_PermittedHillHolderP);
+		fprintf(fp, "%d ", volvo_vp15->VP15_PowerDownAcknowledge);
+		fprintf(fp, "%d ", volvo_vp15->VP15_DirectionGearAllowed);
+		fprintf(fp, "%d ", volvo_vp15->VP15_ClutchOverloadStatus);
+		fprintf(fp, "%d ", volvo_vp15->VP15_EcoRollStatus);
+		fprintf(fp, "%d ", volvo_vp15->VP15_RecommendedGearshift);
+		fprintf(fp, "%d ", volvo_vp15->VP15_EcoRollActiveStatus);
+		fprintf(fp, "%d ", volvo_vp15->VP15_AutomaticHSARequest);
+		fprintf(fp, "%d ", volvo_vp15->VP15_EngineShutdownRequest);
+		fprintf(fp, "\n");
+	} else {
+		fprintf(fp, "Road Grade %.2f\n", volvo_vp15->VP15_RoadInclinationVP15);
+		fprintf(fp, "Vehicle Weight (kg) %.2f \n", volvo_vp15->VP15_VehicleWeightVP15);
+		fprintf(fp, "Permitted Hill Holder Percentage %.1f \n", volvo_vp15->VP15_PermittedHillHolderP);
+		fprintf(fp, "Power Down Acknowledge %d \n", volvo_vp15->VP15_PowerDownAcknowledge);
+		fprintf(fp, "Direction Gear Allowed %d \n", volvo_vp15->VP15_DirectionGearAllowed);
+		fprintf(fp, "Clutch Overload Status %d \n", volvo_vp15->VP15_ClutchOverloadStatus);
+		fprintf(fp, "Eco Roll Status %d \n", volvo_vp15->VP15_EcoRollStatus);
+		fprintf(fp, "Recommended Gearshift%d \n", volvo_vp15->VP15_RecommendedGearshift);
+		fprintf(fp, "Eco Roll Active Status %d \n", volvo_vp15->VP15_EcoRollActiveStatus);
+		fprintf(fp, "Automatic HSA Request %d \n", volvo_vp15->VP15_AutomaticHSARequest);
+		fprintf(fp, "Engine Shutdown Request %d \n", volvo_vp15->VP15_EngineShutdownRequest);
+	}
+}
+
 
 /** ETC1 (Electronic Retarder Controller #1) documented in J1939 - 71, p 150 */
 void
