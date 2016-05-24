@@ -263,6 +263,7 @@ static int trk_jdbv_list[] = {
 		DB_J1939_VOLVO_TARGET_VAR,
 		DB_J1939_VOLVO_EGO_VAR,
 		DB_J1939_VOLVO_BRK_VAR,
+		DB_J1939_VOLVO_VP15_VAR,
 };
 
 static db_id_t trk_in_dbv_list[] = {
@@ -455,6 +456,7 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
         j1939_ebc2_typ *pebc2;
         j1939_ebc5_typ *pebc5;
 	j1939_volvo_brk_t *pvolvo_brk;
+	j1939_volvo_vp15_t *pvolvo_vp15;
         j1939_ccvs_typ *pccvs;
         j1939_etc1_typ *petc1;
 	j1939_etc2_typ *petc2;
@@ -654,6 +656,20 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 		pstate->VBRK_BrkStatParkBrkActuator  = pvolvo_brk->VBRK_BrkStatParkBrkActuator ;
 		pstate->VBRK_ParkBrkRedWarningSignal  = pvolvo_brk->VBRK_ParkBrkRedWarningSignal ;
 		pstate->VBRK_ParkBrkReleaseInhibitStat  = pvolvo_brk->VBRK_ParkBrkReleaseInhibitStat ;
+		break;
+        case DB_J1939_VOLVO_VP15_VAR:
+		pvolvo_vp15 = (j1939_volvo_vp15_t *) pdata_val;
+		pstate->VP15_EcoRollStatus = pvolvo_vp15->VP15_EcoRollStatus;
+		pstate->VP15_AutomaticHSARequest = pvolvo_vp15->VP15_AutomaticHSARequest;
+		pstate->VP15_EngineShutdownRequest = pvolvo_vp15->VP15_EngineShutdownRequest;
+		pstate->VP15_RoadInclinationVP15 = pvolvo_vp15->VP15_RoadInclinationVP15;
+		pstate->VP15_PermittedHillHolderP = pvolvo_vp15->VP15_PermittedHillHolderP;
+		pstate->VP15_RecommendedGearshift = pvolvo_vp15->VP15_RecommendedGearshift;
+		pstate->VP15_EcoRollActiveStatus = pvolvo_vp15->VP15_EcoRollActiveStatus;
+		pstate->VP15_ClutchOverloadStatus = pvolvo_vp15->VP15_ClutchOverloadStatus;
+		pstate->VP15_PowerDownAcknowledge = pvolvo_vp15->VP15_PowerDownAcknowledge;
+		pstate->VP15_DirectionGearAllowed = pvolvo_vp15->VP15_DirectionGearAllowed;
+		pstate->VP15_VehicleWeightVP15 = pvolvo_vp15->VP15_VehicleWeightVP15;
 		break;
         case DB_J1939_EBC5_VAR:
 		pebc5 = (j1939_ebc5_typ *) pdata_val;
