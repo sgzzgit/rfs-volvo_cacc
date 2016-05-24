@@ -8,6 +8,7 @@
 #define TIMESTAMP_H
 
 #include <stdio.h>
+#include <sys_os.h>
 
 typedef struct {
 	char hour;	/// Timestamp of last database update
@@ -50,6 +51,8 @@ extern timestamp_t gpsutc2ts(float utc_time);
 extern timestamp_t utc2local(timestamp_t utc_ts);
 extern struct timespec adjust_tm(struct timespec tm, timestamp_t utc_ts);
 extern void print_timespec(FILE *fp,struct timespec *pts);
+extern float sec_past_midnight_float(void);
+void get_todays_date(int *pmonth, int *pday, int *pyear);
 
 /** Converts hours,mins,sec,millisecs of current time to double floating point
  *  seconds  in the day

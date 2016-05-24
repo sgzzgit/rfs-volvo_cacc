@@ -178,6 +178,20 @@ int get_current_timestamp(timestamp_t *ts)
 	return 1;
 }
 
+float sec_past_midnight_float(void) {
+	struct timeb timeptr_raw;
+	struct tm time_converted;
+	float sec_past_midnight;
+
+	if (ftime (&timeptr_raw) == -1)	
+		return 0; 
+
+	localtime_r ( &timeptr_raw.time, &time_converted );
+
+        sec_past_midnight = (time_converted.tm_hour * 3600) + (time_converted.tm_min * 60) + time_converted.tm_sec + (timeptr_raw.millitm / 1000.0);
+	return sec_past_midnight;
+}
+	
 void ms_to_ts(int ms, timestamp_t *ts)
 {
 	int t;
@@ -403,4 +417,19 @@ void print_timespec(FILE *fp,struct timespec *pts)
 		tm_val.tm_sec,
 		pts->tv_nsec);
 }
+
+/**
+ *	Function to return the number of current month, day and year
+ */ 
+void get_todays_date(int *pmonth, int *pday, int *pyear)
+{
+	struct timespec now;
+	struct tm tm_val;
+	clock_gettime(CLOCK_REALTIME, &now);
+	tm_val = *localtime(&now.tv_sec);
+	*pmonth = tm_val.tm_mon + 1;
+	*pday = tm_val.tm_mday;
+	*pyear = tm_val.tm_year + 1900;
+}
+
 
