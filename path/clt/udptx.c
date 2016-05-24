@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 	if (do_broadcast)  	
 		sd_out = udp_broadcast_init(&snd_addr, udp_name, udp_port);
 	else 
-		sd_out = udp_unicast_init(&snd_addr, udp_name, my_udp_name, udp_port);
+		sd_out = udp_unicast_init(&snd_addr, udp_name, udp_port);
 
 	if (sd_out < 0) {
 		printf("failure opening socket on %s %d\n",
