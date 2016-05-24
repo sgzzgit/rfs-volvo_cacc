@@ -40,8 +40,7 @@ j1939_pgn_index pdu1_index[256] = {
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 15 */
-	{NULL, DB_J1939_VOLVO_XBR_WARN_VAR},		    /* 16 */
-	{NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 31 */
@@ -437,8 +436,10 @@ j1939_pgn_index pdu2_255[256] = {
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, 
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
-	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 15 */
-	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
+	{NULL, 500}, {NULL, 500}, {NULL, 500}, 
+	{NULL, DB_J1939_VOLVO_VP15_VAR},		    /* 15 */
+	{NULL, DB_J1939_VOLVO_XBR_WARN_VAR},		    /* 16 */
+	{NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500},
 	{NULL, 500}, {NULL, 500}, {NULL, 500}, {NULL, 500}, /* 31 */
@@ -576,6 +577,7 @@ j1939_dbv_info db_ref[] = {
 	{VOLVO_XBR, sizeof(j1939_volvo_xbr_typ), pdu_to_volvo_xbr, NULL, print_volvo_xbr, 0},
 	{ETC2_E, sizeof(j1939_etc2_e_typ), pdu_to_etc2_e, NULL, print_etc2_e, 0},
 	{VOLVO_BRK, sizeof(j1939_volvo_brk_t), pdu_to_volvo_brk, NULL, print_volvo_brk, 0},
+	{VOLVO_VP15, sizeof(j1939_volvo_vp15_t), pdu_to_volvo_vp15, NULL, print_volvo_vp15, 0},
 };
 
 /**
