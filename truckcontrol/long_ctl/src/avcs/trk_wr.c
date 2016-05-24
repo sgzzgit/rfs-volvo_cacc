@@ -388,9 +388,20 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 		fprintf(fp, "%.3f ", pv->Volvo_EgoAcc);			//210
 		fprintf(fp, "%.3f ", pv->VBRK_BrkAppPressure);
 		fprintf(fp, "%.3f ", pv->VBRK_BrkPrimaryPressure);
-		fprintf(fp, "%.3f ", pv->VBRK_BrkSecondaryPressure);	//213
+		fprintf(fp, "%.3f ", pv->VBRK_BrkSecondaryPressure);	
+                fprintf(fp, "%.2f ", pv->VP15_RoadInclinationVP15);
+                fprintf(fp, "%.2f ", pv->VP15_VehicleWeightVP15);	//215
+                fprintf(fp, "%.1f ", pv->VP15_PermittedHillHolderP);
+                fprintf(fp, "%d ", pv->VP15_PowerDownAcknowledge);
+                fprintf(fp, "%d ", pv->VP15_DirectionGearAllowed);
+                fprintf(fp, "%d ", pv->VP15_ClutchOverloadStatus);
+                fprintf(fp, "%d ", pv->VP15_EcoRollStatus);		//220
+                fprintf(fp, "%d ", pv->VP15_RecommendedGearshift);
+                fprintf(fp, "%d ", pv->VP15_EcoRollActiveStatus);
+                fprintf(fp, "%d ", pv->VP15_AutomaticHSARequest);
+                fprintf(fp, "%d ", pv->VP15_EngineShutdownRequest);	//224
 
-		fprintf(fp, "\n");
+                fprintf(fp, "\n");
 
 		current_index++;
 		if (current_index == pbuff->data_size)
