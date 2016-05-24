@@ -100,10 +100,31 @@ int udp_unicast()
 	return sockfd;
 }
 
-// Sets up a UDP socket for sending unicast messages 
+// Sets up a UDP socket for sending unicast messages
 // and initializes the sockaddr_in structure to be used for the sends.
 
-int udp_unicast_init(struct sockaddr_in *paddr,char *remote_ip_str, char *local_ip_str, short port)
+int udp_unicast_init(struct sockaddr_in *paddr,char *ip_str,short port)
+{
+        int sockfd;
+        struct in_addr ia;
+
+        sockfd = udp_unicast();
+
+        if (!inet_aton(ip_str, &ia))
+                return (-2);
+
+        set_inet_addr(paddr, ia.s_addr, port);
+        return sockfd;
+}
+
+/* Sets up a UDP socket for sending UDP messages peer-to-peer, i.e.
+** from a local IP address and port, to a remote IP address and port,
+** and initializes the sockaddr_in structure to be used for the sends.
+**
+** If the local port is set to zero, assign the remote port number to the local port.
+*/
+
+int udp_peer2peer_init(struct sockaddr_in *paddr,char *remote_ip_str, char *local_ip_str, short remote_port, short local_port)
 {
 	int sockfd;  
 	struct in_addr ia;
@@ -118,8 +139,10 @@ int udp_unicast_init(struct sockaddr_in *paddr,char *remote_ip_str, char *local_
 	if (!inet_aton(local_ip_str, &ia2))
 		return (-3);
 
-	set_inet_addr(paddr, ia.s_addr, port);	
-	set_inet_addr(&paddr2, ia2.s_addr, port);	
+	set_inet_addr(paddr, ia.s_addr, remote_port);	
+	if(local_port == 0)
+		local_port = remote_port;
+	set_inet_addr(&paddr2, ia2.s_addr, local_port);	
 
 	if (bind(sockfd, (struct sockaddr *)&paddr2,
 					 sizeof(struct sockaddr)) == -1) {

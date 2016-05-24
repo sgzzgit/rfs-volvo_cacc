@@ -45,8 +45,16 @@ extern int udp_unicast();
 
 // Sets up a UDP socket for sending unicast messages to "port" at "ip_str"
 // and initializes the sockaddr_in structure to be used for the sends.
-// Uses same port for local host (e.g. 128.32.234.123, NOT 127.0.0.1)
-extern int udp_unicast_init(struct sockaddr_in *paddr,char *remote_ip_str, char *local_ip_str, short port);
+extern int udp_unicast_init(struct sockaddr_in *paddr,char *remote_ip_str, short port);
+
+/* Sets up a UDP socket for sending unicast messages to "port" at "ip_str"
+** and initializes the sockaddr_in structure to be used for the sends.
+** The difference between this initialization and udp_unicast_init is the optional
+** use of the local IP address and a local port.  So why don't we use TCP/IP instead?
+** Because the connection may be tenuous, and ITRI required the same port be used for local host (e.g. 128.32.234.123, NOT 127.0.0.1)
+*/
+extern int udp_peer2peer_init(struct sockaddr_in *paddr,char *remote_ip_str, char *local_ip_str, short remote_port, short local_port);
+
 
 
 // Sets up a UDP socket for sending broadcast messages to "port"
