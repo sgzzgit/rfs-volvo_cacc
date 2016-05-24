@@ -265,6 +265,18 @@ typedef struct {
   unsigned char VOLVO_XBR_WARN_byte7;
   unsigned char VOLVO_XBR_WARN_byte8;
 
+  unsigned char VP15_EcoRollStatus;
+  unsigned char VP15_AutomaticHSARequest;
+  unsigned char VP15_EngineShutdownRequest;
+  float VP15_RoadInclinationVP15;
+  float VP15_PermittedHillHolderP;
+  unsigned char VP15_RecommendedGearshift;
+  unsigned char VP15_EcoRollActiveStatus;
+  unsigned char VP15_ClutchOverloadStatus;
+  unsigned char VP15_PowerDownAcknowledge;
+  unsigned char VP15_DirectionGearAllowed;
+  float VP15_VehicleWeightVP15;
+
   float Volvo_TargetDist;
   float Volvo_TargetVel;
   float Volvo_TargetAcc;
