@@ -137,6 +137,7 @@ extern int check_timestamp(timestamp_t *raw);
 #define TF      0xfef8  /* (254, 248) transmission fluids */
 #define VOLVO_BRK 0xfefa  /* (254, 250) Volvo service brake pressure */
 #define RF      0xfefb  /* (254, 251) retarder fluids */
+#define VOLVO_VP15	0xff0f  /* (255, 15)  Road grade, vehicle weight */
 #define VOLVO_XBR_WARN 0xff10  /* (255, 16) XBR Bendix proprietary warning message */
 #define VP39	0xff27  /* (255, 39)  Status of the buttons in the steering wheel. With key in 'Radio'-position: sent on state changes. With key in 'Ignition'-position: sent periodically and on state changes */
 #define EBC_ACC 0xff80  /* (255, 128) EBC to ACC WABCO proprietary */
@@ -209,6 +210,7 @@ extern void pdu_to_volvo_ego (struct j1939_pdu *pdu, void *pdbv);
 extern void pdu_to_volvo_xbr_warn(struct j1939_pdu *pdu, void *pdbv);
 extern void pdu_to_volvo_xbr(struct j1939_pdu *pdu, void *pdbv);
 extern void pdu_to_volvo_brk(struct j1939_pdu *pdu, void *pdbv);
+extern void pdu_to_volvo_vp15 (struct j1939_pdu *pdu, void *pdbv);
 
 
 extern void print_pdu (void *pdbv, FILE *fp, int numeric);
@@ -251,5 +253,6 @@ extern void print_volvo_ego(void *pdbv, FILE *fp, int numeric);
 extern void print_volvo_xbr_warn(void *pdbv, FILE *fp, int numeric);
 extern void print_volvo_xbr(void *pdbv, FILE *fp, int numeric);
 extern void print_volvo_brk(void *pdbv, FILE  *fp, int numeric);
+extern void print_volvo_vp15(void *pdbv, FILE  *fp, int numeric);
 
 #endif
