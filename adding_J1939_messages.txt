@@ -1,0 +1,98 @@
+can/jbus/include/j1939pdu_extended.h
+#define VOLVO_VP15     0xff0f  /* (255, 15)  Road grade, vehicle weight */
+extern void pdu_to_volvo_vp15 (struct j1939_pdu *pdu, void *pdbv);
+extern void print_volvo_vp15(void *pdbv, FILE  *fp, int numeric);
+
+can/jbus/include/jbus_extended.h
+/** PDU VP15 (Volvo brake type, Bendix brakes) */
+typedef struct {
+       timestamp_t timestamp;
+       unsigned char VP15_EcoRollStatus;
+       unsigned char VP15_AutomaticHSARequest;
+       unsigned char VP15_EngineShutdownRequest;
+       float VP15_RoadInclinationVP15;
+       float VP15_PermittedHillHolderP;
+       unsigned char VP15_RecommendedGearshift;
+       unsigned char VP15_EcoRollActiveStatus;
+       unsigned char VP15_ClutchOverloadStatus;
+       unsigned char VP15_PowerDownAcknowledge;
+       unsigned char VP15_DirectionGearAllowed;
+       float VP15_VehicleWeightVP15;
+} IS_PACKED j1939_volvo_vp15_t;
+
+can/jbus/include/jbus_vars.h
+#define DB_J1939_VOLVO_VP15_TYPE       551      ///j1939_volvo_vp15_t
+
+can/jbus/src/j1939db_extended.c
+j1939_pgn_index pdu1_index[256] = {
+       {NULL, DB_J1939_VOLVO_VP15_VAR},                    /* 15 */
+}
+j1939_dbv_info db_ref[] = {
+       {VOLVO_VP15, sizeof(j1939_volvo_vp15_t), pdu_to_volvo_vp15, NULL, print_volvo_vp15, 0},
+}
+
+can/jbus/src/j1939pdu_extended.c
+void pdu_to_volvo_vp15(struct j1939_pdu *pdu, void *pdbv)
+{
+       j1939_volvo_vp15_t *volvo_vp15 = (j1939_volvo_vp15_t *)pdbv;
+       unsigned char byte;
+
+        volvo_vp15->VP15_PowerDownAcknowledge = (pdu->data_field[0] >> 2) & 0x03;
+        volvo_vp15->VP15_DirectionGearAllowed = (pdu->data_field[0] >> 4) & 0x07;
+        volvo_vp15->VP15_ClutchOverloadStatus = pdu->data_field[1] & 0x03;
+        volvo_vp15->VP15_EcoRollStatus = (pdu->data_field[1] >> 2) & 0x03;
+        volvo_vp15->VP15_RecommendedGearshift = (pdu->data_field[1] >> 4) & 0x07;
+        volvo_vp15->VP15_EcoRollActiveStatus = pdu->data_field[2] & 0x03;
+        volvo_vp15->VP15_AutomaticHSARequest = (pdu->data_field[2] >> 2) & 0x03;
+        volvo_vp15->VP15_EngineShutdownRequest = (pdu->data_field[2] >> 4) & 0x03;
+        volvo_vp15->VP15_PermittedHillHolderP = pdu->data_field[3] * 0.4; //percent
+        volvo_vp15->VP15_RoadInclinationVP15 = (pdu->data_field[4] * 0.2) - 25.0; //percent
+        volvo_vp15->VP15_VehicleWeightVP15 = pdu->data_field[5] * 1000.0; //kg
+
+}
+
+void 
+print_volvo_vp15(void *pdbv, FILE  *fp, int numeric)
+
+{
+       j1939_volvo_vp15_t *volvo_vp15 = (j1939_volvo_vp15_t *)pdbv;
+       fprintf(fp, "VP15 ");
+       print_timestamp(fp, &volvo_vp15->timestamp);
+       if (numeric) {
+               fprintf(fp, "%.2f ", volvo_vp15->VP15_RoadInclinationVP15);
+               fprintf(fp, "%.2f ", volvo_vp15->VP15_VehicleWeightVP15);
+               fprintf(fp, "%.1f ", volvo_vp15->VP15_PermittedHillHolderP);
+               fprintf(fp, "%d ", volvo_vp15->VP15_PowerDownAcknowledge);
+               fprintf(fp, "%d ", volvo_vp15->VP15_DirectionGearAllowed);
+               fprintf(fp, "%d ", volvo_vp15->VP15_ClutchOverloadStatus);
+               fprintf(fp, "%d ", volvo_vp15->VP15_EcoRollStatus);
+               fprintf(fp, "%d ", volvo_vp15->VP15_RecommendedGearshift);
+               fprintf(fp, "%d ", volvo_vp15->VP15_EcoRollActiveStatus);
+               fprintf(fp, "%d ", volvo_vp15->VP15_AutomaticHSARequest);
+               fprintf(fp, "%d ", volvo_vp15->VP15_EngineShutdownRequest);
+               fprintf(fp, "\n");
+       } else {
+               fprintf(fp, "Road Grade %.2f\n", volvo_vp15->VP15_RoadInclinationVP15);
+               fprintf(fp, "Vehicle Weight (kg) %.2f \n", volvo_vp15->VP15_VehicleWeightVP15);
+               fprintf(fp, "Permitted Hill Holder Percentage %.1f \n", volvo_vp15->VP15_PermittedHillHolderP);
+               fprintf(fp, "Power Down Acknowledge %d \n", volvo_vp15->VP15_PowerDownAcknowledge);
+               fprintf(fp, "Direction Gear Allowed %d \n", volvo_vp15->VP15_DirectionGearAllowed);
+               fprintf(fp, "Clutch Overload Status %d \n", volvo_vp15->VP15_ClutchOverloadStatus);
+               fprintf(fp, "Eco Roll Status %d \n", volvo_vp15->VP15_EcoRollStatus);
+               fprintf(fp, "Recommended Gearshift%d \n", volvo_vp15->VP15_RecommendedGearshift);
+               fprintf(fp, "Eco Roll Active Status %d \n", volvo_vp15->VP15_EcoRollActiveStatus);
+               fprintf(fp, "Automatic HSA Request %d \n", volvo_vp15->VP15_AutomaticHSARequest);
+               fprintf(fp, "Engine Shutdown Request %d \n", volvo_vp15->VP15_EngineShutdownRequest);
+       }
+}
+
+    modified:   truckcontrol/long_ctl/src/avcs/trk_wr.c
+    Added VP15_ writes, espectially VP15_RoadInclinationVP15
+
+    modified:   truckcontrol/long_ctl/src/common/long_ctl.h
+    Added VP15_ fields to long_vehicle_state
+
+    modified:   truckcontrol/long_ctl/src/common/long_utils.c
+    Added case statement for copying j1939_volvo_vp15_t fields into long_vehicle_state
+    struct
+    Added DB_J1939_VOLVO_BRK_VAR to trk_jdbv_list
