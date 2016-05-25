@@ -177,6 +177,9 @@ void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd, int dosend)
 	j1939_tsc1_e_acc_typ *tsc1_e_acc = (j1939_tsc1_e_acc_typ *)&cmd->cmd.tsc1;
 	static int engine_speed_mode = 0;
 	static struct timeb last_mode_change;
+	static float last_engine_torque = 1;
+	static char state_change_counter = 0;
+
 
 	/* There is an override time limit only for engine speed control */
 	if (ctrl->engine_command_mode == TSC_SPEED_CONTROL) {
@@ -202,6 +205,23 @@ void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd, int dosend)
 
 	/* convert torque to percent */
 	tsc1_e_acc->EnRTrqTrqLm = ctrl->engine_torque;
+
+        /* When you shift from positive to negative torque:
+        Send three TSC messages to the EMS with EngineOverrideControlMode = 0 and
+        EngineTorqueLimit as 255 (Not available). After this you stop sending TSC to the EMS.
+        At the same time, start sending the TSC message to the retarder (as done now).
+        Do the same procedure when you go back from negative to positive torque.
+        JBYTE_NOT_AVAILABLE = 0xFF (255)
+        TSC_OVERRIDE_DISABLED = 0 */
+
+        if(((last_engine_torque > 0) && (ctrl->engine_torque < 0)) ||
+          ((last_engine_torque < 0) && (ctrl->engine_torque > 0)))
+                state_change_counter = 3;
+
+        if(--state_change_counter >= 0) {
+                tsc1_e_acc->EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
+                tsc1_e_acc->EnRTrqTrqLm = JBYTE_NOT_AVAILABLE;
+        }
 
 	if (dosend) {
 		ftime(&current);
