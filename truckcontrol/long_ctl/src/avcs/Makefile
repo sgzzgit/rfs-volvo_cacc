@@ -23,8 +23,7 @@ PATH_LDFLAGS += -L$(COMMON_DIR) -L$(J1939_LIB_DIR) -L$(CAN_CLIENT_LIB_DIR)
 
 PATH_LIBS = $(LONG_LIBS) $(PATH_CORE_LIBS) -lcapath_can 
 
-EXEC = $(OBJDIR)/trk_io\
-	$(OBJDIR)/trk_wr \
+EXEC =  $(OBJDIR)/trk_wr \
 	$(OBJDIR)/trk_cr \
 	$(OBJDIR)/rdswitches\
 	$(OBJDIR)/setLEDs\
