@@ -215,8 +215,11 @@ void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd, int dosend)
         TSC_OVERRIDE_DISABLED = 0 */
 
         if(((last_engine_torque > 0) && (ctrl->engine_torque < 0)) ||
-          ((last_engine_torque < 0) && (ctrl->engine_torque > 0)))
+          ((last_engine_torque < 0) && (ctrl->engine_torque > 0))) {
                 state_change_counter = 3;
+	}
+
+	last_engine_torque = ctrl->engine_torque;
 
         if(--state_change_counter >= 0) {
                 tsc1_e_acc->EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
