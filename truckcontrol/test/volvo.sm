@@ -102,16 +102,16 @@ shell 'Start everything but longitudinal control and file writing'
 	sleep 1
 	$TEST_DIR/trk_cr -t 1000 2>long_input_$DATESTR.dbg &
 	sleep 1
-	$CAN_DRIVER_DIR/can_man -n /dev/can1 -s 250 -i 10 -p 0xda000 -e 1 >/big/data/can1$DATESTR.log &
+	nice --2 $CAN_DRIVER_DIR/can_man -n /dev/can1 -s 250 -i 10 -p 0xda000 -e 1 >/big/data/can1$DATESTR.log &
 	sleep 1
-	$CAN_DRIVER_DIR/can_man -n /dev/can2 -s 500 -i 7 -p 0xda200 -e 1 >/big/data/can2$DATESTR.log &
+	nice --2 $CAN_DRIVER_DIR/can_man -n /dev/can2 -s 500 -i 7 -p 0xda200 -e 1 >/big/data/can2$DATESTR.log &
 	sleep 1
-	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 >/big/data/rdj1939_can1_$DATESTR.txt &
+	nice --1 $CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 >/big/data/rdj1939_can1_$DATESTR.txt &
 	sleep 1
-	$CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can2 >/big/data/rdj1939_can2_$DATESTR.txt &
+	nice --1 $CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can2 >/big/data/rdj1939_can2_$DATESTR.txt &
 	sleep 1
 	# To start jbussend with debugging ON, add -d flag
-	$TEST_DIR/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg &
+	nice --2 $TEST_DIR/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg &
 	sleep 1
 # To start jbussendGPS with debugging ON, add -d flag
 	GPSDBNUM=202
@@ -149,7 +149,7 @@ skip ;
 shell 'Run longitudinal control'
 %(
 	slay  -f -Q -s TERM $LONGITUDINAL
-	/home/truckcontrol/test/long_trk -v long_trk -f /home/truckcontrol/test/realtime.ini -o /big/data/realtime -r 1 >/big/data/long_trk.log 2>/big/data/long_trk.err &
+	nice --2 /home/truckcontrol/test/long_trk -v long_trk -f /home/truckcontrol/test/realtime.ini -o /big/data/realtime -r 1 >/big/data/long_trk.log 2>/big/data/long_trk.err &
 %)
 ;
 shell 'Stop longitudinal control'
