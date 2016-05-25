@@ -51,6 +51,7 @@ TILCON_LIBS =  -ltilc -lTRTAPI
 # Actuated Traffic Signal Controller code directories
 ATSC_DIR = $(DISTRIB_DIR)/atsc
 ATSC_INC_DIR = $(ATSC_DIR)/include
+ATSC_LIB_DIR = $(ATSC_DIR)/lib
 ATSC_IX_DIR = $(ATSC_DIR)/ix
 
 # CICAS project directories
@@ -68,6 +69,8 @@ TSP_INC_DIR = $(TSP_DIR)/include
 CICASTSA_DIR = $(DISTRIB_DIR)/cicas_tsa
 CICASTSA_INC_DIR = $(CICASTSA_DIR)/include
  
+# Video directories
+VIDEO_DIR = /home/capath/video
 PATH_CC = gcc
 PATH_CPP = g++
 PATH_CFLAGS += -c -D_GNU_SOURCE -Wall
