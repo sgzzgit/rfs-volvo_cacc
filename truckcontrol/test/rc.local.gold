@@ -1,1 +1,6 @@
-/etc/rc.d/rc.local
+/bin/stty baud=19200 </dev/ser1
+/bin/stty baud=19200 </dev/ser2
+/home/path/sens/gps/examples/run_gpssetdate.sh DST 
+/usr/sbin/cron &
+/usr/sbin/sshd
+ifconfig wm0 alias 192.168.0.201
