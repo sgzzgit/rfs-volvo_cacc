@@ -136,6 +136,21 @@ typedef struct {
         unsigned char VBRK_ParkBrkReleaseInhibitStat;
 } IS_PACKED j1939_volvo_brk_t;
 
+/** PDU VP15 (Volvo brake type, Bendix brakes) */
+typedef struct {
+	timestamp_t timestamp;
+	unsigned char VP15_EcoRollStatus;
+	unsigned char VP15_AutomaticHSARequest;
+	unsigned char VP15_EngineShutdownRequest;
+	float VP15_RoadInclinationVP15;
+	float VP15_PermittedHillHolderP;
+	unsigned char VP15_RecommendedGearshift;
+	unsigned char VP15_EcoRollActiveStatus;
+	unsigned char VP15_ClutchOverloadStatus;
+	unsigned char VP15_PowerDownAcknowledge;
+	unsigned char VP15_DirectionGearAllowed;
+	float VP15_VehicleWeightVP15;
+} IS_PACKED j1939_volvo_vp15_t;
 
 /** PDU EBC1 (Electronic Brake Controller #1) doc. in J1939 - 71, p151 */
 typedef struct {
