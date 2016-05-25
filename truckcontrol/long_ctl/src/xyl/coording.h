@@ -161,6 +161,7 @@ typedef struct    // From coordination manager to each vehicle
     int drive_mode_buff; // used as buffer state of previous step
 	int following_mode;  // added on 11_15_15
 	int control_mode;    // moved from config_typ  03/08/16
+	int coording_mode;   // added on 05/18/16
 	float set_v;
 	//float t_gap;
 	//float d_gap;

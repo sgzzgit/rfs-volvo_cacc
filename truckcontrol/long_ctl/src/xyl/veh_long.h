@@ -92,6 +92,7 @@
 #define SPLIT_T                                   25.0
 #define JOIN_T                                    35.0
 #define ACC_SPLIT_T								  8.0
+#define TARGET_LOSS_T							  2.0
 
 
 #define MAX_BUFFER_SIZE               80000                          
@@ -438,6 +439,12 @@ typedef struct
 	 float yaw_rt;
 	 float VP_lat;
 	 float VP_long;
+	 float brk_pres;
+	 float brk_prm_pres;
+	 float brk_2nd_pres;
+	 int park_brk_status;
+	 int park_brk_red_signal;
+	 int park_brk_release_status;
 }jbus_read_typ;
 
 typedef struct                          // added on 03_18_09

@@ -164,14 +164,14 @@ static pltn_info_typ* pltn_info_pt;
 
 // For coording.h
 static vehicle_info_typ vehicle_info;
-static vehicle_info_typ* vehicle_info_pt = &vehicle_info;
+static vehicle_info_typ* vehicle_info_pt;
 static f_mode_comm_typ f_mode_comm;
-static f_mode_comm_typ* f_mode_comm_pt = &f_mode_comm;
+static f_mode_comm_typ* f_mode_comm_pt;
 static comm_info_typ comm_info;
-static comm_info_typ* comm_info_pt = &comm_info;
+static comm_info_typ* comm_info_pt;
 static manager_cmd_typ manager_cmd;
-static manager_cmd_typ* manager_cmd_pt = &manager_cmd;
-//static path_gps_point_t self_gps_point;    // read from self GPS database variable
+static manager_cmd_typ* manager_cmd_pt;
+static path_gps_point_t self_gps_point;    // read from self GPS database variable
 //static path_gps_point_t gps_point_2;       // take from veh_comm_packet_t; accroding to position sequence
 //static path_gps_point_t gps_point_3;       // take from veh_comm_packet_t
 
@@ -396,7 +396,7 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
     // memset(&EB_start,0,sizeof(EB_start));
     // memset(&WB_start,0,sizeof(WB_start));
      memset(&gps_trk,0,sizeof(gps_trk));
-     //memset(&self_gps_point,0,sizeof(self_gps_point));
+     memset(&self_gps_point,0,sizeof(self_gps_point));
      //memset(&gps_point_2,0,sizeof(gps_point_2));
      //memset(&gps_point_3,0,sizeof(gps_point_3));
 
@@ -407,8 +407,7 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 
 	 pltn_info.handshake=OFF;
 	 pltn_info_pt = &pltn_info;
-     f_mode_comm_pt = &f_mode_comm;
-	
+     f_mode_comm_pt = &f_mode_comm;	
      comm_info_pt = &comm_info;
      manager_cmd_pt = &manager_cmd; 
      con_state_pt = &con_state;
@@ -453,6 +452,8 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
         ftime(&pctrl->start_time);
         
 		vehicle_info_pt-> veh_id = config.MyPltnPos;		
+		manager_cmd_pt-> following_mode =1;
+
 
         /*** Protection for Safety ***/ 
 
@@ -506,6 +507,7 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 	static double tmp_frac=0.0;
 	int tmp_int;
 	static int f_torq_buff=0, f_radar_buff=0, f_lidar_buff=0, f_jake_buff=0, f_brk_buff=0, f_comm_buff=0;
+	static int cmd_count=0;
 
     int ctrl_interval;
 	
@@ -660,8 +662,9 @@ if(config.use_comm == TRUE)
                 GPS and Volvo Distanvce Sensors
    ************************************************/
    
-	/*gps_point[vehicle_info_pt-> veh_id-1] = pv->self_gps;  /// read from self GPS unit
-	
+	//memcpy(pv->self_gps, &self_gps_point, sizeof(path_gps_point_t);
+	gps_point[vehicle_info_pt-> veh_id-1] = pv->self_gps;  /// read from self GPS unit
+
 	if (vehicle_info_pt-> veh_id == 1)
 	{
 		gps_point[1].longitude = comm_receive_pt[2].longitude;
@@ -692,8 +695,10 @@ if(config.use_comm == TRUE)
 		gps_point[1].latitude = comm_receive_pt[2].latitude;
 		gps_point[1].heading = comm_receive_pt[2].heading;
 
-	}*/
+	}
    
+	
+
 	/**************************************
 	                      Timing               
 	**************************************/
@@ -717,6 +722,10 @@ if(config.use_comm == TRUE)
 	cacc_comm( local_time, &global_time, dt, con_state_pt, vehicle_info_pt, comm_info_pt, 
 	    f_index_pt, comm_receive_pt, &comm_send_pt, pltn_info_pt);
 
+if ((comm_receive_pt[vehicle_info_pt-> veh_id - 1]. maneuver_des_2 == 1) || (comm_receive_pt[vehicle_info_pt-> veh_id - 1]. maneuver_des_2 == 2))
+	manager_cmd_pt-> following_mode =2;
+else
+	manager_cmd_pt-> following_mode =1;
 	   /**********************************/
        /*----  String Configuration  ----*/
        /**********************************/
@@ -958,7 +967,7 @@ if( (config.handle_faults == TRUE) && (manager_cmd_pt-> drive_mode > 1))
 		if (con_state. des_f_dist < DES_FOLLOW_DIST)
 			con_state. des_f_dist=DES_FOLLOW_DIST;
      
-        if (coording(dt, track_length, con_state_pt, sens_read_pt, config_pt, sw_read_pt, f_mode_comm_pt, vehicle_info_pt, pltn_info_pt, manager_cmd_pt) != 1)				
+        if (coording(dt, track_length, con_state_pt, sens_read_pt, jbus_read_pt, config_pt, sw_read_pt, f_mode_comm_pt, vehicle_info_pt, pltn_info_pt, manager_cmd_pt) != 1)				
            fprintf(stderr, "\n Calling Coordination fail! \n");			      
 	   
        if (run_dist > stop_dist)
@@ -1012,7 +1021,7 @@ if( (config.handle_faults == TRUE) && (manager_cmd_pt-> drive_mode > 1))
 	/*                           */
 	/*****************************/
 
-actuate(dt, pcmd, con_output_pt, con_state_pt, pparams, &inactive_ctrl, manager_cmd_pt, sw_read_pt, jbus_read_pt, config_pt, f_index_pt);
+actuate(dt, pcmd, con_output_pt, con_state_pt, pparams, &inactive_ctrl, manager_cmd_pt, sw_read_pt, jbus_read_pt, config_pt, f_index_pt, vehicle_info_pt);
 
 if( (jbus_read_pt-> accel_pedal_pos1) > 5.0)
 	pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; // indicating driver taking over
@@ -1020,10 +1029,13 @@ if( (jbus_read_pt-> accel_pedal_pos1) > 5.0)
 // Test brake control
 
 #ifdef TEST_BRK
-if (jbus_read_pt-> v > 10.0)
+
+cmd_count ++;
+
+if (jbus_read_pt-> v > 20.0)
 {
-   brk_ini=1;
    jk_ini=1;
+   //brk_ini=1;
 }
 
 if (jk_ini == 1)
@@ -1035,20 +1047,26 @@ if (jk_ini == 1)
          pcmd->engine_torque = 0.0;
 
 		 pcmd->brake_command_mode = XBR_NOT_ACTIVE;
-		 pcmd->engine_retarder_torque = pcmd->engine_retarder_torque + 0.1*rand()/RAND_MAX; 
+		 pcmd->engine_retarder_command_mode =  XBR_NOT_ACTIVE;
+		 pcmd->engine_retarder_priority=TSC_HIGHEST;  
+		  if (cmd_count == 10)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque - 1.0;
+		  if (cmd_count == 20)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque + 1.0;
+		 
 }
 if(brk_ini == 1)
 {
-		pcmd->ebs_deceleration = -1.4;     // 
-
         pcmd->engine_command_mode = TSC_TORQUE_CONTROL;   
 		pcmd->engine_priority=TSC_LOW; 
         pcmd->engine_torque = 0.0;
 
-		pcmd->engine_retarder_command_mode = TSC_TORQUE_CONTROL;   
-        pcmd->engine_retarder_priority=TSC_HIGHEST;  
-        pcmd->engine_retarder_torque = -0.0; // Negative percentage torque      
-
+		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;   
+        
+		pcmd->brake_command_mode = XBR_ACTIVE; 		  
+	    //pcmd->brake_priority=TSC_MEDIUM;
+		pcmd->brake_priority=TSC_HIGHEST;
+		pcmd->ebs_deceleration = -1.4;     // 
 }
 
 #endif
@@ -1086,8 +1104,15 @@ if(config.use_comm == TRUE)
       comm_send_pt.maneuver_id = manager_cmd_pt-> man_des;
       comm_send_pt.fault_mode = vehicle_info_pt-> fault_mode;
       comm_send_pt.maneuver_des_1 = maneuver_id[0];
-      comm_send_pt.maneuver_des_2 = maneuver_id[1];
-      //memcpy(&comm_send_pt.gps, &self_gps_point, sizeof(path_gps_point_t);
+
+	  if (vehicle_info_pt-> cut_in == 1)
+		comm_send_pt.maneuver_des_2 = 1;            //maneuver_id[1];
+	  else if (vehicle_info_pt-> cut_out == 1)
+		comm_send_pt.maneuver_des_2 = 2; 
+	  else
+		comm_send_pt.maneuver_des_2 = 0;
+
+      //memcpy(pv->self_gps, &self_gps_point, sizeof(path_gps_point_t);
       //comm_send_pt.user_ushort_1 = comm_info_pt-> comm_reply;         // acknowledge receiving; 03_09_09   
 	  comm_send_pt.user_ushort_1 = (unsigned short) config_pt-> MyPltnPos;
       comm_send_pt.user_ushort_2 = (unsigned short) manager_cmd_pt-> drive_mode;  // acknowledge the vehicle is in automade; 11_20_09
@@ -1319,7 +1344,8 @@ if( config.run_data == TRUE ) {
 			 vehicle_info_pt-> cut_in,		//5
 			 vehicle_info_pt-> cut_out,		//6
 			 manager_cmd_pt-> drive_mode,		//7
-			 manager_cmd_pt-> drive_mode_buff,	//8 
+			 //manager_cmd_pt-> drive_mode_buff,//8 
+			 manager_cmd_pt-> coording_mode,	//8 
              manager_cmd_pt-> man_des,			//9                       
              pltn_info_pt-> handshake,			//10                    
              vehicle_info_pt-> veh_id,			//11                                  
@@ -1404,17 +1430,31 @@ if( config.run_data == TRUE ) {
 		  sens_read_pt->target_d,				//74
 		  sens_read_pt->target_avail,			//75
 		  jbus_read_pt-> steer_angle);			//76
-/*	  fprintf(pout, "%4.8f %4.8f %4.3f %4.8f %4.8f %4.3f %4.8f %4.8f %4.3f", 
-             gps_point[0]-> latitude,             //77
-             gps_point[0]-> longitude,            //78 
-			 gps_point[0]-> heading,			  //79		
-			 gps_point[1]-> latitude,             //80
-             gps_point[1]-> longitude,            //81 
-			 gps_point[1]-> heading,			  //82		
-			 gps_point[2]-> latitude,             //83
-             gps_point[2]-> longitude,            //84 
-			 gps_point[2]-> heading				  //85
-			 );	*/		  			 			 
+	  fprintf(pout, "%4.3f %4.3f %4.3f %3i %3i %3i ", 
+		  jbus_read_pt->  brk_pres,				//77
+		  jbus_read_pt->  brk_prm_pres,			//78
+		  jbus_read_pt->  brk_2nd_pres,			//79
+		  jbus_read_pt->  park_brk_status,		//80
+		  jbus_read_pt->  park_brk_red_signal,	//81
+		  jbus_read_pt->  park_brk_release_status	//82
+			);
+	  fprintf(pout, "%4.8lf %4.8lf %4.3f %4.8lf %4.8lf %4.3f %4.8lf %4.8lf %4.3f ", 
+             gps_point[0]. latitude,             //83
+             gps_point[0]. longitude,            //84 
+			 gps_point[0]. heading,			     //85		
+			 gps_point[1]. latitude,             //86
+             gps_point[1]. longitude,            //87 
+			 gps_point[1]. heading,			     //88		
+			 gps_point[2]. latitude,             //89
+             gps_point[2]. longitude,            //90 
+			 gps_point[2]. heading				 //91
+			 );	
+	 fprintf(pout, "%4.3f %4.3f %3i %3i %3i", 
+			pv-> VP15_RoadInclinationVP15,			//92
+			pv-> VP15_VehicleWeightVP15,			//93	
+			pv-> VP15_RecommendedGearshift,			//94
+			pv-> VP15_PowerDownAcknowledge,			//95
+			pv-> VP15_DirectionGearAllowed);		//96
 }
 
 if( config.read_data == TRUE ) {

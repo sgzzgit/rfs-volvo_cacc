@@ -7,7 +7,7 @@
 #ifndef LONG_TRK_FUNC_H
 #define LONG_TRK_FUNC_H 
 
-extern int coording(float, float, control_state_typ*, sens_read_typ*, control_config_typ*, switch_typ*, f_mode_comm_typ*, vehicle_info_typ*, pltn_info_typ*, manager_cmd_typ*);
+extern int coording(float, float, control_state_typ*, sens_read_typ*, jbus_read_typ*, control_config_typ*, switch_typ*, f_mode_comm_typ*, vehicle_info_typ*, pltn_info_typ*, manager_cmd_typ*);
 extern int maneuver(float, float, float, float *,float *, float *, road_info_typ*, control_config_typ* , control_state_typ* , sens_read_typ*, switch_typ*, vehicle_info_typ* , fault_index_typ *, /*int,*/ int*, manager_cmd_typ*, pltn_info_typ*);         
 extern int dvi(float, switch_typ*, control_state_typ*, vehicle_info_typ*, int*);
 extern int control(float, float, int*, jbus_read_typ*, manager_cmd_typ*, control_config_typ*, control_state_typ*, switch_typ*, vehicle_info_typ*,con_output_typ*);    
@@ -44,7 +44,7 @@ extern int config_sw(int *pread_sw, int *pmanu_auto_sw,
 
 //extern int set_time_sync(float *, float *,float *, vehicle_info_typ*, pltn_info_typ*);
 extern int actuate(float, long_output_typ*, con_output_typ*, control_state_typ*, long_params*, long_output_typ*, 
-				          manager_cmd_typ*, switch_typ*, jbus_read_typ*, control_config_typ*, fault_index_typ*);
+				          manager_cmd_typ*, switch_typ*, jbus_read_typ*, control_config_typ*, fault_index_typ*, vehicle_info_typ *);
 extern int tq_we(float, float*);
 extern int max_i(int , int);
 extern int min_i(int , int);
