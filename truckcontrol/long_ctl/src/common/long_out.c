@@ -61,13 +61,27 @@ int main( int argc, char *argv[] )
 	float rqst_speed = 800.0;		/* RPMs */
 	float rqst_torque = 0.0;
 	float rqst_brake = 0.0;
-	int destination_address = 0;	/* engine; retarder is 15 */
+	int destination_address = J1939_ADDR_ENGINE;	/* engine; retarder is 15 */
 
 	long_output_typ cmd_var;
 
         pclt = j1939_database_init(argv);
+/*
+Destination addresses
+#define J1939_ADDR_ENGINE               0
+#define J1939_ADDR_TRANS                3
+#define J1939_ADDR_BRAKE                11
+#define J1939_ADDR_ENG_RTDR             15
 
-        while ((ch = getopt(argc, argv, "b:d:i:m:t:v:")) != EOF) {
+Values for the TSC1 (Torque override control mode field (J1939 standard)
+define TSC_OVERRIDE_DISABLED   0
+define TSC_SPEED_CONTROL       1
+define TSC_TORQUE_CONTROL      2
+define TSC_SPEED_TORQUE_LIMIT  3
+
+*/
+
+        while ((ch = getopt(argc, argv, "b:d:i:m:t:v:r:")) != EOF) {
                 switch (ch) {
 		case 'b': rqst_brake = atof(optarg);
 			  destination_address = J1939_ADDR_BRAKE;
@@ -81,14 +95,25 @@ int main( int argc, char *argv[] )
 			  printf("mode is %d\n", engine_mode);
 			  break;
 		case 't': rqst_torque = atof(optarg);
-			  printf("torque requested %.3f N-m\n", rqst_torque); 
+			  destination_address = J1939_ADDR_ENGINE;
+			  engine_mode = TSC_TORQUE_CONTROL;
+			  printf("engine torque requested %.3f N-m\n", rqst_torque); 
+			  break;
+		case 'r': rqst_torque = atof(optarg);
+			  printf("retarder torque requested %.3f N-m\n", rqst_torque); 
+			  destination_address = J1939_ADDR_ENG_RTDR;
+			  engine_mode = TSC_TORQUE_CONTROL;
 			  break;
 		case 'v': rqst_speed = atof(optarg);
+			  destination_address = J1939_ADDR_ENGINE;
+			  engine_mode = TSC_SPEED_CONTROL;
 			  printf("speed requested %.3f RPM\n", rqst_speed); 
 			  break;
-                default:  printf( "Usage: %s [-v engine speed(RPM) -t torque(N-m)", argv[0]);
+                default:  printf( "Usage: %s -v engine speed(RPM) -t torque(N-m) -r retarder torque(N-m)", argv[0]);
 			  printf("-b deceleration (m/s^2) \n");
-                	  printf("-d destination -i interval]\n");
+                	  printf("-d destination (0-engine, 3=transmission, 11=brake, 15=engine retarder)\n"); 
+			  printf("-m mode (1=speed, 2=torque, 3=speed & torque)\n");
+			  printf("-i interval\n");
 			  exit(1);
                           break;
                 }

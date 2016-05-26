@@ -505,6 +505,7 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 		pvolvo_ego = (j1939_volvo_ego_typ *) pdata_val;
 		pstate->Volvo_EgoVel = pvolvo_ego->EgoVel;
 		pstate->Volvo_EgoAcc = pvolvo_ego->EgoAcc;
+		pstate->Volvo_EgoRoadGrade = pvolvo_ego->EgoRoadGrade;
 		break;
 	case DB_J1939_TSC1_E_T_VAR:
 		ptsc1_e_t = (j1939_tsc1_typ *) pdata_val;

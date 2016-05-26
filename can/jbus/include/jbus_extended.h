@@ -551,8 +551,9 @@ typedef struct {
 /** PDU VOLVO_EGO(Volvo self data)*/
 typedef struct {
 	timestamp_t timestamp;
-	float EgoVel;	/// 0-655.35 m/sec
-	float EgoAcc;	/// -327.68-327.67 m/sec/sec
+	float EgoVel;	/// 0 to +655.35 m/sec
+	float EgoAcc;	/// -327.68 to +327.67 m/sec/sec
+	float EgoRoadGrade;	/// -25 to +26 %
 } IS_PACKED j1939_volvo_ego_typ;
 
 /** PDU EI (Engine Information), J1939-71, sec 5.3.105 */

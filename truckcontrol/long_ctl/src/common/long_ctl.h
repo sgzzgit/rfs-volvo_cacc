@@ -283,6 +283,7 @@ typedef struct {
   float Volvo_TargetAvailable;
   float Volvo_EgoVel;
   float Volvo_EgoAcc;
+  float Volvo_EgoRoadGrade;
 
   unsigned char CAN1_BusLoad;
   unsigned char CAN1_ExtData;

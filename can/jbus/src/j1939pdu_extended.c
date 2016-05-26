@@ -2273,6 +2273,7 @@ pdu_to_volvo_ego(struct j1939_pdu *pdu, void *pdbv)
 	volvo_ego->EgoVel = data * 0.01;
        	data = TWOBYTES(pdu->data_field[3], pdu->data_field[2]);
 	volvo_ego->EgoAcc = (data * 0.01) - 327.68;
+	volvo_ego->EgoRoadGrade = (pdu->data_field[4] * 0.2) - 25.0;
 }
 
 void 
@@ -2308,12 +2309,15 @@ print_volvo_ego(void *pdbv, FILE  *fp, int numeric)
 	if (numeric) {
 		fprintf(fp, "%.3f ", volvo_ego->EgoVel);
 		fprintf(fp, "%.3f ", volvo_ego->EgoAcc);
+		fprintf(fp, "%.3f ", volvo_ego->EgoRoadGrade);
 		fprintf(fp, "\n");	
 	} else {
 		fprintf(fp, "Volvo ego velocity %.3f\n",
 			 volvo_ego->EgoVel);
 		fprintf(fp, "Volvo ego acceleration %.3f\n",
 			 volvo_ego->EgoVel);
+		fprintf(fp, "Volvo ego Road Grade%.3f\n",
+			 volvo_ego->EgoRoadGrade);
 	}
 }
 
