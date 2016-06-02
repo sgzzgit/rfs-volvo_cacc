@@ -645,7 +645,7 @@ if(config.use_comm == TRUE)
 			con_state. des_f_dist=DES_FOLLOW_DIST;
 	}
 
-    track_length=200000.0;
+    track_length=900000.0;
 	
 	
 	stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
@@ -1032,7 +1032,7 @@ if( (jbus_read_pt-> accel_pedal_pos1) > 5.0)
 
 cmd_count ++;
 
-if (jbus_read_pt-> v > 20.0)
+if (jbus_read_pt-> v > 17.0)
 {
    jk_ini=1;
    //brk_ini=1;
@@ -1047,7 +1047,7 @@ if (jk_ini == 1)
          pcmd->engine_torque = 0.0;
 
 		 pcmd->brake_command_mode = XBR_NOT_ACTIVE;
-		 pcmd->engine_retarder_command_mode =  XBR_NOT_ACTIVE;
+		 pcmd->engine_retarder_command_mode =  XBR_ACTIVE;
 		 pcmd->engine_retarder_priority=TSC_HIGHEST;  
 		  if (cmd_count == 10)
 			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque - 1.0;
@@ -1072,6 +1072,68 @@ if(brk_ini == 1)
 #endif
 	/************************************/
 	/*                                  */
+	/*     Emergency Braking.			*/
+	/*                                  */
+	/************************************/
+
+if (vehicle_info_pt-> veh_id == 2)
+ {
+	if ( (comm_receive_pt[1].user_bit_3 == 1) || (comm_receive_pt[1]. user_float > 0.1) ) // manual; brake sw || pedal deflection
+	{
+		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
+		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;           
+		pcmd->brake_command_mode = XBR_ACTIVE; 		  	   
+		pcmd->brake_priority=TSC_HIGHEST;
+		pcmd->ebs_deceleration = min_main(-1.2, 1.2*(comm_receive_pt[1].accel));  
+	}
+	if (comm_receive_pt[1].rate < 0.01)  // automatic control with ebs_deceleration
+	{
+		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   		
+		pcmd->brake_command_mode = XBR_ACTIVE; 		  	   
+		pcmd->brake_priority=TSC_HIGHEST;
+		pcmd->ebs_deceleration = comm_receive_pt[1].rate-0.1;  
+		pcmd->engine_retarder_command_mode = XBR_ACTIVE; 
+		pcmd->engine_retarder_priority=TSC_HIGHEST; 
+		pcmd->engine_retarder_torque =  comm_receive_pt[1].user_float1;
+		if (cmd_count == 10)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque + 1.0;
+		if (cmd_count == 20)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque - 1.0;
+	}
+ }
+if (vehicle_info_pt-> veh_id == 3)
+ {
+	 if ( (comm_receive_pt[1].user_bit_3 == 1) || (comm_receive_pt[1]. user_float > 0.1) ||
+		  (comm_receive_pt[2].user_bit_3 == 1) || (comm_receive_pt[2]. user_float > 0.1) ) // brake sw || pedal deflection
+	{
+		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
+		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;           
+		pcmd->brake_command_mode = XBR_ACTIVE; 		  	   
+		pcmd->brake_priority=TSC_HIGHEST;
+		pcmd->ebs_deceleration = min_main(-1.2, 1.2*(comm_receive_pt[1].accel)); 
+		pcmd->ebs_deceleration = min_main(pcmd->ebs_deceleration, 1.2*(comm_receive_pt[2].accel));
+	}
+	if ((comm_receive_pt[1].rate < 0.01) || (comm_receive_pt[2].rate < 0.01) )  // automatic control; with ebs_deceleration
+	{
+		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
+		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;           
+		pcmd->brake_command_mode = XBR_ACTIVE; 		  	   
+		pcmd->brake_priority=TSC_HIGHEST;
+		pcmd->ebs_deceleration = min_main(comm_receive_pt[1].rate-0.1, comm_receive_pt[2].rate-0.1);  
+		pcmd->engine_retarder_command_mode = XBR_ACTIVE; 
+		pcmd->engine_retarder_priority=TSC_HIGHEST; 
+		pcmd->engine_retarder_torque =  min_main(comm_receive_pt[1].user_float1, comm_receive_pt[2].user_float1);
+		if (cmd_count == 10)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque + 1.0;
+		if (cmd_count == 20)
+			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque - 1.0;
+	}
+
+ }
+
+
+	/************************************/
+	/*                                  */
 	/*     Update Communication data.   */
 	/*                                  */
 	/************************************/
@@ -1089,8 +1151,8 @@ if(config.use_comm == TRUE)
 		  comm_send_pt.vel_traj = con_state_pt-> ref_v;   // composite	 
 		  comm_send_pt.acc_traj = con_state_pt-> ref_a;    // composite   
 	  }
-      comm_send_pt.velocity = con_state_pt-> spd;     // measured
-      comm_send_pt.accel = con_state_pt-> acc;        // measured
+      comm_send_pt.velocity = sens_read_pt->ego_v; //con_state_pt-> spd;     // measured
+      comm_send_pt.accel = sens_read_pt->ego_a;    //con_state_pt-> acc;        // measured
 	  if (config_pt->truck_ACC == TRUE)
 		comm_send_pt.range = (con_state_pt-> ACC_tGap)*(con_state_pt-> spd);
 	  if (config_pt->truck_CACC == TRUE)
@@ -1116,8 +1178,8 @@ if(config.use_comm == TRUE)
       //comm_send_pt.user_ushort_1 = comm_info_pt-> comm_reply;         // acknowledge receiving; 03_09_09   
 	  comm_send_pt.user_ushort_1 = (unsigned short) config_pt-> MyPltnPos;
       comm_send_pt.user_ushort_2 = (unsigned short) manager_cmd_pt-> drive_mode;  // acknowledge the vehicle is in automade; 11_20_09
-      comm_send_pt.user_float=con_state_pt-> ref_a;                   //jbus_read_pt-> bp; // Added on 11_25_09
-	  comm_send_pt.user_float1=con_state_pt-> ref_v;
+      comm_send_pt.user_float = jbus_read_pt->  brk_pres;         // changed from con_state_pt-> ref_a on 05_31_16
+	  comm_send_pt.user_float1 = pcmd-> engine_retarder_torque;   // changed from con_state_pt-> ref_v on 05_31_16 
       comm_send_pt.pltn_size = pltn_info_pt->pltn_size;
 //    fprintf(stderr,"sending packet,global time %f\n", global_time);
 //   fflush(stderr);
@@ -1430,31 +1492,29 @@ if( config.run_data == TRUE ) {
 		  sens_read_pt->target_d,				//74
 		  sens_read_pt->target_avail,			//75
 		  jbus_read_pt-> steer_angle);			//76
-	  fprintf(pout, "%4.3f %4.3f %4.3f %3i %3i %3i ", 
-		  jbus_read_pt->  brk_pres,				//77
-		  jbus_read_pt->  brk_prm_pres,			//78
-		  jbus_read_pt->  brk_2nd_pres,			//79
-		  jbus_read_pt->  park_brk_status,		//80
-		  jbus_read_pt->  park_brk_red_signal,	//81
-		  jbus_read_pt->  park_brk_release_status	//82
-			);
 	  fprintf(pout, "%4.8lf %4.8lf %4.3f %4.8lf %4.8lf %4.3f %4.8lf %4.8lf %4.3f ", 
-             gps_point[0]. latitude,             //83
-             gps_point[0]. longitude,            //84 
-			 gps_point[0]. heading,			     //85		
-			 gps_point[1]. latitude,             //86
-             gps_point[1]. longitude,            //87 
-			 gps_point[1]. heading,			     //88		
-			 gps_point[2]. latitude,             //89
-             gps_point[2]. longitude,            //90 
-			 gps_point[2]. heading				 //91
+             gps_point[0]. latitude,             //77
+             gps_point[0]. longitude,            //78 
+			 gps_point[0]. heading,			     //79		
+			 gps_point[1]. latitude,             //80
+             gps_point[1]. longitude,            //81 
+			 gps_point[1]. heading,			     //82		
+			 gps_point[2]. latitude,             //83
+             gps_point[2]. longitude,            //84 
+			 gps_point[2]. heading				 //85
 			 );	
-	 fprintf(pout, "%4.3f %4.3f %3i %3i %3i", 
-			pv-> VP15_RoadInclinationVP15,			//92
-			pv-> VP15_VehicleWeightVP15,			//93	
-			pv-> VP15_RecommendedGearshift,			//94
-			pv-> VP15_PowerDownAcknowledge,			//95
-			pv-> VP15_DirectionGearAllowed);		//96
+
+	  fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f", 
+		    jbus_read_pt->  brk_pres,			//86
+			pv-> VP15_RoadInclinationVP15,		//87
+			pv-> VP15_VehicleWeightVP15,		//88
+			pv-> Volvo_TargetDist,				//89
+			pv-> Volvo_TargetVel,				//90
+			pv-> Volvo_TargetAcc,				//91
+			pv-> Volvo_TargetAvailable,			//92
+			pv-> Volvo_EgoVel,					//93
+			pv-> Volvo_EgoAcc,					//94
+			pv-> Volvo_EgoRoadGrade);			//95
 }
 
 if( config.read_data == TRUE ) {
