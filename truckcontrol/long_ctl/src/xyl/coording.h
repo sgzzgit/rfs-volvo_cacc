@@ -47,6 +47,7 @@ typedef struct      // To be sent from each vehicle to coordination manager
     float spd;  
     float man_t_limit;   
 	float run_dist;
+	float weight;
 }vehicle_info_typ;  // for subject veh and the whole pltn
 
 typedef struct      // To be sent from each vehicle to coordination manager
@@ -159,6 +160,7 @@ typedef struct    // From coordination manager to each vehicle
 	int drive_mode;      // 0-stay, 1-manual,  2-ACC,  3-CACC
 	int trans_mode;	    // 0: no transition; 1:manual=>ACC; 2:ACC=>CACC; 3:CACC=> ACC; 4:ACC=> Manual; 5:CACC=>Manual
     int drive_mode_buff; // used as buffer state of previous step
+	int man_trans_mode;	 
 	int following_mode;  // added on 11_15_15
 	int control_mode;    // moved from config_typ  03/08/16
 	int coording_mode;   // added on 05/18/16
