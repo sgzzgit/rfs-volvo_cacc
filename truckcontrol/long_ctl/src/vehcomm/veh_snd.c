@@ -15,6 +15,7 @@
 #include <sys_ini.h>
 #include "path_gps_lib.h"
 #include "long_comm.h"
+#include "/home/truckcontrol/long_ctl/src/avcs/clt_vars.h"
 #include "udp_utils.h"
 #include "veh_lib.h"
 
@@ -91,6 +92,7 @@ int main(int argc, char *argv[])
 	int ret = -1;
 	int counter = 0;
 	float fcounter = 10.0;
+	path_gps_point_t self_gps;
 	int i;
 	BSMblob_t *my_blob;
 //	CaccData_t *my_caccdata;
@@ -160,6 +162,10 @@ int main(int argc, char *argv[])
 	}
 	while (1) {
 		db_clt_read(pclt, DB_COMM_TX_VAR, sizeof(comm_pkt), &comm_pkt);
+		db_clt_read(pclt, DB_SELF_GPS_POINT_VAR, sizeof(path_gps_point_t), &self_gps);
+		comm_pkt.latitude = self_gps.latitude;
+		comm_pkt.longitude = self_gps.longitude;
+		comm_pkt.heading = self_gps.heading;
 
 		set_vehicle_string(&comm_pkt, vehicle_str);
 
