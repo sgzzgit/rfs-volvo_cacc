@@ -386,20 +386,21 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 		fprintf(fp, "%.3f ", pv->Volvo_TargetAvailable);
 		fprintf(fp, "%.3f ", pv->Volvo_EgoVel);
 		fprintf(fp, "%.3f ", pv->Volvo_EgoAcc);			//210
+		fprintf(fp, "%.3f ", pv->Volvo_EgoRoadGrade);			//210
 		fprintf(fp, "%.3f ", pv->VBRK_BrkAppPressure);
 		fprintf(fp, "%.3f ", pv->VBRK_BrkPrimaryPressure);
 		fprintf(fp, "%.3f ", pv->VBRK_BrkSecondaryPressure);	
-                fprintf(fp, "%.2f ", pv->VP15_RoadInclinationVP15);
-                fprintf(fp, "%.2f ", pv->VP15_VehicleWeightVP15);	//215
+                fprintf(fp, "%.2f ", pv->VP15_RoadInclinationVP15);	//215
+                fprintf(fp, "%.2f ", pv->VP15_VehicleWeightVP15);
                 fprintf(fp, "%.1f ", pv->VP15_PermittedHillHolderP);
                 fprintf(fp, "%d ", pv->VP15_PowerDownAcknowledge);
                 fprintf(fp, "%d ", pv->VP15_DirectionGearAllowed);
-                fprintf(fp, "%d ", pv->VP15_ClutchOverloadStatus);
-                fprintf(fp, "%d ", pv->VP15_EcoRollStatus);		//220
+                fprintf(fp, "%d ", pv->VP15_ClutchOverloadStatus);	//220
+                fprintf(fp, "%d ", pv->VP15_EcoRollStatus);
                 fprintf(fp, "%d ", pv->VP15_RecommendedGearshift);
                 fprintf(fp, "%d ", pv->VP15_EcoRollActiveStatus);
                 fprintf(fp, "%d ", pv->VP15_AutomaticHSARequest);
-                fprintf(fp, "%d ", pv->VP15_EngineShutdownRequest);	//224
+                fprintf(fp, "%d ", pv->VP15_EngineShutdownRequest);	//225
 
                 fprintf(fp, "\n");
 
