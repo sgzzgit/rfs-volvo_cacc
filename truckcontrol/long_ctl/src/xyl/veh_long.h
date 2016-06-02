@@ -324,6 +324,12 @@ typedef struct
         float pre_a;
         float ref_v;
         float ref_a;
+		//int lead_brk_sw;
+		//int pre_brk_sw;
+		//float lead_brk_pre;
+		//float pre_brk_pre;
+		//float lead_ebs_decel;
+		//float pre_ebs_decel;
         float pltn_vel;
         float pltn_acc;
         float pltn_dcc;
@@ -332,6 +338,8 @@ typedef struct
         float front_range_rate;   // Fused from all range_rate measure including communication 
         float rear_range;
         float rear_range_rate;
+		float gps_dist_2pre;
+		float gps_dist_2lead;		
 		float ACC_tGap;
 		float ACC_dGap;
 		float CACC_tGap;
@@ -445,6 +453,7 @@ typedef struct
 	 int park_brk_status;
 	 int park_brk_red_signal;
 	 int park_brk_release_status;
+         float grade;
 }jbus_read_typ;
 
 typedef struct                          // added on 03_18_09
