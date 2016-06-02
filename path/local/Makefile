@@ -32,6 +32,7 @@ LOCAL_OBJS = \
 	$(OBJDIR)/sys_trk.o \
 	$(OBJDIR)/timing.o \
 	$(OBJDIR)/timestamp.o \
+	$(OBJDIR)/tcp_utils.o \
 	$(OBJDIR)/util.o \
 	$(OBJDIR)/udp_utils.o \
 	$(OBJDIR)/xytransform.o 
