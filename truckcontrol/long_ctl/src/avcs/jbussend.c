@@ -129,29 +129,32 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
         JBYTE_NOT_AVAILABLE = 0xFF (255)
         TSC_OVERRIDE_DISABLED = 0 */
 
-        if((last_engine_torque > 0) && (ctrl->engine_torque < 0)) {
+        if((last_engine_torque >= 0) && (ctrl->engine_torque < 0)) {
                 state_change_counter = 3;
 	}
 
 	last_engine_torque = ctrl->engine_torque;
 
-        if(--state_change_counter >= 0) {
-                tsc1_e_acc->EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
-                tsc1_e_acc->EnRTrqTrqLm = JBYTE_NOT_AVAILABLE;
+        if(state_change_counter > 0) {
+                tsc1_e_acc->EnOvrdCtrlM = 0;
+                tsc1_e_acc->EnRTrqTrqLm = 255;
                 new_mode = TSC_OVERRIDE_DISABLED;
+		state_change_counter--; 
         }
+	else
+		state_change_counter = 0;
 
 	ftime(&current);
-        return  /* send heartbeat message */
-                (((TIMEB_SUBTRACT(last_sent, &current) >= cmd->heartbeat)
-                                && cmd->heartbeat))
-                ||
-                /* send message to disable control */
-                (new_mode == TSC_OVERRIDE_DISABLED
-                         && old_mode != TSC_OVERRIDE_DISABLED)
-                ||
-                /* called at 10 ms intervals, always send active engine msg */
-                (new_mode != TSC_OVERRIDE_DISABLED)
+        return  /* send heartbeat message? */
+                ((TIMEB_SUBTRACT(last_sent, &current) >= cmd->heartbeat)
+		&& 
+		(cmd->heartbeat)	//i.e. cmd->heartbeat != 0
+                &&
+                (new_mode != TSC_OVERRIDE_DISABLED) 	//Control disabled?
+		&& 
+		(ctrl->engine_torque >= 0))		//Torque > 0?
+		|| 
+		(state_change_counter > 0) 		//Going from 0 or negative engine torque to positive torque?
                 ;
 
 }
@@ -163,7 +166,7 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 	j1939_tsc1_er_acc_typ *tsc_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
 	int new_mode = ctrl->engine_retarder_command_mode;
 	int old_mode = tsc_er_acc->EnOvrdCtrlM;
-	static float last_engine_torque = 1;
+	static float last_engine_retarder_torque = 1;
 	static char state_change_counter = 0;
 
         /* When you shift from positive to negative torque:
@@ -174,31 +177,34 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
         JBYTE_NOT_AVAILABLE = 0xFF (255)
         TSC_OVERRIDE_DISABLED = 0 */
 
-        if((last_engine_torque < 0) && (ctrl->engine_torque > 0)) {
+        if((last_engine_retarder_torque <= 0) && (ctrl->engine_retarder_torque > 0)) {
                 state_change_counter = 3;
 	}
 
-	last_engine_torque = ctrl->engine_torque;
+	last_engine_retarder_torque = ctrl->engine_retarder_torque;
 
-        if(--state_change_counter >= 0) {
-                tsc_er_acc->EnOvrdCtrlM = TSC_OVERRIDE_DISABLED;
-                tsc_er_acc->EnRTrqTrqLm = JBYTE_NOT_AVAILABLE;
+        if(state_change_counter > 0) {
+                tsc_er_acc->EnOvrdCtrlM = 0;
+                tsc_er_acc->EnRTrqTrqLm = 255;
                 new_mode = TSC_OVERRIDE_DISABLED;
+        	state_change_counter--;
         }
+	else
+		state_change_counter = 0;
 
 	ftime(&current);
- 
-	/* message sent every 20 ms whether active or inactive */
-        return  /* no heartbeat message for engine retarder */
-                /* send message to disable control */
-                ((new_mode == TSC_OVERRIDE_DISABLED
-                         && old_mode != TSC_OVERRIDE_DISABLED)
-                ||
-                /* send active message every 50 milleseconds */
-                ((new_mode != TSC_OVERRIDE_DISABLED)
-                && (TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval)))
-                ;
 
+        return  /* send message every interval? */
+                ((TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval)
+		&& 
+		(cmd->interval)				//i.e. cmd->interval != 0
+		&&
+                (new_mode != TSC_OVERRIDE_DISABLED) 
+                &&
+		(ctrl->engine_retarder_torque <= 0))	//Retarder torque < 0?
+		|| 
+		(state_change_counter > 0) 		//Going from 0 or negative engine torque to positive torque?
+                ;
 }
 
 int ready_to_send_xbr (long_output_typ *ctrl, jbus_cmd_type *cmd) 
