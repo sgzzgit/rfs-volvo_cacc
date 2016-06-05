@@ -51,4 +51,23 @@ echo "Starting veh_snd from $IPADDR to $ITRIADDR"
 #sleep 1
 #/home/truckcontrol/long_ctl/src/vehcomm/qnx/veh_rcv -v -A $IPADDR -a $ITRIADDR -u 15042 -t $TRUCK >veh_rcv.dbg &
 #sleep 1
-/home/truckcontrol/long_ctl/src/vehcomm/qnx/dvi_snd -v -A 128.32.234.149 -a 128.32.234.140 -l 15043 -r 15044 -t Gold &
+uname -s | grep Linux
+if [[ $? -eq 0 ]]
+then
+	OBJDIR=lnx
+fi
+uname -s | grep QNX
+if [[ $? -eq 0 ]]
+then
+	OBJDIR=qnx
+fi
+OBJDIR=lnx
+echo "Turning on startup screen"
+../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
+echo "Turning on platoon found screen"
+sleep 2
+#../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "2 0 0 1 0 0 0 0 0 0"
+../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10005 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "4 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
+echo "Turning on startup screen"
+sleep 2
+../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
