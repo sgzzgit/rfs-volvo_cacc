@@ -41,10 +41,11 @@ struct SeretUdpStruct{
     quint32 exitDistance; //value/10.0 km (PATH: Not currently used)
     struct VehicleStruct vehicles[3];
 } IS_PACKED;
+//};
 
  
 
-//Vehicle -> DVI - port 10007 or 10005? (ACC/CACC information)
+//Vehicle -> DVI - port 10005 (ACC/CACC information)
 struct ExtraDataCACCStruct{
     quint8 CACCState; //0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
     quint8 CACCTargetActive; //0:false, 1:true (also used for target in ACC)
@@ -57,7 +58,6 @@ struct ExtraDataCACCStruct{
     quint8 platooningState;//0:"Platooning",1:"Joining",2:"Leaving",3:"Left",4:"Dissolving",5:"Dissolved" (NOT CURRENTLY USED!)
     quint8 counter;//Counter for dissolving, not implemented for the moment
 };
-
  
 
 //DVI -> Vehicle - port 8003 (button pressed). Is being sent with an interval of 50ms. Triggers when a button is released and is kept high for 200ms.
@@ -216,14 +216,12 @@ int main(int argc, char *argv[])
                 }
         }
 
-	if(!no_send1)
 	if ( (sd = udp_peer2peer_init(&dst_addr, remote_ipaddr, local_ipaddr, remote_port, 0)) < 0) {
 		printf("Failure create unicast socket1 from %s to %s:%d\n",
 		local_ipaddr, remote_ipaddr, remote_port);
 		longjmp(exit_env, 2);
 	}
 
-	if(!no_send2)
         if ( (sd2 = udp_peer2peer_init(&dst_addr2, remote_ipaddr, local_ipaddr, remote_port2, 0)) < 0) {
 		printf("Failure create unicast socket2 from %s to %s:%d\n",
 			local_ipaddr, remote_ipaddr, remote_port2);
