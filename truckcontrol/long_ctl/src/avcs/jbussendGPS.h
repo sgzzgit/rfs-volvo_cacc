@@ -6,102 +6,69 @@
  */
 #include <sys_os.h>
 #include <local.h>
-#include <sys_list.h>
-#include <sys/select.h>
-#include <sys_lib.h>
-#include <sys_rt.h>
-#include <sys_ini.h>
-#include "db_comm.h"
-#include "db_clt.h"
-#include "timestamp.h"
-#include "jbus_vars.h"
-#include "jbus.h"
-#include "j1939.h"
-#include "j1939pdu_extended.h"
-#include "j1939db.h"
-#include "clt_vars.h"
-#include "veh_trk.h"
-#include <timing.h>
-#include <path_gps_lib.h>
-
-/* repetition interval should be 10 milliseconds for engine,
- * 50 milliseconds for retarder, 40 milliseconds for EBS
- */
-#define JBUS_INTERVAL_MSECS	5
+#include <j1939scale.h>
 
 
-/* info_check_type holds info read from the database, to be used for safety
- * checks -- in particular, to ensure that the transmission retarder is
- * not turned on during acceleration.
- */
-typedef struct {
-	float percent_engine_torque;
-	float accelerator_pedal_position;
-	float latitude;
-} info_check_type;
-
-/* 
- * send_jbus_type will be initialized differently for each type
- * of command that can be sent.  
- * jbus_cmd_type will hold the data for the most recently sent command
- * and be acted on by the functions in send_jbus_type.
- */
-typedef struct {
-	int dbv;	/* database variable number of the command type */
-	union {
-		j1939_tsc1_typ tsc1;
-		j1939_exac_typ exac;
-		path_gps_point_t gps;
-	} cmd;
-	struct timeb last_time;	/* last time a command was sent */	
-	int interval;	/* broadcast interval when active */
-	int heartbeat;	/* heartbeat interval when inactive (0 if none) */
-	int override_limit;	/* time limit for same active command */
-	info_check_type *pinfo;	/* pointer to safety check info */
-} jbus_cmd_type;
+#define DB_VOLVO_GPS_CAN_TYPE		2345
+#define DB_VOLVO_GPS_CAN_VAR		DB_VOLVO_GPS_CAN_TYPE
+#define DB_ENGINE_DEBUG_TYPE		2346
+#define DB_ENGINE_DEBUG_VAR		DB_ENGINE_DEBUG_TYPE
+#define DB_ENGINE_RETARDER_DEBUG_TYPE	2347
+#define DB_ENGINE_RETARDER_DEBUG_VAR	DB_ENGINE_RETARDER_DEBUG_TYPE
 
 typedef struct {
-	int active;	/* if 0, send no messages of this type */
-	int total_sent;	/* may wrap for long runs, for debugging */
-	int slot_number;	/* needed for STB, maybe later with SSV CAN */
-	int fd;		/* file descriptor of device file */
-	jbus_cmd_type cmd;	/* last command of this type sent */
-	int (*is_ready_to_send)(long_output_typ *ctrl, jbus_cmd_type *cmd);
-	void (*update_command)(long_output_typ *ctrl, jbus_cmd_type *cmd, 
-			int dosend);
-	void (*cmd_to_pdu)(struct j1939_pdu *pdu, void *jcmd);
-} send_jbus_type;	
+        unsigned int sof: 1; //Start-of-frame = 0
+        unsigned int gps_position_pdu: 11; // =0x0010, 0x0011, 0x0012
+        unsigned int rtr: 1 ; //Remote transmission request=0
+        unsigned int extension: 1; //Extension bit=0
+        unsigned int reserved: 1; //Reserved bit=0
+        unsigned int dlc: 4;    //Data length code=8
+        unsigned int latitude : 31;     //Max=124.748, Min=-90.000, resolution=1E-07, offset=-90.000
+        unsigned int pos_data_valid: 1;
+        unsigned int longitude : 32; ;  //Max=249.497, Min=-180.000, resolution=1E-07, offset=-180.000
+        unsigned int crc: 15;           //Cyclic redundancy check. Calculated
+        unsigned int crcd: 1;           //CRC delimiter=1
+        unsigned int ack_slot: 1;       //Acknowledge slot=1
+        unsigned int ack_delimiter: 1;  //Acknowledge delimiter=1
+        unsigned int eof:7;             //End-of-frame=0x07
+} IS_PACKED gps_position_t;
 
-#define JBUS_SEND_ENGINE		0
-#define JBUS_SEND_ENGINE_RETARDER	1
-#define	JBUS_SEND_EBS			2
-#define	JBUS_SEND_TRANS_RETARDER	3
-#define	JBUS_SEND_GPS			4
-#define NUM_JBUS_SEND			5
+typedef struct {
+        unsigned short gps_time_pdu; // =0x0013, 0x0014, 0x0015
+        unsigned int year :12;  //Max=4095, Min=0, resolution=1, offset=0
+        unsigned int month :4;  //Max=15, Min=0, resolution=1, offset=0
+        unsigned int day :9;    //Max=511, Min=0, resolution=1, offset=0
+        unsigned int hour :5;   //Max=31, Min=0, resolution=1, offset=0
+        unsigned int minute :6; //Max=63, Min=0, resolution=1, offset=0
+        unsigned int second :6; //Max=63, resolution=1, offset=0
+//      unsigned int split_second :10, :12;     //Max=102.3, Min=0, resolution=0.1, offset=0
+        unsigned int split_second :10, :4;      //Max=102.3, Min=0, resolution=0.1, offset=0
+        unsigned int id :8;     //74, 75, or 76
+} IS_PACKED gps_time_t;
 
-/* is_ready_to_send functions */
-extern int ready_to_send_engine (long_output_typ *ctrl, jbus_cmd_type *cmd); 
-extern int ready_to_send_engine_retarder (long_output_typ *ctrl,
-		 jbus_cmd_type *cmd); 
-extern int ready_to_send_ebs (long_output_typ *ctrl, jbus_cmd_type *cmd); 
-extern int ready_to_send_trans_retarder (long_output_typ *ctrl,
-		 jbus_cmd_type *cmd); 
+unsigned long LAT_MULTIPLIER=10E7;
+unsigned long LAT_MIN   =0;
+unsigned long LAT_MAX   =(unsigned int)0x7FFFFFFF;
+unsigned long LAT_OFFSET=-90;
 
-/* update_command functions */
-extern void update_engine_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd,
-	 int dosend);
-extern void update_engine_retarder_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd,
-	int dosend);
-extern void update_brake_exac (long_output_typ *ctrl, jbus_cmd_type *cmd,
-	int dosend);
-extern void update_trans_retarder_tsc (long_output_typ *ctrl, jbus_cmd_type *cmd,
-	int dosend);
-extern void update_gps(long_output_typ *ctrl, jbus_cmd_type *cmd,
-	int dosend);
+unsigned long LONGITUDE_MULTIPLIER=10E7;
+unsigned long LONGITUDE_MIN=0;
+unsigned long LONGITUDE_MAX=(unsigned int)0xFFFFFFFF;
+unsigned long LONGITUDE_OFFSET=-180;
 
-/* overall initialization and exit functions */
-extern int send_jbus_init (jbus_func_t *pjbf,
-	send_jbus_type *msg, info_check_type *pinfo,
-	int active_mask, char *engine_file,
-	char *brake_file, char *trans_file, char *gps_file);
-extern void send_jbus_exit (jbus_func_t *pjbf, send_jbus_type *msg);  
+unsigned long POS_DATA_IS_VALID=0x10000000;
+unsigned long POS_DATA_INVALID=0x7FFFFFFF;
+
+typedef struct {
+        unsigned short can_debug_pdu; // =0x0016 for engine, 0x0017 for engine retarder
+        unsigned int EnOvrdCtrlM :2;
+        unsigned int EnRSpdCtrlC :2;
+        unsigned int EnOvrdCtrlMPr :2;
+        unsigned int new_mode :2;
+        unsigned int engine_torque :8;
+        unsigned int last_engine_torque :8;
+        unsigned int EnRTrqTrqLm :8;
+        unsigned int state_change_counter :2;
+        unsigned int ret :1, :5;
+} IS_PACKED can_debug_t;
+

@@ -24,6 +24,7 @@
 #include <densolidar.h>
 #include <long_comm.h>
 #include <veh_trk.h>
+#include "jbussendGPS.h"
 
 static int sig_list[] = 
 {
@@ -51,6 +52,8 @@ static db_id_t db_vars_list[] = {
 	{DB_LONG_DIG_OUT_VAR, sizeof( long_dig_out_typ )},
 	{DB_COMM_TX_VAR, sizeof( veh_comm_packet_t )},
 	{DB_MDL_LIDAR_VAR, sizeof( mdl_lidar_typ )},
+        {DB_ENGINE_DEBUG_VAR, sizeof(can_debug_t)},
+        {DB_ENGINE_RETARDER_DEBUG_VAR, sizeof(can_debug_t)},
 };
 
 #define NUM_DB_VARS	sizeof(db_vars_list)/sizeof(db_id_t)

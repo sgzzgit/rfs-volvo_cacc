@@ -13,6 +13,7 @@
 #include <sys_ini.h>
 #include "db_comm.h"
 #include "db_clt.h"
+#include "db_utils.h"
 #include "timestamp.h"
 #include "jbus_vars.h"
 #include "jbus_extended.h"

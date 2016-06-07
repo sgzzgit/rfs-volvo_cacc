@@ -8,6 +8,7 @@
  *
  */
 #include "jbussend.h"
+#include "jbussendGPS.h"
 
 extern void print_long_output_typ (long_output_typ *ctrl);
 static struct avcs_timing tmg;
@@ -38,6 +39,8 @@ static void sig_hand(int code)
 }
 
 #define MAX_LOOP_NUMBER 20
+
+static db_clt_typ *pclt = NULL;  	/* Database pointer defined here so it can be used in the ready_to_send calls*/
 
 /**
  * main calls active_loop every 5 milliseconds, loop numbers range from 0 to 20 
@@ -120,6 +123,8 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 	int old_mode = tsc1_e_acc->EnOvrdCtrlM;
 	static float last_engine_torque = 1;
 	static char state_change_counter = 0;
+	can_debug_t engine_debug;
+	int ret;
 
         /* When you shift from positive to negative torque:
         Send three TSC messages to the EMS with EngineOverrideControlMode = 0 and
@@ -145,7 +150,16 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 		state_change_counter = 0;
 
 	ftime(&current);
-        return  /* send heartbeat message? */
+	engine_debug.can_debug_pdu = 0x0016;
+	engine_debug.EnOvrdCtrlM = BITS21(tsc1_e_acc->EnOvrdCtrlM);
+	engine_debug.EnRSpdCtrlC = BITS21(tsc1_e_acc->EnRSpdCtrlC);
+	engine_debug.EnOvrdCtrlMPr = BITS21(tsc1_e_acc->EnOvrdCtrlMPr);
+	engine_debug.state_change_counter = BITS21(state_change_counter);
+ 	engine_debug.engine_torque = code_percent_m125_to_p125(ctrl->engine_torque);
+ 	engine_debug.last_engine_torque = code_percent_m125_to_p125(last_engine_torque);
+ 	engine_debug.EnRTrqTrqLm = code_percent_m125_to_p125(tsc1_e_acc->EnRTrqTrqLm);
+
+        ret = /* send heartbeat message? */
                 ((TIMEB_SUBTRACT(last_sent, &current) >= cmd->heartbeat)
 		&& 
 		(cmd->heartbeat)	//i.e. cmd->heartbeat != 0
@@ -156,6 +170,11 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 		|| 
 		(state_change_counter > 0) 		//Going from 0 or negative engine torque to positive torque?
                 ;
+	
+	engine_debug.ret = (ret != 0);
+	db_clt_write(pclt, DB_ENGINE_DEBUG_VAR, sizeof(can_debug_t), &engine_debug);
+
+	return ret;
 
 }
 
@@ -168,6 +187,8 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 	int old_mode = tsc_er_acc->EnOvrdCtrlM;
 	static float last_engine_retarder_torque = 1;
 	static char state_change_counter = 0;
+	can_debug_t engine_retarder_debug;
+	int ret;
 
         /* When you shift from positive to negative torque:
         Send three TSC messages to the EMS with EngineOverrideControlMode = 0 and
@@ -194,7 +215,16 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 
 	ftime(&current);
 
-        return  /* send message every interval? */
+	engine_retarder_debug.can_debug_pdu = 0x0017;
+	engine_retarder_debug.EnOvrdCtrlM = BITS21(tsc_er_acc->EnOvrdCtrlM);
+	engine_retarder_debug.EnRSpdCtrlC = BITS21(tsc_er_acc->EnRSpdCtrlC);
+	engine_retarder_debug.EnOvrdCtrlMPr = BITS21(tsc_er_acc->EnOvrdCtrlMPr);
+	engine_retarder_debug.state_change_counter = BITS21(state_change_counter);
+ 	engine_retarder_debug.engine_torque = code_percent_m125_to_p125(ctrl->engine_retarder_torque);
+ 	engine_retarder_debug.last_engine_torque = code_percent_m125_to_p125(last_engine_retarder_torque);
+ 	engine_retarder_debug.EnRTrqTrqLm = code_percent_m125_to_p125(tsc_er_acc->EnRTrqTrqLm);
+
+        ret = /* send heartbeat message? */
                 ((TIMEB_SUBTRACT(last_sent, &current) >= cmd->interval)
 		&& 
 		(cmd->interval)				//i.e. cmd->interval != 0
@@ -205,6 +235,9 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 		|| 
 		(state_change_counter > 0) 		//Going from 0 or negative engine torque to positive torque?
                 ;
+	engine_retarder_debug.ret = (ret != 0);
+	db_clt_write(pclt, DB_ENGINE_RETARDER_DEBUG_VAR, sizeof(can_debug_t), &engine_retarder_debug);
+        return  ret;/* send message every interval? */
 }
 
 int ready_to_send_xbr (long_output_typ *ctrl, jbus_cmd_type *cmd) 
@@ -720,7 +753,6 @@ int main( int argc, char *argv[] )
 	int ch;		
 	send_jbus_type msg[NUM_JBUS_SEND];
 	struct j1939_pdu pdu;		/* Protocol Data Unit */
-        db_clt_typ *pclt = NULL;  	/* Database pointer */
 	long_output_typ ctrl;		/* Variable containing control values */
 	posix_timer_typ *ptimer;      	/* Timing proxy */
 	int interval = JBUS_INTERVAL_MSECS; /* Main loop execution interval */

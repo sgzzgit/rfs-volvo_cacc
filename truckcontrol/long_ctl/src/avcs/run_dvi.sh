@@ -61,13 +61,16 @@ if [[ $? -eq 0 ]]
 then
 	OBJDIR=qnx
 fi
-OBJDIR=lnx
+OBJDIR=qnx
 echo "Turning on startup screen"
-../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
+#../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
+../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 172.16.0.1 -A 172.16.0.75 -E "0 0 0 0 0 0 0 0 0 0"
 echo "Turning on platoon found screen"
-sleep 2
-#../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "2 0 0 1 0 0 0 0 0 0"
-../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10005 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "4 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
+##sleep 2
+##../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "2 0 0 1 0 0 0 0 0 0"
+#../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10005 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
+../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10005 -R 10007 -a 172.16.0.1 -A 172.16.0.75 -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
 echo "Turning on startup screen"
 sleep 2
-../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
+#../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
+../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 172.16.0.1 -A 172.16.0.75 -E "0 0 0 0 0 0 0 0 0 0"

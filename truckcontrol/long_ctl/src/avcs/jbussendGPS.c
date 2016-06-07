@@ -1,22 +1,35 @@
 /*
- * jbussend.c 	Process to send commands, including heartbeat
- *		commands, to all j1939 buses in the vehicle.	
- *
- *		Updated for QNX6
+ * jbussendGPS.c 	Process to send custom CAN messages to Volvo CAN2
  *
  * Copyright (c) 2008   Regents of the University of California
  *
  */
-#include "jbussendGPS.h"
-#include "path_gps_lib.h"
 #include <enu2lla.h>
 #include "can_defs.h"
 #include "can_client.h"
-#include "sys_os.h"
+#include <sys_os.h>
+#include <local.h>
+#include <sys_list.h>
+#include <sys/select.h>
+#include <sys_lib.h>
+#include <sys_rt.h>
+#include <sys_ini.h>
+#include "db_comm.h"
+#include "db_clt.h"
 #include "db_utils.h"
+#include "timestamp.h"
+#include "jbus_vars.h"
+#include "jbus_extended.h"
+#include "j1939.h"
+#include "j1939pdu_extended.h"
+#include "j1939db.h"
+#include "clt_vars.h"
+#include "veh_trk.h"
+#include <timing.h>
+#include "db_utils.h"
+#include <path_gps_lib.h>
+#include "jbussendGPS.h"
 
-#define DB_VOLVO_GPS_CAN_TYPE	2345
-#define DB_VOLVO_GPS_CAN_VAR	DB_VOLVO_GPS_CAN_TYPE
 
 extern void print_long_output_typ (long_output_typ *ctrl);
 static struct avcs_timing tmg;
@@ -41,51 +54,6 @@ static void sig_hand(int code)
 	else
 		longjmp(exit_env, code);
 }
-
-#define MAX_LOOP_NUMBER 8
-
-typedef struct {
-	unsigned int sof: 1; //Start-of-frame = 0
-	unsigned int gps_position_pdu: 11; // =0x0010, 0x0011, 0x0012
-	unsigned int rtr: 1 ; //Remote transmission request=0
-	unsigned int extension: 1; //Extension bit=0
-	unsigned int reserved: 1; //Reserved bit=0
-	unsigned int dlc: 4; 	//Data length code=8
-	unsigned int latitude : 31; 	//Max=124.748, Min=-90.000, resolution=1E-07, offset=-90.000
-	unsigned int pos_data_valid: 1;
-	unsigned int longitude : 32; ; 	//Max=249.497, Min=-180.000, resolution=1E-07, offset=-180.000
-	unsigned int crc: 15; 		//Cyclic redundancy check. Calculated
-	unsigned int crcd: 1;		//CRC delimiter=1
-	unsigned int ack_slot: 1;	//Acknowledge slot=1
-	unsigned int ack_delimiter: 1;	//Acknowledge delimiter=1
-	unsigned int eof:7;		//End-of-frame=0x07
-} IS_PACKED gps_position_t;
-
-typedef struct {
-	unsigned short gps_time_pdu; // =0x0013, 0x0014, 0x0015
-	unsigned int year :12; 	//Max=4095, Min=0, resolution=1, offset=0
-	unsigned int month :4; 	//Max=15, Min=0, resolution=1, offset=0
-	unsigned int day :9; 	//Max=511, Min=0, resolution=1, offset=0
-	unsigned int hour :5; 	//Max=31, Min=0, resolution=1, offset=0
-	unsigned int minute :6; //Max=63, Min=0, resolution=1, offset=0
-	unsigned int second :6; //Max=63, resolution=1, offset=0
-//	unsigned int split_second :10, :12; 	//Max=102.3, Min=0, resolution=0.1, offset=0
-	unsigned int split_second :10, :4; 	//Max=102.3, Min=0, resolution=0.1, offset=0
-	unsigned int id :8; 	//74, 75, or 76
-} IS_PACKED gps_time_t;
-
-unsigned long LAT_MULTIPLIER=10E7;
-unsigned long LAT_MIN	=0;
-unsigned long LAT_MAX	=(unsigned int)0x7FFFFFFF;
-unsigned long LAT_OFFSET=-90;
-
-unsigned long LONGITUDE_MULTIPLIER=10E7;
-unsigned long LONGITUDE_MIN=0;
-unsigned long LONGITUDE_MAX=(unsigned int)0xFFFFFFFF;
-unsigned long LONGITUDE_OFFSET=-180;
-
-unsigned long POS_DATA_IS_VALID=0x10000000;
-unsigned long POS_DATA_INVALID=0x7FFFFFFF;
 
 int update_gps_position(path_gps_point_t *hb, unsigned char *buf) {
 	int i;
@@ -175,10 +143,9 @@ int main( int argc, char *argv[] )
 	int ch;		
         db_clt_typ *pclt = NULL;  	/* Database pointer */
 	posix_timer_typ *ptimer;      	/* Timing proxy */
-	int interval = JBUS_INTERVAL_MSECS; /* Main loop execution interval */
+	int interval = 50; /* Main loop execution interval */
 	char *gps_file = NULL;
 	int gps_fd = -1;
-	int active_mask = (1 << NUM_JBUS_SEND) - 1;	/* all active */  
 	int rtn_jmp = -1;	/* value returned from setjmp */
 	char hostname[MAXHOSTNAMELEN+1]; /* used in opening database */
         int xport = COMM_OS_XPORT;
@@ -194,13 +161,16 @@ int main( int argc, char *argv[] )
 	unsigned char buf74[17];
 	unsigned char buf75[17];
 	unsigned char buf76[17];
+	can_debug_t engine_debug;
+	char *engine_debug_buf = (char *)&engine_debug;
+	can_debug_t engine_retarder_debug;
+	char *engine_retarder_debug_buf = (char *)&engine_retarder_debug;
+	int i;
 
 	get_local_name(hostname, MAXHOSTNAMELEN);
 
-        while ((ch = getopt(argc, argv, "a:b:cde:t:v:n:g:")) != EOF) {
+        while ((ch = getopt(argc, argv, "b:cde:t:v:n:g:")) != EOF) {
                 switch (ch) {
-		case 'a': active_mask = atoi(optarg);
-			  break;	
 		case 'c': use_can = 1;
 			  break;
 		case 'd': debug = 1;
@@ -260,6 +230,8 @@ int main( int argc, char *argv[] )
 		db_clt_read(pclt, gps_db_num, sizeof(path_gps_point_t), &hb74);
 		db_clt_read(pclt, gps_db_num, sizeof(path_gps_point_t), &hb75);
 		db_clt_read(pclt, gps_db_num, sizeof(path_gps_point_t), &hb76);
+		db_clt_read(pclt, DB_ENGINE_DEBUG_VAR, sizeof(can_debug_t), &engine_debug);
+		db_clt_read(pclt, DB_ENGINE_RETARDER_DEBUG_VAR, sizeof(can_debug_t), &engine_retarder_debug);
 		if(use_can) {
 			update_gps_position(&hb74, buf74);
 			printf("lat %f long %f\n", hb74.latitude, hb74.longitude);
@@ -278,6 +250,16 @@ int main( int argc, char *argv[] )
 			can_write(gps_fd, 0x12, 0, buf76, 12);
 			update_gps_time(&hb76, buf76, 76);
 			can_write(gps_fd, 0x15, 0, buf76, 8);
+			can_write(gps_fd, 0x16, 0, &engine_debug, 7);
+			can_write(gps_fd, 0x17, 0, &engine_retarder_debug, 7);
+			printf("Engine_debug: ");
+			for(i=0; i<sizeof(can_debug_t); i++)
+				printf("%#hhx ", engine_debug_buf[i]);
+				printf("\n");
+			printf("Engine_retarder_debug: ");
+			for(i=0; i<sizeof(can_debug_t); i++)
+				printf("%#hhx ", engine_retarder_debug_buf[i]);
+				printf("\n");
 		}
 		/* Now wait for proxy from timer */
 		TIMER_WAIT( ptimer );
