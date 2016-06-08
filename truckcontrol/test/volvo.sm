@@ -115,7 +115,7 @@ shell 'Start everything but longitudinal control and file writing'
 	sleep 1
 # To start jbussendGPS with debugging ON, add -d flag
 	GPSDBNUM=202
-	$TEST_DIR/jbussendGPS -c -g /dev/can2 -n $GPSDBNUM >/home/truckcontrol/test/jbussendGPS.dbg &
+	$TEST_DIR/jbussendGPS -c -g /dev/can2 -n $GPSDBNUM >/big/data/jbussendGPS_$DATESTR.dbg &
 	sleep 1
 	$TEST_DIR/gpsdb -n $GPSDBNUM -d1 </dev/ser1 >/big/data/gpsdb_$DATESTR.dbg &
 	sleep 1
