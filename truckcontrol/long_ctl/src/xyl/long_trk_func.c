@@ -361,7 +361,26 @@ int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_pa
 	 jbus_rd_pt->  park_brk_status = pv_can-> VBRK_BrkStatParkBrkActuator;
 	 jbus_rd_pt->  park_brk_red_signal = pv_can-> VBRK_ParkBrkRedWarningSignal;
 	 jbus_rd_pt->  park_brk_release_status = pv_can-> VBRK_ParkBrkReleaseInhibitStat;
-	 jbus_rd_pt->  grade = pv_can-> Volvo_EgoRoadGrade;		// added on 05_28_16
+
+	 /***************************
+	 		Road Grade			
+	 ***************************/
+
+	 //jbus_rd_pt->  grade = pv_can-> Volvo_EgoRoadGrade;		    // added on 05_28_16
+	 //jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;
+
+	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) < -2.0)
+	//	jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;
+	    jbus_rd_pt->  grade=-3.5;
+	 /*if ( pv_can-> self_gps.heading < 200.0 )
+	 {
+		 if ( (pv_can-> self_gps.latitude > 37.925079 && pv_can-> self_gps.latitude < 37.927062) ||
+			  (pv_can-> self_gps.longitude > -122.368604 && pv_can-> self_gps.longitude < -122.362663) )
+		 jbus_rd_pt->  grade=-6.0;
+	 }*/
+	// else
+	    jbus_rd_pt->  grade=0.0;
+	 
 
 	 sens_rd_pt->ego_a=pv_can-> Volvo_EgoAcc;
 	 sens_rd_pt->ego_v=pv_can-> Volvo_EgoVel*0.2778;  // from [km/hr] ==> [m/s]
@@ -553,13 +572,6 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 			   pcmd->engine_torque = eng_torq_buff+9.0*delta_t;
 		   if ((pcmd->engine_torque > 80.0) && (pcmd->engine_torque > eng_torq_buff+8.0*delta_t) )
 			   pcmd->engine_torque = eng_torq_buff+8.0*delta_t;
-		   
-		   if ((pcmd->engine_torque > 40.0) && (pcmd->engine_torque < eng_torq_buff-8.0*delta_t) )
-			   pcmd->engine_torque = eng_torq_buff-6.0*delta_t;
-		   if ((pcmd->engine_torque > 60.0) && (pcmd->engine_torque > eng_torq_buff-9.0*delta_t) )
-			   pcmd->engine_torque = eng_torq_buff-7.0*delta_t;
-		   if ((pcmd->engine_torque > 80.0) && (pcmd->engine_torque > eng_torq_buff-10.0*delta_t) )
-			   pcmd->engine_torque = eng_torq_buff-8.0*delta_t;
 
 
 		   eng_torq_buff=pcmd->engine_torque;
@@ -649,16 +661,16 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 		if (veh_info_pt-> veh_id == 1)
 		{
 			if (pcmd->engine_retarder_torque < -5.0)
-				pcmd->engine_retarder_torque=0.3*(pcmd->engine_retarder_torque);
+				pcmd->engine_retarder_torque=0.25*(pcmd->engine_retarder_torque);
 			else if (pcmd->engine_retarder_torque < -6.0)
 				//pcmd->engine_retarder_torque=0.3*(pcmd->engine_retarder_torque);
-				pcmd->engine_retarder_torque=0.4*(pcmd->engine_retarder_torque);
+				pcmd->engine_retarder_torque=0.3*(pcmd->engine_retarder_torque);
 			else if (pcmd->engine_retarder_torque < -8.0)
 				//pcmd->engine_retarder_torque=0.4*(pcmd->engine_retarder_torque);
-				pcmd->engine_retarder_torque=0.6*(pcmd->engine_retarder_torque);	
-			/*else if (pcmd->engine_retarder_torque < -15.0)
+				pcmd->engine_retarder_torque=0.5*(pcmd->engine_retarder_torque);	
+			else if (pcmd->engine_retarder_torque < -10.0)
 				pcmd->engine_retarder_torque=0.8*(pcmd->engine_retarder_torque);
-				//pcmd->engine_retarder_torque=0.5*(pcmd->engine_retarder_torque);	*/
+				/*//pcmd->engine_retarder_torque=0.5*(pcmd->engine_retarder_torque);	*/
 			else;
 		}
 		else

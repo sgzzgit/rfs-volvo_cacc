@@ -288,6 +288,7 @@ typedef struct
         float join_f_dist;
         float temp_dist;
         float man_dist_var2;
+		float tmp_var2;
         float man_dist_var3;
 		float max_spd;  // added 03/11/16 for all control
         float max_brake;
@@ -529,5 +530,13 @@ typedef struct {
 	double speed;		// in meters/sec
 	float heading;		// course made good, true north
 } local_gps_typ;
+
+typedef struct {
+	int local_pos[3];	
+	double local_enu_x[3];	
+	double local_enu_y[3];
+	float ave_heading;
+} local_pos_typ;
+
 
 #endif /* VEH_LONG_H */

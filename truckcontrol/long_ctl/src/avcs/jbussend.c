@@ -134,7 +134,8 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
         JBYTE_NOT_AVAILABLE = 0xFF (255)
         TSC_OVERRIDE_DISABLED = 0 */
 
-        if((last_engine_torque >= 0) && (ctrl->engine_torque < 0)) {
+//        if((last_engine_torque >= 0) && (ctrl->engine_torque < 0)) {
+	if((new_mode == TSC_OVERRIDE_DISABLED) && (old_mode != TSC_OVERRIDE_DISABLED)) { 
                 state_change_counter = 3;
 	}
 
@@ -155,6 +156,7 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 	engine_debug.EnRSpdCtrlC = BITS21(tsc1_e_acc->EnRSpdCtrlC);
 	engine_debug.EnOvrdCtrlMPr = BITS21(tsc1_e_acc->EnOvrdCtrlMPr);
 	engine_debug.state_change_counter = BITS21(state_change_counter);
+	engine_debug.new_mode = BITS21(new_mode);
  	engine_debug.engine_torque = code_percent_m125_to_p125(ctrl->engine_torque);
  	engine_debug.last_engine_torque = code_percent_m125_to_p125(last_engine_torque);
  	engine_debug.EnRTrqTrqLm = code_percent_m125_to_p125(tsc1_e_acc->EnRTrqTrqLm);
@@ -198,7 +200,8 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
         JBYTE_NOT_AVAILABLE = 0xFF (255)
         TSC_OVERRIDE_DISABLED = 0 */
 
-        if((last_engine_retarder_torque <= 0) && (ctrl->engine_retarder_torque > 0)) {
+//        if((last_engine_retarder_torque <= 0) && (ctrl->engine_retarder_torque > 0)) {
+	if((new_mode == TSC_OVERRIDE_DISABLED) && (old_mode != TSC_OVERRIDE_DISABLED)) {
                 state_change_counter = 3;
 	}
 
@@ -220,6 +223,7 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 	engine_retarder_debug.EnRSpdCtrlC = BITS21(tsc_er_acc->EnRSpdCtrlC);
 	engine_retarder_debug.EnOvrdCtrlMPr = BITS21(tsc_er_acc->EnOvrdCtrlMPr);
 	engine_retarder_debug.state_change_counter = BITS21(state_change_counter);
+	engine_retarder_debug.new_mode = BITS21(new_mode);
  	engine_retarder_debug.engine_torque = code_percent_m125_to_p125(ctrl->engine_retarder_torque);
  	engine_retarder_debug.last_engine_torque = code_percent_m125_to_p125(last_engine_retarder_torque);
  	engine_retarder_debug.EnRTrqTrqLm = code_percent_m125_to_p125(tsc_er_acc->EnRTrqTrqLm);

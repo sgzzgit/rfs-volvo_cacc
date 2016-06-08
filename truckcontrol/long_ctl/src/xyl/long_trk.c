@@ -140,6 +140,9 @@ static local_gps_typ gps_trk;
 static local_gps_typ *gps_trk_pt;
 static road_info_typ  road_info;
 static road_info_typ* road_info_pt;
+static local_pos_typ str_pos;
+static local_pos_typ *str_pos_pt;
+
 
 
 FILE* pout;                              // 04_04_03
@@ -401,6 +404,9 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
      //memset(&gps_point_3,0,sizeof(gps_point_3));
 
 	 memset(gps_point,0,3 * sizeof(path_gps_point_t));
+	 memset(&str_pos,0,sizeof(str_pos));
+	 str_pos_pt=&str_pos;
+
 	
      vehicle_info. fault_mode = 1;   // default value
      vehicle_info_pt = &vehicle_info;
@@ -502,7 +508,8 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 
     static int maneuver_id[2]={0,0};
     static int pre_maneuver_id[2]={0,0};
-    
+   
+
     static float run_dist=0.0;   
 	static double tmp_frac=0.0;
 	int tmp_int;
@@ -667,36 +674,89 @@ if(config.use_comm == TRUE)
 
 	if (vehicle_info_pt-> veh_id == 1)
 	{
-		gps_point[1].longitude = comm_receive_pt[2].longitude;
-		gps_point[1].latitude = comm_receive_pt[2].latitude;
-		gps_point[1].heading = comm_receive_pt[2].heading;
-
-		gps_point[2].longitude = comm_receive_pt[3].longitude;
-		gps_point[2].latitude = comm_receive_pt[3].latitude;
-		gps_point[2].heading = comm_receive_pt[3].heading;
+		if ( fabs(comm_receive_pt[2].longitude) > 0.1 )
+		{
+			gps_point[1].longitude = comm_receive_pt[2].longitude;
+			gps_point[1].latitude = comm_receive_pt[2].latitude;
+			gps_point[1].heading = comm_receive_pt[2].heading;
+		}
+		else
+		{
+			gps_point[1].longitude = gps_point[0].longitude;
+			gps_point[1].latitude = gps_point[0].latitude;
+			gps_point[1].heading = gps_point[0].heading;
+		}
+		if ( fabs(comm_receive_pt[3].longitude) > 0.1 )
+		{
+			gps_point[2].longitude = comm_receive_pt[3].longitude;
+			gps_point[2].latitude = comm_receive_pt[3].latitude;
+			gps_point[2].heading = comm_receive_pt[3].heading;	
+		}
+		else
+		{
+			gps_point[2].longitude = gps_point[0].longitude;
+			gps_point[2].latitude = gps_point[0].latitude;
+			gps_point[2].heading = gps_point[0].heading;
+		}		
 	}
 	if (vehicle_info_pt-> veh_id == 2)
-	{
-		gps_point[0].longitude= comm_receive_pt[1].longitude;
-		gps_point[0].latitude = comm_receive_pt[1].latitude;
-		gps_point[0].heading = comm_receive_pt[1].heading;
-
-		gps_point[2].longitude = comm_receive_pt[3].longitude;
-		gps_point[2].latitude = comm_receive_pt[3].latitude;
-		gps_point[2].heading = comm_receive_pt[3].heading;
+	{	
+		if ( fabs(comm_receive_pt[1].longitude) > 0.1 )
+		{
+			gps_point[0].longitude= comm_receive_pt[1].longitude;
+			gps_point[0].latitude = comm_receive_pt[1].latitude;
+			gps_point[0].heading = comm_receive_pt[1].heading;
+		}
+		else
+		{
+			gps_point[0].longitude = gps_point[1].longitude;
+			gps_point[0].latitude = gps_point[1].latitude;
+			gps_point[0].heading = gps_point[1].heading;
+		}
+		if ( fabs(comm_receive_pt[3].longitude) > 0.1 )
+		{
+			gps_point[2].longitude = comm_receive_pt[3].longitude;
+			gps_point[2].latitude = comm_receive_pt[3].latitude;
+			gps_point[2].heading = comm_receive_pt[3].heading;
+		}
+		else
+		{
+			gps_point[2].longitude = gps_point[1].longitude;
+			gps_point[2].latitude = gps_point[1].latitude;
+			gps_point[2].heading = gps_point[1].heading;
+		}		
 	}
 	if (vehicle_info_pt-> veh_id == 3)
 	{
-		gps_point[0].longitude = comm_receive_pt[1].longitude;
-		gps_point[0].latitude = comm_receive_pt[1].latitude;
-		gps_point[0].heading = comm_receive_pt[1].heading;
-
-		gps_point[1].longitude = comm_receive_pt[2].longitude;
-		gps_point[1].latitude = comm_receive_pt[2].latitude;
-		gps_point[1].heading = comm_receive_pt[2].heading;
-
+		
+		if ( fabs(comm_receive_pt[1].longitude) > 0.1 )
+		{
+			gps_point[0].longitude= comm_receive_pt[1].longitude;
+			gps_point[0].latitude = comm_receive_pt[1].latitude;
+			gps_point[0].heading = comm_receive_pt[1].heading;
+		}
+		else
+		{
+			gps_point[0].longitude = gps_point[2].longitude;
+			gps_point[0].latitude = gps_point[2].latitude;
+			gps_point[0].heading = gps_point[2].heading;
+		}
+		if ( fabs(comm_receive_pt[2].longitude) > 0.1 )
+		{
+			gps_point[1].longitude = comm_receive_pt[2].longitude;
+			gps_point[1].latitude = comm_receive_pt[2].latitude;
+			gps_point[1].heading = comm_receive_pt[2].heading;
+		}
+		else
+		{
+			gps_point[1].longitude = gps_point[2].longitude;
+			gps_point[1].latitude = gps_point[2].latitude;
+			gps_point[1].heading = gps_point[2].heading;
+		}		
 	}
-   
+  
+	
+	//	veh_pos(vehicle_info_pt, gps_point[0], gps_point[1], gps_point[2], str_pos_pt);
 	
 
 	/**************************************
@@ -1076,8 +1136,11 @@ if(brk_ini == 1)
 	/*                                  */
 	/************************************/
 
-if (vehicle_info_pt-> veh_id == 2)
+if (manager_cmd_pt-> auto_contr == ON)
+{
+ if (vehicle_info_pt-> veh_id == 2)
  {
+	
 	if ( (comm_receive_pt[1].user_bit_3 == 1) || (comm_receive_pt[1]. user_float > 0.1) ) // manual; brake sw || pedal deflection
 	{
 		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
@@ -1086,7 +1149,7 @@ if (vehicle_info_pt-> veh_id == 2)
 		pcmd->brake_priority=TSC_HIGHEST;
 		pcmd->ebs_deceleration = min_main(-1.2, 1.2*(comm_receive_pt[1].accel));  
 	}
-	if (comm_receive_pt[1].rate < 0.01)  // automatic control with ebs_deceleration
+	/*if (comm_receive_pt[1].rate < -0.5)  // automatic control with ebs_deceleration
 	{
 		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   		
 		pcmd->brake_command_mode = XBR_ACTIVE; 		  	   
@@ -1099,11 +1162,12 @@ if (vehicle_info_pt-> veh_id == 2)
 			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque + 1.0;
 		if (cmd_count == 20)
 			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque - 1.0;
-	}
+	}	*/
  }
-if (vehicle_info_pt-> veh_id == 3)
+
+ if (vehicle_info_pt-> veh_id == 3)
  {
-	 if ( (comm_receive_pt[1].user_bit_3 == 1) || (comm_receive_pt[1]. user_float > 0.1) ||
+	if ( (comm_receive_pt[1].user_bit_3 == 1) || (comm_receive_pt[1]. user_float > 0.1) ||
 		  (comm_receive_pt[2].user_bit_3 == 1) || (comm_receive_pt[2]. user_float > 0.1) ) // brake sw || pedal deflection
 	{
 		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
@@ -1113,7 +1177,7 @@ if (vehicle_info_pt-> veh_id == 3)
 		pcmd->ebs_deceleration = min_main(-1.2, 1.2*(comm_receive_pt[1].accel)); 
 		pcmd->ebs_deceleration = min_main(pcmd->ebs_deceleration, 1.2*(comm_receive_pt[2].accel));
 	}
-	if ((comm_receive_pt[1].rate < 0.01) || (comm_receive_pt[2].rate < 0.01) )  // automatic control; with ebs_deceleration
+	/*if ((comm_receive_pt[1].rate < -0.5) || (comm_receive_pt[2].rate < -0.5) )  // automatic control; with ebs_deceleration
 	{
 		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
 		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;           
@@ -1127,9 +1191,14 @@ if (vehicle_info_pt-> veh_id == 3)
 			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque + 1.0;
 		if (cmd_count == 20)
 			    pcmd->engine_retarder_torque =  pcmd->engine_retarder_torque - 1.0;
-	}
-
+	}*/
  }
+}
+else
+{
+	pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;          
+	pcmd->brake_command_mode = XBR_NOT_ACTIVE;          
+}
 
 
 	/************************************/
@@ -1458,7 +1527,8 @@ if( config.run_data == TRUE ) {
              con_output_pt-> y12,   // jk				//46
 			 con_output_pt-> y13,   // pb_s2_b			//47              
              con_output_pt-> y14,   // brk				//48 
-			 con_state_pt-> man_dist_var2,				//49
+			 con_state_pt-> tmp_var2,				//49
+			 //con_state_pt-> man_dist_var2,				//49
              manager_cmd_pt->control_mode				//50                                          
         );
         fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ",               
@@ -1504,7 +1574,7 @@ if( config.run_data == TRUE ) {
 			 gps_point[2]. heading				 //85
 			 );	
 
-	  fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f", 
+	  fprintf(pout, "%4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f %4.3f ", 
 		    jbus_read_pt->  brk_pres,			//86
 			pv-> VP15_RoadInclinationVP15,		//87
 			pv-> VP15_VehicleWeightVP15,		//88
@@ -1515,6 +1585,12 @@ if( config.run_data == TRUE ) {
 			pv-> Volvo_EgoVel,					//93
 			pv-> Volvo_EgoAcc,					//94
 			pv-> Volvo_EgoRoadGrade);			//95
+	  fprintf(pout, "%3i %3i %3i %4.3f",
+		    str_pos_pt->local_pos[0],			//96
+			str_pos_pt->local_pos[1],			//97
+			str_pos_pt->local_pos[2],			//98
+			str_pos_pt->ave_heading);			//99
+
 }
 
 if( config.read_data == TRUE ) {
