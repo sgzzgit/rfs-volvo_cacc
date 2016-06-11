@@ -120,7 +120,7 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 	struct timeb *last_sent = &cmd->last_time;
 	j1939_tsc1_e_acc_typ *tsc1_e_acc = (j1939_tsc1_e_acc_typ *)&cmd->cmd.tsc1;
 	int new_mode = ctrl->engine_command_mode;
-	int old_mode = tsc1_e_acc->EnOvrdCtrlM;
+	static int old_mode = 0;
 	static float last_engine_torque = 1;
 	static char state_change_counter = 0;
 	can_debug_t engine_debug;
@@ -136,8 +136,10 @@ int ready_to_send_engine_src_acc (long_output_typ *ctrl, jbus_cmd_type *cmd)
 
 //        if((last_engine_torque >= 0) && (ctrl->engine_torque < 0)) {
 	if((new_mode == TSC_OVERRIDE_DISABLED) && (old_mode != TSC_OVERRIDE_DISABLED)) { 
-                state_change_counter = 3;
+                state_change_counter = 4;
 	}
+
+	old_mode = new_mode;
 
 	last_engine_torque = ctrl->engine_torque;
 
@@ -186,7 +188,7 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 	struct timeb *last_sent = &cmd->last_time;
 	j1939_tsc1_er_acc_typ *tsc_er_acc = (j1939_tsc1_er_acc_typ *)&cmd->cmd.tsc1;
 	int new_mode = ctrl->engine_retarder_command_mode;
-	int old_mode = tsc_er_acc->EnOvrdCtrlM;
+	static int old_mode = 0;
 	static float last_engine_retarder_torque = 1;
 	static char state_change_counter = 0;
 	can_debug_t engine_retarder_debug;
@@ -202,8 +204,10 @@ int ready_to_send_engine_retarder_src_acc (long_output_typ *ctrl, jbus_cmd_type 
 
 //        if((last_engine_retarder_torque <= 0) && (ctrl->engine_retarder_torque > 0)) {
 	if((new_mode == TSC_OVERRIDE_DISABLED) && (old_mode != TSC_OVERRIDE_DISABLED)) {
-                state_change_counter = 3;
+                state_change_counter = 4;
 	}
+
+	old_mode = new_mode;
 
 	last_engine_retarder_torque = ctrl->engine_retarder_torque;
 
