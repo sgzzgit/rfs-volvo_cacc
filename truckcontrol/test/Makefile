@@ -18,9 +18,9 @@ TEST_DIR=.
 
 PATH_EXECS= db_slv evt300 rdlidar dmm32 rddmm32 gpsrcv gpsdb
 TRUCK_EXECS= veh_trk long_trk veh_snd veh_rcv long_out \
-		jbussend cmdtest rdbrake test_utils trk_io \
+		jbussendGPS jbussend cmdtest rdbrake test_utils trk_io \
 		set_fault setLEDs rdswitches trk_cr trk_wr \
-		print_long_in fake_switches veh_snd_test mdl
+		print_long_in veh_snd_test dvi_snd dvi_rcv
 
 install:
 	cp $(HOME_DIR)/db/qnx/db_slv $(TEST_DIR)

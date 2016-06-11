@@ -40,8 +40,8 @@ struct SeretUdpStruct{
     quint8 popup;//0:no popup, 1:Platoon found - join?
     quint32 exitDistance; //value/10.0 km (PATH: Not currently used)
     struct VehicleStruct vehicles[3];
-} IS_PACKED;
-//};
+//} IS_PACKED;
+};
 
  
 
@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
 	veh_comm_packet_t comm_pkt1;
 	veh_comm_packet_t comm_pkt2;
 	veh_comm_packet_t comm_pkt3;
+	veh_comm_packet_t self_comm_pkt;
 
         int bytes_sent;     		/// received from a call to sendto
 	int verbose = 0;
@@ -285,46 +286,38 @@ printf("bytes_sent2 %d\n", bytes_sent);
 		db_clt_read(pclt, DB_COMM_LEAD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt1);
 		db_clt_read(pclt, DB_COMM_SECOND_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt2);
 		db_clt_read(pclt, DB_COMM_THIRD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt3);
+                db_clt_read(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), &self_comm_pkt);
 
-/* man_des partial code list
-         *      40  : Adaptive Cruise Control (in a platoon with at least one radar but no communication )
-         *      41  : Cooperative Adaptive Cruise Control (in a platoon with at least one radar and communication )
-         *      45  : manual control (including all the maneuvers)
-*/
-			egodata.CACCState = comm_pkt1.maneuver_des_1; // comm_pkt:  0:Not available, 45:Off, 40:ACC, 41:CACC
-									 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
+		char drive_mode_2_CACCState[] = {0, 0, 4, 2};
+		egodata.CACCState = drive_mode_2_CACCState[self_comm_pkt.user_ushort_2]; // comm_pkt: 0-stay, 1-manual,  2-ACC,  3-CACC 
+							 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
+		dvi_out.position = self_comm_pkt.my_pip;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
 
-			dvi_out.vehicles[0].isBraking = 0;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
+		if ( (comm_pkt1.user_bit_3 == 1) || (comm_pkt1. user_float > 0.1) )
+			dvi_out.vehicles[0].isBraking = 2;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
+		else
+			dvi_out.vehicles[0].isBraking = 1;
+		dvi_out.vehicles[0].hasIntruder = comm_pkt1.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+//		dvi_out.Vehicle1Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
+//		dvi_out.Vehicle1Malfunction = comm_pkt1.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
 
-			dvi_out.vehicles[0].hasIntruder = comm_pkt1.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
 
-//			dvi_out.Vehicle1Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
+		if ( (comm_pkt2.user_bit_3 == 1) || (comm_pkt2. user_float > 0.1) )
+			dvi_out.vehicles[1].isBraking = 2;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
+		else
+			dvi_out.vehicles[1].isBraking = 1;
+		dvi_out.vehicles[1].hasIntruder = comm_pkt2.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+//		dvi_out.Vehicle2Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
+//		dvi_out.Vehicle2Malfunction = comm_pkt2.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
 
-//			dvi_out.Vehicle1Malfunction = comm_pkt1.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
 
-//			egodata[1].CACCState = comm_pkt2.maneuver_des_1; // comm_pkt:  0:Not available, 45:Off, 40:ACC, 41:CACC
-									 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
-
-			dvi_out.vehicles[1].isBraking = 0;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
-
-			dvi_out.vehicles[1].hasIntruder = comm_pkt2.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-
-//			dvi_out.Vehicle2Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
-
-//			dvi_out.Vehicle2Malfunction = comm_pkt2.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
-
-//			egodata[2].CACCState = comm_pkt3.maneuver_des_1; // comm_pkt:  0:Not available, 45:Off, 40:ACC, 41:CACC
-									 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
-
-			dvi_out.vehicles[2].isBraking = 0;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
-
-			dvi_out.vehicles[2].hasIntruder = comm_pkt3.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-
-//			dvi_out.Vehicle3Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
-
-//			dvi_out.Vehicle3Malfunction = comm_pkt3.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
-
-			dvi_out.position = comm_pkt1.my_pip;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
+		if ( (comm_pkt3.user_bit_3 == 1) || (comm_pkt3. user_float > 0.1) )
+			dvi_out.vehicles[2].isBraking = 2;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
+		else
+			dvi_out.vehicles[2].isBraking = 1;
+		dvi_out.vehicles[2].hasIntruder = comm_pkt3.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+//		dvi_out.Vehicle3Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
+//		dvi_out.Vehicle3Malfunction = comm_pkt3.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
 
 		if(debug) {
 				egodata.CACCState = 1; 

@@ -60,8 +60,9 @@ skip ;
 
 shell 'Start everything but longitudinal control and file writing'
 %(
+	slay  -f -Q -s TERM dvi_snd 
+	slay  -f -Q -s TERM dvi_rcv
 	slay  -f -Q -s TERM trk_wr
-	slay  -f -Q -s TERM trk_io
 	slay  -f -Q -s TERM rdj1939
 	slay  -f -Q -s TERM veh_snd
 	slay  -f -Q -s TERM veh_rcv
@@ -77,25 +78,36 @@ shell 'Start everything but longitudinal control and file writing'
 
 	IPADDR=`ifconfig | grep 172.16.0 | awk '{print $2}'`
 
-	echo $IPADDR | grep 75 
-	if [[ $? -eq 0 ]]
-	then
-	        ITRIADDR=172.16.1.75
-	        TRUCK=Blue
-	fi
-
 	echo $IPADDR | grep 74 
 	if [[ $? -eq 0 ]]
 	then
 	        ITRIADDR=172.16.1.74
+	        GALAXYWIRELESS=172.16.5.74
 	        TRUCK=Gold
+	fi
+
+	echo $IPADDR | grep 75 
+	if [[ $? -eq 0 ]]
+	then
+	        ITRIADDR=172.16.1.75
+	        GALAXYWIRELESS=172.16.5.75
+	        TRUCK=Blue
 	fi
 
 	echo $IPADDR | grep 76
 	if [[ $? -eq 0 ]]
 	then
 	        ITRIADDR=172.16.1.76
+	        GALAXYWIRELESS=172.16.5.76
 	        TRUCK=Silvr
+	fi
+
+	echo $IPADDR | grep 77 
+	if [[ $? -eq 0 ]]
+	then
+	        ITRIADDR=172.16.1.77
+	        GALAXYWIRELESS=172.16.5.77
+	        TRUCK=Blue
 	fi
 
 	$TEST_DIR/db_slv -Q -S `hostname` &
@@ -124,6 +136,8 @@ shell 'Start everything but longitudinal control and file writing'
 	$TEST_DIR/veh_snd -v -i 100 -A $IPADDR -a $ITRIADDR -u 15041 -t $TRUCK >/big/data/veh_snd_$DATESTR.dbg &
 	sleep 1
 	$TEST_DIR/veh_rcv -f $CONFIG_FILE -v -A $IPADDR -a $ITRIADDR -u 15042 -t $TRUCK >/big/data/veh_rcv_$DATESTR.dbg &
+	sleep 1
+	$TEST_DIR/dvi_snd -c 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR >/big/data/dvi_snd_$DATESTR.dbg &
 
 %)
 ;
@@ -133,6 +147,8 @@ shell 'Stop everything'
 	slay  -f -Q -s TERM trk_wr
 	slay  -f -Q -s TERM trk_io
 	slay  -f -Q -s TERM rdj1939
+	slay  -f -Q -s TERM dvi_rcv
+	slay  -f -Q -s TERM dvi_snd 
 	slay  -f -Q -s TERM veh_snd
 	slay  -f -Q -s TERM veh_rcv
 	slay  -f -Q -s TERM gpsrcv

@@ -9,6 +9,7 @@ if [[ $? -eq 0 ]]
 then
 	ITRIADDR=172.16.1.75
 	ITRIWIRELESS=172.16.2.75
+	GALAXYWIRELESS=172.16.5.75
 	TRUCK=Blue
 fi
 
@@ -17,6 +18,7 @@ if [[ $? -eq 0 ]]
 then
 	ITRIADDR=172.16.1.74
 	ITRIWIRELESS=172.16.2.74
+	GALAXYWIRELESS=172.16.5.74
 	TRUCK=Gold
 fi
 
@@ -25,6 +27,7 @@ if [[ $? -eq 0 ]]
 then
 	ITRIADDR=172.16.1.76
 	ITRIWIRELESS=172.16.2.76
+	GALAXYWIRELESS=172.16.5.76
 	TRUCK=Silvr
 fi
 
@@ -33,6 +36,7 @@ if [[ $? -eq 0 ]]
 then
 	ITRIADDR=172.16.1.77
 	ITRIWIRELESS=172.16.2.77
+	GALAXYWIRELESS=172.16.5.77
 	TRUCK=Silvr
 fi
 
@@ -63,14 +67,10 @@ then
 fi
 OBJDIR=qnx
 echo "Turning on startup screen"
-#../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
-../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 172.16.0.1 -A 172.16.0.75 -E "0 0 0 0 0 0 0 0 0 0"
+../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 0 0 1 0 0 1 1 1 0 0 0 "
+sleep 1
 echo "Turning on platoon found screen"
-##sleep 2
-##../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "2 0 0 1 0 0 0 0 0 0"
-#../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10005 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
-../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10005 -R 10007 -a 172.16.0.1 -A 172.16.0.75 -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
-echo "Turning on startup screen"
+../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
 sleep 2
-#../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 192.168.1.111 -A 192.168.1.68 -E "0 0 0 0 0 0 0 0 0 0"
-../vehcomm/$OBJDIR/dvi_snd -c 20 -R 10007 -a 172.16.0.1 -A 172.16.0.75 -E "0 0 0 0 0 0 0 0 0 0"
+echo "Turning on startup screen"
+../vehcomm/$OBJDIR/dvi_snd -c 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 0 0 1 0 0 1 1 1 0 0 0 "
