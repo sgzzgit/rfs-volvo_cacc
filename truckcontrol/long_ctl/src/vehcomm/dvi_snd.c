@@ -34,10 +34,10 @@ struct VehicleStruct {
  
 
 struct SeretUdpStruct{
-    quint8 platooningState; //0=standby, 1=joining, 2=platooning, 3=leaving, 4=dissolve (PATH: I guess only 0 and 3 is used?)
+    quint8 platooningState; //0=standby, 1=joining, 2=platooning, 3=leaving, 4=dissolve (PATH: I guess only 0 and 2 is used?)
     qint8 position; //-1:nothing (follower with no platoon), 0:leader, >0 Follower (Ego position of vehicle)
     quint8 TBD; //Not used for the moment
-    quint8 popup;//0:no popup, 1:Platoon found - join?
+    quint8 popup;//0:no popup, 1:Platoon found - join? (PATH: Not currently used)
     quint32 exitDistance; //value/10.0 km (PATH: Not currently used)
     struct VehicleStruct vehicles[3];
 //} IS_PACKED;
@@ -93,6 +93,24 @@ static void sig_hand(int code)
                 longjmp(exit_env, code);
 }
 
+static db_id_t db_vars_list[] = {
+	{DB_COMM_LEAD_TRK_VAR, sizeof(veh_comm_packet_t)},
+	{DB_COMM_SECOND_TRK_VAR, sizeof(veh_comm_packet_t)},
+	{DB_COMM_THIRD_TRK_VAR, sizeof(veh_comm_packet_t)},
+	{DB_COMM_TX_VAR, sizeof(veh_comm_packet_t)},
+};
+
+#define NUM_DB_VARS     sizeof(db_vars_list)/sizeof(db_id_t)
+
+int db_trig_list[] = {
+	DB_COMM_LEAD_TRK_VAR,
+	DB_COMM_SECOND_TRK_VAR,
+	DB_COMM_THIRD_TRK_VAR,
+	DB_COMM_TX_VAR
+};
+
+#define NUM_TRIG_VARS     sizeof(db_trig_list)/sizeof(int)
+
 /* Set the vehicle string as the object identifier in the
  * GPS point structure within the packet being sent.
  */ 
@@ -115,6 +133,9 @@ int main(int argc, char *argv[])
         char *domain=DEFAULT_SERVICE;
         char hostname[MAXHOSTNAMELEN+1];
         int xport = COMM_OS_XPORT;
+	trig_info_typ trig_info;
+	int recv_type;
+
 	int sd;				/// socket descriptor
 	int sd2;				/// socket descriptor
 	struct SeretUdpStruct dvi_out;
@@ -123,31 +144,35 @@ int main(int argc, char *argv[])
 	veh_comm_packet_t comm_pkt2;
 	veh_comm_packet_t comm_pkt3;
 	veh_comm_packet_t self_comm_pkt;
+	timestamp_t comm_pkt1_ts_sav = {0};
+	timestamp_t comm_pkt2_ts_sav = {0};
+	timestamp_t comm_pkt3_ts_sav = {0};
 
         int bytes_sent;     		/// received from a call to sendto
 	int verbose = 0;
 	int debug = 0;
 	short msg_count = 0;
-	char *remote_ipaddr = "192.168.1.111";	/// address of UDP destination
-	char *local_ipaddr = "192.168.1.68";	/// address of UDP destination
+	char *remote_ipaddr = "172.16.5.77";	/// address of UDP destination
+	char *local_ipaddr = "172.16.5.77";	/// address of UDP destination
 	short unsigned remote_port = 10007;
-	short unsigned remote_port2 = 10007;
+	short unsigned remote_port2 = 10005;
 	struct sockaddr_in dst_addr;
 	struct sockaddr_in dst_addr2;
 	char *vehicle_str = "VNL475";
 	posix_timer_typ *ptmr;
 	int interval = 50;	/// milliseconds
-	int counter = 100;
+	int counter = 0;
 	int send_test = 0;
 	char *send_test_str;
 	int no_send1 = 1;
 	char *send_test_str2;
 	int no_send2 = 1;
+	int create_db_vars = 0;
 
 	memset(&dvi_out, 0, sizeof(struct SeretUdpStruct));
 	memset(&egodata, 0, sizeof(struct ExtraDataCACCStruct));
 
-        while ((ch = getopt(argc, argv, "A:a:i:t:c:r:R:vP:E:d")) != EOF) {
+        while ((ch = getopt(argc, argv, "A:a:i:t:C:cr:R:vP:E:d")) != EOF) {
                 switch (ch) {
 		case 'A': local_ipaddr = strdup(optarg);
 			  break;
@@ -157,7 +182,9 @@ int main(int argc, char *argv[])
 			  break;
 		case 't': vehicle_str = strdup(optarg);
 			  break;
-		case 'c': counter = atoi(optarg); 
+		case 'C': counter = atoi(optarg); 
+			  break;
+		case 'c': create_db_vars = 1; 
 			  break;
 		case 'r': remote_port = atoi(optarg); 
 			  break;
@@ -211,7 +238,7 @@ int main(int argc, char *argv[])
 		case 'd': debug = 1; 
 			  verbose = 1; 
 			  break;
-                default:  printf("Usage: %s -A <local IP address, def. 127.0.0.1> -a <remote IP address, def. 10.0.1.9> -P <platooning data> -E <Egodata test string> -c <test counter> -r <remote UDP port, def. 5050> -R <remote UDP port2, def. 10007>  -t <vehicle string, def. Blue> -i <interval, def. 20 ms>\n",argv[0]);
+                default:  printf("Usage: %s -A <local IP address, def. 127.0.0.1> -a <remote IP address, def. 10.0.1.9> -P <platooning data> -E <Egodata test string> -C <test counter> -c (Create db vars) -r <remote UDP port, def. 10007> -R <remote UDP port2, def. 10005>  -t <vehicle string, def. Blue> -i <interval, def. 20 ms>\n",argv[0]);
 			  exit(EXIT_FAILURE);
                           break;
                 }
@@ -271,53 +298,161 @@ printf("bytes_sent2 %d\n", bytes_sent);
 
         get_local_name(hostname, MAXHOSTNAMELEN);
 
-	/**  assumes DB_COMM variables were aleady created by another process
-	 */
-	pclt = db_list_init(argv[0], hostname, domain, xport, NULL, 0, NULL, 0); 
+	if(create_db_vars)
+		pclt = db_list_init(argv[0], hostname, domain, xport, db_vars_list, NUM_DB_VARS, db_trig_list,  NUM_TRIG_VARS); 
+	else
+		pclt = db_list_init(argv[0], hostname, domain, xport, NULL, 0, db_trig_list, NUM_TRIG_VARS); 
+
 	if (setjmp(exit_env) != 0) {
 		printf("Sent %d messages\n", msg_count);
-		db_list_done(pclt, NULL, 0, NULL, 0);		
+		if(create_db_vars)
+			db_list_done(pclt, db_vars_list, NUM_DB_VARS, db_trig_list,  NUM_TRIG_VARS);		
+		else
+			db_list_done(pclt, NULL, 0, NULL, 0);		
 		if(sd > 0)
 			close(sd);
 		exit(EXIT_SUCCESS);
 	} else
 		sig_ign(sig_list, sig_hand);
+
+	get_current_timestamp(&comm_pkt1_ts_sav);
+	get_current_timestamp(&comm_pkt2_ts_sav);
+	get_current_timestamp(&comm_pkt3_ts_sav);
+
 	while (1) {
-		db_clt_read(pclt, DB_COMM_LEAD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt1);
-		db_clt_read(pclt, DB_COMM_SECOND_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt2);
-		db_clt_read(pclt, DB_COMM_THIRD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt3);
-                db_clt_read(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), &self_comm_pkt);
+		recv_type= clt_ipc_receive(pclt, &trig_info, sizeof(trig_info));
 
 		char drive_mode_2_CACCState[] = {0, 0, 4, 2};
-		egodata.CACCState = drive_mode_2_CACCState[self_comm_pkt.user_ushort_2]; // comm_pkt: 0-stay, 1-manual,  2-ACC,  3-CACC 
-							 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
-		dvi_out.position = self_comm_pkt.my_pip;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
 
-		if ( (comm_pkt1.user_bit_3 == 1) || (comm_pkt1. user_float > 0.1) )
-			dvi_out.vehicles[0].isBraking = 2;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
-		else
-			dvi_out.vehicles[0].isBraking = 1;
-		dvi_out.vehicles[0].hasIntruder = comm_pkt1.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-//		dvi_out.Vehicle1Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
-//		dvi_out.Vehicle1Malfunction = comm_pkt1.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
+		if(DB_TRIG_VAR(&trig_info) == DB_COMM_TX_VAR) {
+
+	                db_clt_read(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), &self_comm_pkt);
+
+			egodata.CACCState = drive_mode_2_CACCState[self_comm_pkt.user_ushort_2]; // comm_pkt: 0-stay, 1-manual,  2-ACC,  3-CACC 
+								 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
+			dvi_out.platooningState = 2; //0=standby, 2=platooning NOTE:Must be set to 2 to get rid of "Please switch VEC stalk to ON"
+			dvi_out.position = self_comm_pkt.my_pip;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
+			printf("Got self_pkt! CACCState %d my_pip %d\n",
+				egodata.CACCState, 
+				dvi_out.position
+			);
+		}
+
+		if(DB_TRIG_VAR(&trig_info) == DB_COMM_LEAD_TRK_VAR) {
+
+			db_clt_read(pclt, DB_COMM_LEAD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt1);
+
+			printf("comm_pkt1.ts before: ");
+			print_timestamp(stdout, &comm_pkt1.ts);
+			printf("comm_pkt1_ts_sav before: ");
+			print_timestamp(stdout, &comm_pkt1_ts_sav);
+			printf("\n");
+			
+			if( ts2_is_later_than_ts1(&comm_pkt1_ts_sav, &comm_pkt1.ts) )
+				dvi_out.vehicles[0].type = 1;	// 0=nothing 1=truck 2=truck with communication error
+			else
+				dvi_out.vehicles[0].type = 2;	// 0=nothing 1=truck 2=truck with communication error
+			comm_pkt1_ts_sav = comm_pkt1.ts;
+
+			printf("comm_pkt1.ts after: ");
+			print_timestamp(stdout, &comm_pkt1.ts);
+			printf("comm_pkt1_ts_sav after: ");
+			print_timestamp(stdout, &comm_pkt1_ts_sav);
+			printf("dvi_out.vehicles[0].type: %d\n", dvi_out.vehicles[0].type);
+
+			if(dvi_out.vehicles[0].type == 1) {
+				if ( (comm_pkt1.user_bit_3 == 1) || (comm_pkt1.user_float > 0.1) )
+					dvi_out.vehicles[0].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
+				else
+					dvi_out.vehicles[0].isBraking = 0;
+				dvi_out.vehicles[0].hasIntruder = comm_pkt1.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+				printf("Got comm_pkt1! type %d hasIntruder %d isBraking %d\n",
+					dvi_out.vehicles[0].type,
+					dvi_out.vehicles[0].hasIntruder,
+					dvi_out.vehicles[0].isBraking
+				);
+			}
+		}
+//		else
+//			memset(&dvi_out.vehicles[0], 0, sizeof(struct VehicleStruct));
 
 
-		if ( (comm_pkt2.user_bit_3 == 1) || (comm_pkt2. user_float > 0.1) )
-			dvi_out.vehicles[1].isBraking = 2;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
-		else
-			dvi_out.vehicles[1].isBraking = 1;
-		dvi_out.vehicles[1].hasIntruder = comm_pkt2.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-//		dvi_out.Vehicle2Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
-//		dvi_out.Vehicle2Malfunction = comm_pkt2.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
+		if(DB_TRIG_VAR(&trig_info) == DB_COMM_SECOND_TRK_VAR) {
+
+			db_clt_read(pclt, DB_COMM_SECOND_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt2);
+
+			printf("comm_pkt2.ts before: ");
+			print_timestamp(stdout, &comm_pkt2.ts);
+			printf("comm_pkt2_ts_sav before: ");
+			print_timestamp(stdout, &comm_pkt2_ts_sav);
+			printf("\n");
+			
+			if( ts2_is_later_than_ts1(&comm_pkt2_ts_sav, &comm_pkt2.ts) )
+				dvi_out.vehicles[1].type = 1;	// 0=nothing 1=truck 2=truck with communication error
+			else
+				dvi_out.vehicles[1].type = 2;	// 0=nothing 1=truck 2=truck with communication error
+			comm_pkt2_ts_sav = comm_pkt2.ts;
+
+			printf("comm_pkt2.ts after: ");
+			print_timestamp(stdout, &comm_pkt2.ts);
+			printf("comm_pkt2_ts_sav after: ");
+			print_timestamp(stdout, &comm_pkt2_ts_sav);
+			printf("dvi_out.vehicles[1].type: %d\n", dvi_out.vehicles[1].type);
+			
+			if(dvi_out.vehicles[1].type == 1) {
+				if ( (comm_pkt2.user_bit_3 == 1) || (comm_pkt2. user_float > 0.1) )
+					dvi_out.vehicles[1].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
+				else
+					dvi_out.vehicles[1].isBraking = 0;
+				dvi_out.vehicles[1].hasIntruder = comm_pkt2.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+				printf("Got comm_pkt2! type %d hasIntruder %d isBraking %d\n",
+					dvi_out.vehicles[1].type,
+					dvi_out.vehicles[1].hasIntruder,
+					dvi_out.vehicles[1].isBraking
+					);
+			}
+		}
+//		else
+//			memset(&dvi_out.vehicles[1], 0, sizeof(struct VehicleStruct));
 
 
-		if ( (comm_pkt3.user_bit_3 == 1) || (comm_pkt3. user_float > 0.1) )
-			dvi_out.vehicles[2].isBraking = 2;          // 0-3: 0=Not available 1=Not braking 2=Braking 3=Hard braking
-		else
-			dvi_out.vehicles[2].isBraking = 1;
-		dvi_out.vehicles[2].hasIntruder = comm_pkt3.maneuver_des_2;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-//		dvi_out.Vehicle3Communication = 0;    // 0-2: 0=Not available 1=Not communicating 2=Communicating
-//		dvi_out.Vehicle3Malfunction = comm_pkt3.fault_mode;      // 0-2: 0=Not available 1=Functioning 2=Malfunctioning
+		if(( DB_TRIG_VAR(&trig_info) == DB_COMM_THIRD_TRK_VAR)  && (dvi_out.vehicles[2].type == 1)) {
+
+			db_clt_read(pclt, DB_COMM_THIRD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt3);
+
+			printf("comm_pkt3.ts before: ");
+			print_timestamp(stdout, &comm_pkt3.ts);
+			printf("comm_pkt3_ts_sav before: ");
+			print_timestamp(stdout, &comm_pkt3_ts_sav);
+			printf("\n");
+			
+			if( ts2_is_later_than_ts1(&comm_pkt3_ts_sav, &comm_pkt3.ts) )
+				dvi_out.vehicles[2].type = 1;	// 0=nothing 1=truck 2=truck with communication error
+			else
+				dvi_out.vehicles[2].type = 2;	// 0=nothing 1=truck 2=truck with communication error
+			comm_pkt3_ts_sav = comm_pkt3.ts;
+
+			printf("comm_pkt3.ts after: ");
+			print_timestamp(stdout, &comm_pkt3.ts);
+			printf("comm_pkt3_ts_sav after: ");
+			print_timestamp(stdout, &comm_pkt3_ts_sav);
+			printf("dvi_out.vehicles[2].type: %d\n", dvi_out.vehicles[2].type);
+			
+			if(dvi_out.vehicles[2].type == 1) {
+				if ( (comm_pkt3.user_bit_3 == 1) || (comm_pkt3. user_float > 0.1) )
+					dvi_out.vehicles[2].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
+				else
+					dvi_out.vehicles[2].isBraking = 0;
+				dvi_out.vehicles[2].hasIntruder = comm_pkt3.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+				printf("Got comm_pkt3! type %d hasIntruder %d isBraking %d\n",
+					dvi_out.vehicles[2].type,
+					dvi_out.vehicles[2].hasIntruder,
+					dvi_out.vehicles[2].isBraking
+				);
+			}
+		}
+//		else
+//			memset(&dvi_out.vehicles[2], 0, sizeof(struct VehicleStruct));
 
 		if(debug) {
 				egodata.CACCState = 1; 

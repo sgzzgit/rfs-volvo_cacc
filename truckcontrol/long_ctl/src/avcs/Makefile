@@ -6,34 +6,41 @@
 include $(CAPATH_MK_DEFS)
 
 TRUCK_DIR = $(DISTRIB_DIR)/truckcontrol
-ASNDIR = ./BSM_asn1_dir
-J2735DIR = ./dsrc/asn1j2735
-J2735INC = $(J2735DIR)/include
+LONG_SRC_DIR = $(TRUCK_DIR)/long_ctl/src
+COMMON_DIR = $(LONG_SRC_DIR)/common 
+VEHCOMM_DIR = $(LONG_SRC_DIR)/vehcomm 
+J1939_HEADER_DIR = $(CAN_DIR)/jbus/include
+J1939_LIB_DIR = $(CAN_DIR)/jbus/lib
+CAN_CLIENT_LIB_DIR = $(CAN_DIR)/client/path_can/qnx
+CAN_DEFS_INCLUDE_DIR = $(CAN_DIR)/include
+CAN_CLIENT_INCLUDE_DIR = $(CAN_DIR)/client
 
-PATH_CFLAGS += -I$(ASNDIR) -I$(J2735INC)
-PATH_LDFLAGS += -L$(ASNDIR)
-PATH_OBJS += $(ASNDIR)/*.o $(OBJDIR)/veh_lib.o
+LONG_LIBS = -llong_utils -ljbus
 
-EXEC =  $(OBJDIR)/veh_rcv $(OBJDIR)/veh_snd $(OBJDIR)/veh_snd_test $(OBJDIR)/dvi_rcv $(OBJDIR)/dvi_snd
+PATH_CFLAGS += -I$(J1939_HEADER_DIR) -I$(COMMON_DIR) -I$(VEHCOMM_DIR) -I$(CAN_DEFS_INCLUDE_DIR) -I$(CAN_CLIENT_INCLUDE_DIR)
 
-all:    $(OBJDIR) $(PATH_OBJS) $(EXEC)
+PATH_LDFLAGS += -L$(COMMON_DIR) -L$(J1939_LIB_DIR) -L$(CAN_CLIENT_LIB_DIR)
+
+PATH_LIBS = $(LONG_LIBS) $(PATH_CORE_LIBS) -lcapath_can 
+
+EXEC =  $(OBJDIR)/trk_wr \
+	$(OBJDIR)/trk_cr \
+	$(OBJDIR)/rdswitches\
+	$(OBJDIR)/setLEDs\
+	$(OBJDIR)/set_fault\
+	$(OBJDIR)/jbussend\
+	$(OBJDIR)/jbussendGPS\
+	$(OBJDIR)/fake_switches
+
+all: $(OBJDIR) $(EXEC)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-$(OBJDIR)/veh_rcv: $(OBJDIR)/veh_rcv.o
-$(OBJDIR)/veh_snd: $(OBJDIR)/veh_snd.o
-$(OBJDIR)/dvi_rcv: $(OBJDIR)/dvi_rcv.o
-$(OBJDIR)/dvi_snd: $(OBJDIR)/dvi_snd.o
+$(OBJDIR)/veh_trk: $(OBJDIR)/veh_trk.o
 
-$(ASNDIR)/*.o:
-	make -C $(ASNDIR)
 clean:
-	rm -f $(ASNDIR)/*.o $(OBJDIR)/*.o $(OBJDIR)/*.err *.*~ $(EXEC)
+	rm -f $(OBJDIR)/*.o $(EXEC) 
 
 install:
-	cp $(EXEC) $(TRUCK_DIR)/test
-	cp ./BSM_asn1_dir/BasicSafetyMessage-Volvo.txt .
-
-# DO NOT DELETE
-
+	cp $(EXEC) $(TRUCK_DIR)/test 
