@@ -532,9 +532,9 @@ typedef struct {
 } local_gps_typ;
 
 typedef struct {
-	int local_pos[3];	
-	double local_enu_x[3];	
-	double local_enu_y[3];
+	int local_pos;	
+	double local_enu_x;	
+	double local_enu_y;
 	float ave_heading;
 } local_pos_typ;
 

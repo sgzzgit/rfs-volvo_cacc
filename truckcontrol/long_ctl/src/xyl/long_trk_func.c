@@ -369,17 +369,20 @@ int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_pa
 	 //jbus_rd_pt->  grade = pv_can-> Volvo_EgoRoadGrade;		    // added on 05_28_16
 	 //jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;
 
-	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) < -2.0)
-	//	jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;
-	    jbus_rd_pt->  grade=-3.5;
+	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) < -1.5)
+		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-4.5;  //3.55
+	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) > 1.5)
+		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;  //3.55
+
+	   // jbus_rd_pt->  grade=-3.5;
+
 	 /*if ( pv_can-> self_gps.heading < 200.0 )
 	 {
 		 if ( (pv_can-> self_gps.latitude > 37.925079 && pv_can-> self_gps.latitude < 37.927062) ||
 			  (pv_can-> self_gps.longitude > -122.368604 && pv_can-> self_gps.longitude < -122.362663) )
 		 jbus_rd_pt->  grade=-6.0;
 	 }*/
-	// else
-	    jbus_rd_pt->  grade=0.0;
+	
 	 
 
 	 sens_rd_pt->ego_a=pv_can-> Volvo_EgoAcc;
@@ -507,8 +510,9 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 		  //	pcmd->engine_priority=TSC_LOW;
 
           eng_tq_tmp = (con_out_pt-> y1)/ENGINE_REF_TORQUE;
-          if (eng_tq_tmp < (MIN_TORQUE/ENGINE_REF_TORQUE) )
-             eng_tq_tmp = (MIN_TORQUE/ENGINE_REF_TORQUE);
+
+          //if (eng_tq_tmp < (MIN_TORQUE/ENGINE_REF_TORQUE) )  // removed on 06_09_16
+          //   eng_tq_tmp = (MIN_TORQUE/ENGINE_REF_TORQUE);
 
 		
 	if (cnfg_pt-> MyPltnPos == 1)
@@ -619,6 +623,7 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
       {                                                        
           pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; 
 		  pcmd->engine_command_mode = XBR_NOT_ACTIVE;
+		  pcmd->engine_torque = 0.0;
 		  
       }  
 
@@ -649,12 +654,12 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 		 if (mng_cmd_pt-> drive_mode <= 1)
 				eng_retard_ini=1;
 
-		if ((pcmd->engine_retarder_torque < -60.0) && (pcmd->engine_retarder_torque < eng_retard_buff-10.0*delta_t) )		
+		if ((pcmd->engine_retarder_torque < -60.0) && (pcmd->engine_retarder_torque < eng_retard_buff-15.0*delta_t) )		
+		 	pcmd->engine_retarder_torque = eng_retard_buff-15.0*delta_t;
+		 if ((pcmd->engine_retarder_torque < -75.0) && (pcmd->engine_retarder_torque < eng_retard_buff- 12.5*delta_t) )		
+		 	pcmd->engine_retarder_torque = eng_retard_buff-12.5*delta_t;
+		 if ((pcmd->engine_retarder_torque < -90.0) && (pcmd->engine_retarder_torque < eng_retard_buff-10.0*delta_t) )		
 		 	pcmd->engine_retarder_torque = eng_retard_buff-10.0*delta_t;
-		 if ((pcmd->engine_retarder_torque < -75.0) && (pcmd->engine_retarder_torque < eng_retard_buff- 9.0*delta_t) )		
-		 	pcmd->engine_retarder_torque = eng_retard_buff-9.0*delta_t;
-		 if ((pcmd->engine_retarder_torque < -90.0) && (pcmd->engine_retarder_torque < eng_retard_buff-8.0*delta_t) )		
-		 	pcmd->engine_retarder_torque = eng_retard_buff-8.0*delta_t;
 
 		 eng_retard_buff=pcmd->engine_retarder_torque;
 		
@@ -670,7 +675,7 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 				pcmd->engine_retarder_torque=0.5*(pcmd->engine_retarder_torque);	
 			else if (pcmd->engine_retarder_torque < -10.0)
 				pcmd->engine_retarder_torque=0.8*(pcmd->engine_retarder_torque);
-				/*//pcmd->engine_retarder_torque=0.5*(pcmd->engine_retarder_torque);	*/
+				
 			else;
 		}
 		else
@@ -716,6 +721,7 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
       {   		 
 		  pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;
 		  pcmd->engine_retarder_command_mode = TSC_OVERRIDE_DISABLED;
+		  pcmd->engine_retarder_torque=-0.0;
       }   // jk cmd end                                                     
         
 	 
@@ -746,6 +752,7 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
       {       		   
 			pcmd->brake_command_mode = TSC_OVERRIDE_DISABLED; 
 		    pcmd->brake_command_mode = XBR_NOT_ACTIVE;
+			pcmd->ebs_deceleration = -0.0;
       }   // E-brake end 
               
 	  if ( (pcmd->ebs_deceleration <= -1.2) && (jbus_rd_pt-> long_accel >=0.0) )

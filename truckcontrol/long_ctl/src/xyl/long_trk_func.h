@@ -45,7 +45,8 @@ extern int config_sw(int *pread_sw, int *pmanu_auto_sw,
 //extern int set_time_sync(float *, float *,float *, vehicle_info_typ*, pltn_info_typ*);
 extern int actuate(float, long_output_typ*, con_output_typ*, control_state_typ*, long_params*, long_output_typ*, 
 				          manager_cmd_typ*, switch_typ*, jbus_read_typ*, control_config_typ*, fault_index_typ*, vehicle_info_typ *);
-extern int veh_pos(vehicle_info_typ* , path_gps_point_t , path_gps_point_t , path_gps_point_t , local_pos_typ *);
+extern int veh_pos(path_gps_point_t , path_gps_point_t , path_gps_point_t , local_pos_typ *);
+
 extern int tq_we(float, float*);
 extern int max_i(int , int);
 extern int min_i(int , int);

@@ -112,6 +112,43 @@ static float stop_period=0.0;
 static float stop_dist=250.0;              
 static long data_log_count=0;
 
+/////////////////////////
+
+#ifndef GPS_LIB_H
+#define GPS_LIB_H
+#endif
+
+#define MAX_GPS_SENTENCE 256
+#define MAX_GPS_FIELD 64
+#define KNOTS_TO_METERS_PER_SEC 0.51444444
+#define GPS_OBJECT_ID_SIZE      6       /// enough bytes for 1609 BSSID (MAC)
+
+#define MAX_CMD_STR 512 /// sqlite3 command string max length
+
+#ifndef M_PI
+#define M_PI	3.1415927
+#endif
+#ifndef METERS_PER_MILE
+#define METERS_PER_MILE	1609.0
+#endif
+#ifndef FLOAT_TOLERANCE
+#define FLOAT_TOLERANCE	0.0000000001
+#endif
+
+
+#define MAX_GPS_SENTENCE 256
+#define MAX_GPS_FIELD 64
+#define KNOTS_TO_METERS_PER_SEC 0.51444444
+#define GPS_OBJECT_ID_SIZE      6       /// enough bytes for 1609 BSSID (MAC)
+
+#define MAX_CMD_STR 512 /// sqlite3 command string max length
+#define GPS_ELLIPSOID_EARTH 1
+#define GPS_UNITS_MILES 2
+#define GPS_USE_LOCALTIME 4
+
+
+////////////////////////
+
 extern bool_typ verbose_flag;           // Needs changing back
 
 db_clt_typ *pclt=NULL;                   // Database client pointer
@@ -136,8 +173,8 @@ veh_comm_packet_t comm_receive_pt[MAX_TRUCK];   // including GPS from other vehi
 veh_comm_packet_t comm_send_pt;
 
 // GPS and road grade
-static local_gps_typ gps_trk;
-static local_gps_typ *gps_trk_pt;
+//static local_gps_typ gps_trk;
+//static local_gps_typ *gps_trk_pt;
 static road_info_typ  road_info;
 static road_info_typ* road_info_pt;
 static local_pos_typ str_pos;
@@ -179,6 +216,7 @@ static path_gps_point_t self_gps_point;    // read from self GPS database variab
 //static path_gps_point_t gps_point_3;       // take from veh_comm_packet_t
 
 static path_gps_point_t gps_point[3];
+static path_gps_point_t ego_gps;
 
 //static evrd_out_typ evrd_out;
 //static evrd_out_typ* evrd_out_pt;
@@ -398,12 +436,14 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
      // GPS & road grade
     // memset(&EB_start,0,sizeof(EB_start));
     // memset(&WB_start,0,sizeof(WB_start));
-     memset(&gps_trk,0,sizeof(gps_trk));
+     //memset(&gps_trk,0,sizeof(gps_trk));
      memset(&self_gps_point,0,sizeof(self_gps_point));
      //memset(&gps_point_2,0,sizeof(gps_point_2));
      //memset(&gps_point_3,0,sizeof(gps_point_3));
 
 	 memset(gps_point,0,3 * sizeof(path_gps_point_t));
+	 memset(&ego_gps,0,sizeof(path_gps_point_t));
+
 	 memset(&str_pos,0,sizeof(str_pos));
 	 str_pos_pt=&str_pos;
 
@@ -438,7 +478,7 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 	   Assign Tasks
 	**********************************************/
 
-    gps_trk_pt=&gps_trk;
+   // gps_trk_pt=&gps_trk;
     road_info_pt=&road_info;    
     config.max_dcc=MAX_DCC;   
     
@@ -525,6 +565,18 @@ int run_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
 	float min_main(float, float);
 	int max_int(int, int);
 
+//	void path_gps_LL2EN(path_gps_point_t pt, path_gps_point_t origin, 
+//                        double *yout, double *xout, int flags);
+//double path_gps_get_dist(path_gps_point_t* point1, path_gps_point_t* point2,
+ //                             int flags, double float_tolerance);
+//double vincenty_xyl(double lat1, double lat2, double dLong, 
+ //                       double float_tolerance);
+//double haver_sine(double lat1, double lat2, double dLong);
+//double path_deg_2_rad(double d);
+//int path_fcomp(double a, double b, double float_tolerance);
+//double Coord_Trans(double, double, double);
+
+
      // At initialization  for timing                                        // For DBG on Aug 6 03
         if (time_sw == 1)
            {
@@ -571,109 +623,36 @@ if(config.use_comm == TRUE)
       /****************************************************
 	                   Define Variable Max Spd
 	                      
-	    ****************************************************/ 
+	    ****************************************************/  
 
-#ifdef TASK_CONTROL
-     if( test_site == RFS )
-     {
-		 con_state. des_f_dist=10.0;		 
-		 
-		 if (config_pt-> task == 1)    
-		 {
-		     //vehicle_info_pt-> veh_id=1;
-			
-			if (config_pt-> run == 1)
-			{
-				track_length = 250.0;				
-			}
-				
-			if (config_pt-> run == 2)
-			{
-				track_length = 19550.0;				
-			}			
-		    con_state. des_f_dist=DES_FOLLOW_DIST;				              	 
-		 }
-		 if ( (config_pt-> task == 2) || (config_pt-> task == 3) )   // ACC
-		 {					 
-			 track_length = 19990.0;
-			 config_pt->truck_ACC=TRUE;
-			 config_pt-> truck_CACC=FALSE;			 
-			 config_pt->  ACC_tGap=1.1;
-		 }		
-		 if (config_pt-> task == 4)  // CACC 
-		 {					 
-			 track_length = 20000.0;
-			 config_pt->truck_CACC=TRUE;
-			 config_pt->truck_ACC=FALSE;			
-			 config_pt-> CACC_tGap=0.9;	
-		 }
-		 if (config_pt-> task == 5)  // HIA
-		 {					 
-			 track_length = 20000.0;
-			 config_pt->truck_CACC=TRUE;
-			 config_pt->truck_ACC=FALSE;			 
-			 config_pt-> CACC_tGap=1.0;				
-		 } 	
-    } // RFS end
-#endif
+	
 
-    if (vehicle_info_pt-> veh_id == 1)
-	{
-		 config_pt->truck_ACC=TRUE;
-		 config_pt-> truck_CACC=FALSE;	
-		 config_pt-> ACC_tGap=1.6;
-	}
-	else
-	{
-		 config_pt->truck_CACC=TRUE;
-		 config_pt->truck_ACC=FALSE;	
-		 config_pt-> CACC_tGap=1.1;	
-	}
+	config_pt->max_spd=55.0*mph2mps;  	
+	if (config_pt->max_spd > 55.0*mph2mps) 
+		config_pt-> max_spd=55.0*mph2mps;
 
-	config_pt-> max_spd=55.0*mph2mps;
 	manager_cmd_pt-> set_v=55.0*mph2mps;
-
-	if (config_pt->max_spd > 55.0*mph2mps)      
-		config_pt->max_spd=55.0*mph2mps;  
 	if (manager_cmd_pt-> set_v > 55.0*mph2mps)      
 		manager_cmd_pt-> set_v=55.0*mph2mps;  
 
+	//con_state_pt-> max_spd=manager_cmd_pt-> set_v;
+	con_state_pt-> max_spd=config_pt-> max_spd;
 
-	con_state_pt-> max_spd=manager_cmd_pt-> set_v;
-
-	if (max_spd_ini==1)
-	{		
-		if (config_pt->truck_ACC == TRUE)			
-			con_state. des_f_dist=(con_state_pt-> spd)*(config_pt-> ACC_tGap);
-		if (config_pt->truck_CACC == TRUE)			
-			con_state. des_f_dist=(con_state_pt-> spd)*(config_pt-> CACC_tGap);
-		max_spd_ini=0;
-		if (con_state. des_f_dist < DES_FOLLOW_DIST)
-			con_state. des_f_dist=DES_FOLLOW_DIST;
-	}
-
-    track_length=900000.0;
-	
-	
+    track_length=900000.0;	
 	stop_period=2.0*((config.max_spd)*mph2mps) / (config.max_dcc);                                          
     stop_dist = track_length - ((config.max_spd)*stop_period - 0.25*(config.max_dcc)*stop_period*stop_period);  
-
-    con_state_pt->ACC_tGap=config_pt-> ACC_tGap;
-    con_state_pt->CACC_tGap=config_pt-> CACC_tGap;
-
-       
-
-
 
    /***********************************************
                 GPS and Volvo Distanvce Sensors
    ************************************************/
    
 	//memcpy(pv->self_gps, &self_gps_point, sizeof(path_gps_point_t);
-	gps_point[vehicle_info_pt-> veh_id-1] = pv->self_gps;  /// read from self GPS unit
+	ego_gps = pv->self_gps;  /// read from self GPS unit
 
-	if (vehicle_info_pt-> veh_id == 1)
-	{
+if ( (30.0< ego_gps.latitude && ego_gps.latitude < 45.0) && 
+	 ( -135.0 < ego_gps.longitude && ego_gps.longitude < -110.0) )
+{
+		gps_point[0] = pv->self_gps;            // ego veh is always the first slot
 		if ( fabs(comm_receive_pt[2].longitude) > 0.1 )
 		{
 			gps_point[1].longitude = comm_receive_pt[2].longitude;
@@ -698,66 +677,42 @@ if(config.use_comm == TRUE)
 			gps_point[2].latitude = gps_point[0].latitude;
 			gps_point[2].heading = gps_point[0].heading;
 		}		
-	}
-	if (vehicle_info_pt-> veh_id == 2)
-	{	
-		if ( fabs(comm_receive_pt[1].longitude) > 0.1 )
-		{
-			gps_point[0].longitude= comm_receive_pt[1].longitude;
-			gps_point[0].latitude = comm_receive_pt[1].latitude;
-			gps_point[0].heading = comm_receive_pt[1].heading;
-		}
-		else
-		{
-			gps_point[0].longitude = gps_point[1].longitude;
-			gps_point[0].latitude = gps_point[1].latitude;
-			gps_point[0].heading = gps_point[1].heading;
-		}
-		if ( fabs(comm_receive_pt[3].longitude) > 0.1 )
-		{
-			gps_point[2].longitude = comm_receive_pt[3].longitude;
-			gps_point[2].latitude = comm_receive_pt[3].latitude;
-			gps_point[2].heading = comm_receive_pt[3].heading;
-		}
-		else
-		{
-			gps_point[2].longitude = gps_point[1].longitude;
-			gps_point[2].latitude = gps_point[1].latitude;
-			gps_point[2].heading = gps_point[1].heading;
-		}		
-	}
-	if (vehicle_info_pt-> veh_id == 3)
+	
+	veh_pos(gps_point[0], gps_point[1], gps_point[2], str_pos_pt);
+	
+	
+	//vehicle_info_pt-> veh_id=str_pos_pt->local_pos;
+	//if (ego_gps. heading < 180.0)  // out bound
+}	
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (vehicle_info_pt-> veh_id == 1)
 	{
-		
-		if ( fabs(comm_receive_pt[1].longitude) > 0.1 )
-		{
-			gps_point[0].longitude= comm_receive_pt[1].longitude;
-			gps_point[0].latitude = comm_receive_pt[1].latitude;
-			gps_point[0].heading = comm_receive_pt[1].heading;
-		}
-		else
-		{
-			gps_point[0].longitude = gps_point[2].longitude;
-			gps_point[0].latitude = gps_point[2].latitude;
-			gps_point[0].heading = gps_point[2].heading;
-		}
-		if ( fabs(comm_receive_pt[2].longitude) > 0.1 )
-		{
-			gps_point[1].longitude = comm_receive_pt[2].longitude;
-			gps_point[1].latitude = comm_receive_pt[2].latitude;
-			gps_point[1].heading = comm_receive_pt[2].heading;
-		}
-		else
-		{
-			gps_point[1].longitude = gps_point[2].longitude;
-			gps_point[1].latitude = gps_point[2].latitude;
-			gps_point[1].heading = gps_point[2].heading;
-		}		
+		 config_pt->truck_ACC=TRUE;
+		 config_pt-> truck_CACC=FALSE;	
+		 config_pt-> ACC_tGap=1.6;
 	}
-  
+	else
+	{
+		 config_pt->truck_CACC=TRUE;
+		 config_pt->truck_ACC=FALSE;	
+		 config_pt-> CACC_tGap=1.1;	
+	}
+	if (max_spd_ini==1)
+	{		
+		if (config_pt->truck_ACC == TRUE)			
+			con_state. des_f_dist=(con_state_pt-> spd)*(config_pt-> ACC_tGap);
+		if (config_pt->truck_CACC == TRUE)			
+			con_state. des_f_dist=(con_state_pt-> spd)*(config_pt-> CACC_tGap);
+		max_spd_ini=0;
+		if (con_state. des_f_dist < DES_FOLLOW_DIST)
+			con_state. des_f_dist=DES_FOLLOW_DIST;
+		con_state_pt->ACC_tGap=config_pt-> ACC_tGap;
+		con_state_pt->CACC_tGap=config_pt-> CACC_tGap;
+	}
+
 	
-	//	veh_pos(vehicle_info_pt, gps_point[0], gps_point[1], gps_point[2], str_pos_pt);
-	
+
 
 	/**************************************
 	                      Timing               
@@ -1030,8 +985,8 @@ if( (config.handle_faults == TRUE) && (manager_cmd_pt-> drive_mode > 1))
         if (coording(dt, track_length, con_state_pt, sens_read_pt, jbus_read_pt, config_pt, sw_read_pt, f_mode_comm_pt, vehicle_info_pt, pltn_info_pt, manager_cmd_pt) != 1)				
            fprintf(stderr, "\n Calling Coordination fail! \n");			      
 	   
-       if (run_dist > stop_dist)
-		   manager_cmd_pt-> man_des=29;  
+       //if (run_dist > stop_dist)
+	//	   manager_cmd_pt-> man_des=29;  
 
        if ( maneuver(dt, t_ctrl, time_filter, v_p, c, d, road_info_pt, config_pt, con_state_pt, sens_read_pt, sw_read_pt, vehicle_info_pt,  // time filter removed on 05_22_11
                  f_index_pt, maneuver_id, manager_cmd_pt, pltn_info_pt) != 1 )
@@ -1044,12 +999,6 @@ if( (config.handle_faults == TRUE) && (manager_cmd_pt-> drive_mode > 1))
            if (ref_dist(dt, maneuver_id, sens_read_pt, vehicle_info_pt, manager_cmd_pt, f_index_pt, con_state_pt, config_pt, pltn_info_pt) != 1)
               fprintf(stderr, " Calling ref_dist_1 fail! \n");
         }
-	 	
-	/*if (vehicle_info_pt-> veh_id > 1)
-	{	
-		if (local_time <= t_wait)
-			con_state_pt-> temp_dist = con_state_pt-> front_range;
-	}*/
 
      if (vehicle_info_pt-> veh_id == 1)
         {
@@ -1143,11 +1092,13 @@ if (manager_cmd_pt-> auto_contr == ON)
 	
 	if ( (comm_receive_pt[1].user_bit_3 == 1) || (comm_receive_pt[1]. user_float > 0.1) ) // manual; brake sw || pedal deflection
 	{
-		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
-		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;           
+		pcmd->engine_command_mode = XBR_NOT_ACTIVE; 
+		pcmd->engine_torque = 0.0;
+		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;    
+		pcmd->engine_retarder_torque=-0.0;
 		pcmd->brake_command_mode = XBR_ACTIVE; 		  	   
 		pcmd->brake_priority=TSC_HIGHEST;
-		pcmd->ebs_deceleration = min_main(-1.2, 1.2*(comm_receive_pt[1].accel));  
+		pcmd->ebs_deceleration = min_main(-1.2, 1.05*(comm_receive_pt[1].accel));  
 	}
 	/*if (comm_receive_pt[1].rate < -0.5)  // automatic control with ebs_deceleration
 	{
@@ -1170,12 +1121,14 @@ if (manager_cmd_pt-> auto_contr == ON)
 	if ( (comm_receive_pt[1].user_bit_3 == 1) || (comm_receive_pt[1]. user_float > 0.1) ||
 		  (comm_receive_pt[2].user_bit_3 == 1) || (comm_receive_pt[2]. user_float > 0.1) ) // brake sw || pedal deflection
 	{
-		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   	
-		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;           
+		pcmd->engine_command_mode = XBR_NOT_ACTIVE;   
+		pcmd->engine_torque = 0.0;
+		pcmd->engine_retarder_command_mode = XBR_NOT_ACTIVE;   
+		pcmd->engine_retarder_torque=-0.0;
 		pcmd->brake_command_mode = XBR_ACTIVE; 		  	   
 		pcmd->brake_priority=TSC_HIGHEST;
-		pcmd->ebs_deceleration = min_main(-1.2, 1.2*(comm_receive_pt[1].accel)); 
-		pcmd->ebs_deceleration = min_main(pcmd->ebs_deceleration, 1.2*(comm_receive_pt[2].accel));
+		pcmd->ebs_deceleration = min_main(-1.2, 1.05*(comm_receive_pt[1].accel)); 
+		pcmd->ebs_deceleration = min_main(pcmd->ebs_deceleration, 1.05*(comm_receive_pt[2].accel));
 	}
 	/*if ((comm_receive_pt[1].rate < -0.5) || (comm_receive_pt[2].rate < -0.5) )  // automatic control; with ebs_deceleration
 	{
@@ -1210,7 +1163,7 @@ else
 if(config.use_comm == TRUE) 
 {
       comm_send_pt.global_time = local_time;  // Each vehicle has a local time to broadcast. 
-	  if (vehicle_info_pt-> veh_id == 1 && f_index_pt-> torq == 1 )
+	  /*if (vehicle_info_pt-> veh_id == 1 && f_index_pt-> torq == 1 )
 	  {
 		comm_send_pt.vel_traj = min_main(con_state_pt-> ref_v, sens_read_pt->ego_v);   // composite	 
 		comm_send_pt.acc_traj = min_main(con_state_pt-> ref_a, sens_read_pt->ego_a);    // composite   
@@ -1219,7 +1172,10 @@ if(config.use_comm == TRUE)
 	  {
 		  comm_send_pt.vel_traj = con_state_pt-> ref_v;   // composite	 
 		  comm_send_pt.acc_traj = con_state_pt-> ref_a;    // composite   
-	  }
+	  }*/
+       comm_send_pt.vel_traj = sens_read_pt->ego_v;   // composite	             // changed on 06_10_16 
+	comm_send_pt.acc_traj = sens_read_pt->ego_a;    // composite  
+
       comm_send_pt.velocity = sens_read_pt->ego_v; //con_state_pt-> spd;     // measured
       comm_send_pt.accel = sens_read_pt->ego_a;    //con_state_pt-> acc;        // measured
 	  if (config_pt->truck_ACC == TRUE)
@@ -1585,11 +1541,9 @@ if( config.run_data == TRUE ) {
 			pv-> Volvo_EgoVel,					//93
 			pv-> Volvo_EgoAcc,					//94
 			pv-> Volvo_EgoRoadGrade);			//95
-	  fprintf(pout, "%3i %3i %3i %4.3f",
-		    str_pos_pt->local_pos[0],			//96
-			str_pos_pt->local_pos[1],			//97
-			str_pos_pt->local_pos[2],			//98
-			str_pos_pt->ave_heading);			//99
+	  fprintf(pout, "%3i %4.3f",
+		    str_pos_pt->local_pos,			//96		
+		   str_pos_pt->ave_heading);			//97
 
 }
 
@@ -1793,3 +1747,304 @@ int max_int(int a, int b)
 	else
 		return b;
 }
+
+
+
+double Coord_Trans(double dir, double x, double y)
+{
+	double alpha=0.0, loc_x, loc_y;
+	alpha=dir/180.0;
+	
+	if (alpha > M_PI)
+		alpha=alpha-2.0*M_PI;	
+
+    loc_x= cos(alpha)*x + sin(alpha)*y;
+    loc_y=-sin(alpha)*x + cos(alpha)*y;
+    
+    return loc_y;
+ }
+ 
+
+
+
+/*************************************************************************************************************************************************************
+
+     The following are the minimum set of function related to algorithm
+     for coordidate transformation. They can be used for simulation
+     and real-time run since they are not related to operating system.
+
+*******************************************************************************     
+*******************************************************************************/
+
+/*
+ *  Function converts degrees to radians
+ */
+double path_deg_2_rad(double d)
+{
+        return (((2.0 * M_PI)/360.0) * d); 
+}
+
+
+
+int path_fcomp(double a, double b, double float_tolerance)
+{
+     return (fabs(a - b) < float_tolerance) ? 0 : (a > b ? 1 : -1);
+}
+
+
+/*************************************************************
+ * Applies the haversine method, as described on 
+ * http://www.movable-type.co.uk/scripts/LatLong.html
+ * Arguments are in radians. Returns result in meters.
+ **************************************************************/
+
+
+
+double haver_sine(double lat1, double lat2, double dLong)
+{
+        /* Quadratic mean radius of earth;
+         *  see http://en.wikipedia.org/wiki/Earth_radius
+         */
+        double a, radius = 6372795.477598;
+        a = sin((lat2-lat1)/2) * sin((lat2-lat1)/2) +
+        cos(lat1) * cos(lat2) * sin(dLong/2) * sin(dLong/2);
+        return radius * 2 * atan2(sqrt(a), sqrt(1-a));
+}
+
+/**************************************************************
+ * Applies the Vincenty method, as described on
+ * http://www.movable-type.co.uk/scripts/LatLongVincenty.html
+ * Assumes the WGS-84 datum, with
+ * semi-major axis 6,378,137 m
+ * semi-minor axis 6,356,752.3 m
+ * Arguments are in radians. Returns result in meters.
+ *************************************************************/
+double vincenty_xyl(double lat1, double lat2, double dLong, 
+                        double float_tolerance)
+{
+        double a = 6378137;
+        double b = 6356752.3;
+        double f = 1 / 298.257223563;
+        double sigma, sinSigma, cosSigma, sinAlpha, cos2Alpha, cos2SigmaM, C;
+        double U1, U2, lambda, lambdaP, u2, A, B, deltaSigma;
+        U1 = atan((1-f)*tan(lat1));
+        U2 = atan((1-f)*tan(lat2));
+        lambda = dLong; lambdaP = 2*M_PI;
+        while (fabs(lambda-lambdaP) > float_tolerance) {
+                sinSigma = sqrt((cos(U2)*sin(lambda)) * (cos(U2)*sin(lambda)) +
+                   (cos(U1)*sin(U2)-sin(U1)*cos(U2)*cos(lambda)) *
+                   (cos(U1)*sin(U2)-sin(U1)*cos(U2)*cos(lambda)));
+                if (!path_fcomp(0.0, sinSigma, float_tolerance))
+                         return 0;
+                cosSigma = sin(U1)*sin(U2) + cos(U1)*cos(U2)*cos(lambda);
+                sigma = atan2(sinSigma, cosSigma);
+                sinAlpha = cos(U1)*cos(U2)*sin(lambda)/sinSigma;
+                cos2Alpha = 1 - sinAlpha * sinAlpha;
+                if (!path_fcomp(0.0, cos2Alpha, float_tolerance))
+                        return fabs(a * dLong);
+                cos2SigmaM = cosSigma - 2*sin(U1)*sin(U2)/cos2Alpha;
+                C = f/16*cos2Alpha*(4+f*(4-3*cos2Alpha));
+                lambdaP = lambda;
+                lambda = dLong + (1-C) * f * sinAlpha *
+                         (sigma + C*sinSigma*(cos2SigmaM+
+                                C*cosSigma*(-1+2*cos2SigmaM*cos2SigmaM)));
+        }
+        u2 = cos2Alpha * (a*a - b*b)/(b*b);
+        A = 1 + u2/16384*(4096+u2*(-768+u2*(320-175*u2)));
+        B = u2/1024*(256+u2*(-128+u2*(74-47*u2)));
+        deltaSigma = 
+                B*sinSigma*(cos2SigmaM+B/4*(cosSigma*
+                        (-1+ 2*cos2SigmaM*cos2SigmaM)- 
+                        B/6*cos2SigmaM*(-3+4*sinSigma*sinSigma)*
+                        (-3+4*cos2SigmaM*cos2SigmaM)));
+        return b*A*(sigma-deltaSigma);
+}
+
+/***************************************************************************************
+****************************************************************************************
+ * Returns the distance between the points.
+ * if GPS_UNITS_MILES is set, result is in miles, otherwise in meters.
+ * if GPS_ELLIPSOID_EARTH is set, then the more accurate Vincenty
+ * method will be used, otherwise the haversine method will be used, which
+ * assumes a spherical Earth (which will of course be relatively inaccurate,
+ * though the error is not vastly significant.
+ * lat/long coordinates of the arguments are expected to be in degrees 
+ ***************************************************************************************
+ **************************************************************************************/
+
+
+double path_gps_get_dist(path_gps_point_t* point1, path_gps_point_t* point2,
+                              int flags, double float_tolerance)
+{
+        double factor = (flags & GPS_UNITS_MILES) ? (1 / METERS_PER_MILE) : 1;
+        double dLong = path_deg_2_rad(point2->longitude) -
+                         path_deg_2_rad(point1->longitude);
+        double lat1 = path_deg_2_rad(point1->latitude);
+        double lat2 = path_deg_2_rad(point2->latitude);
+        /// Make sure degrees have absolute value < 360.0
+        while (path_fcomp(fabs(dLong), 360.0, FLOAT_TOLERANCE) > 0) {
+                dLong += (path_fcomp(dLong, 0, FLOAT_TOLERANCE) > 0) ?
+                         -360.0 : 360.0;
+        }
+        if (flags & GPS_ELLIPSOID_EARTH) {
+                return vincenty_xyl(lat1, lat2, dLong, float_tolerance) * factor;
+        } else {
+                return haver_sine(lat1, lat2, dLong) * factor;
+        }
+}
+
+
+/*********************************************************************************************
+ *      Given an input array of GPS points in degrees, and an origin point,
+ *      fills in two output arrays of X,Y coordinates in meters, where
+ *      the Y axis points north, the X axis points east. 
+ *      for vector of GPS points
+ *      Flag GPS_ELLIPSOID_EARTH can be set to use the more accurate
+ *      Vicenty method when computing the X and Y distances.
+ **********************************************************************************************/
+
+ 
+/*void path_gps_latlong2xy(path_gps_point_t *pt, path_gps_point_t origin, 
+                        double *yout, double *xout, int n, int flags)
+{
+        int i;
+        path_gps_point_t xproject, yproject; 
+        for (i = 0; i < n; i++) {
+                xproject.latitude = origin.latitude;
+                xproject.longitude = pt[i].longitude;
+                yproject.latitude = pt[i].latitude;
+                yproject.longitude = origin.longitude;
+                xout[i] = path_gps_get_dist(&origin, &xproject,flags, 0.0000000001);
+                yout[i] = path_gps_get_dist(&origin, &yproject,flags, 0.0000000001);
+                if (pt[i].latitude < origin.latitude)
+                        yout[i] = -yout[i]; 
+                if (pt[i].longitude < origin.longitude)
+                        xout[i] = -xout[i]; 
+        }
+}*/
+
+/*********************************************************************************************
+ *      path_gps_LL2EN()
+ *
+ *		Same as path_gps_latlong2xy(), but for scalar GPS point
+ *      Given an input of GPS point in degrees, and an origin point,
+ *      fills in two output arrays of X,Y coordinates in meters, where
+ *      the Y axis points north, the X axis points east.
+ *		
+ *
+ *      Modified based on: path_gps_latlong2xy() which process data array for simulation;  //12_12_08, xyl
+ *      
+ *      Flag GPS_ELLIPSOID_EARTH can be set to use the more accurate
+ *      Vicenty method when computing the X and Y distances.
+ *      flags set values:
+ *      0 = spherical earth
+ *      1 = WGS-84 ellipsoid, 
+ *      2 = units are miles [per hour], 0 = units are metres [per second]
+ *      3 = synchronise to local time, 0 = synchronise to UTC time
+ **********************************************************************************************/
+
+ 
+void path_gps_LL2EN(path_gps_point_t pt, path_gps_point_t origin, 
+                        double *yout, double *xout, int flags)
+{
+        
+        path_gps_point_t xproject, yproject; 
+        
+        xproject.latitude = origin.latitude;
+		xproject.longitude = pt.longitude;
+        yproject.longitude = origin.longitude;      
+        yproject.latitude = pt.latitude;  
+
+        *xout = path_gps_get_dist(&origin, &xproject, flags, 0.0000000001);
+        *yout = path_gps_get_dist(&origin, &yproject, flags, 0.0000000001);
+        if (pt.latitude < origin.latitude)
+           *yout = -*yout; 
+        if (pt.longitude < origin.longitude)
+           *xout = -*xout; 
+        
+}
+
+
+int veh_pos(path_gps_point_t veh1_gps, path_gps_point_t veh2_gps, path_gps_point_t veh3_gps, local_pos_typ *pos_pt)
+{
+	static double enu_x=0.0, enu_y=0.0, y[3]={0.0, 0.0, 0.0};
+	const int flags=0; // 0 = spherical earth; 1 = WGS-84 ellipsoid, 2 = units are miles [per hour], 0 = units are metres [per second]; 
+	                  // 3 = synchronise to local time, 0 = synchronise to UTC time
+	int i, tmp;
+	static int ord_y[3]={1,1,1};
+	static double heading=0.0;
+	
+		heading = (veh1_gps.heading+veh2_gps.heading+veh3_gps.heading)/3.0;
+		
+		
+		path_gps_LL2EN(veh2_gps, veh1_gps, &enu_y, &enu_x, flags);		
+		y[1]= Coord_Trans(heading, enu_x, enu_y);		
+		path_gps_LL2EN(veh3_gps, veh1_gps, &enu_y, &enu_x, flags);		
+		y[2]= Coord_Trans(heading, enu_x, enu_y);
+			
+	   if (y[1] > y[0])
+		{
+			
+			if (y[2] > y[1])
+			{
+				ord_y[0]=3;
+				ord_y[1]=2;
+				ord_y[2]=1;
+			}
+			else
+			{
+				if (y[2] > y[0])
+				{
+					ord_y[0]=3;
+					ord_y[1]=1;	
+					ord_y[2]=2;			
+				}
+				else
+				{
+					ord_y[0]=2;
+					ord_y[1]=1;	
+					ord_y[2]=3;			
+				}
+			}
+		}
+		else //(y[1] <= y[0])
+		{	
+			if (y[2] > y[0])
+			{
+				ord_y[0]=2;
+				ord_y[1]=3;
+				ord_y[2]=1;
+			}
+			else
+			{
+				if (y[2] > y[1])
+				{
+					ord_y[0]=1;
+					ord_y[1]=3;	
+					ord_y[2]=2;			
+				}
+				else
+				{
+					ord_y[0]=1;
+					ord_y[1]=2;	
+					ord_y[2]=3;			
+				}
+			}					
+		}
+		
+		if (heading > 180.0)
+		{
+			tmp=ord_y[0];
+			ord_y[0]=ord_y[2];
+			ord_y[2]=tmp;
+		}	
+
+		pos_pt-> local_pos=ord_y[0];
+		pos_pt-> ave_heading=(float)heading;
+		pos_pt-> local_enu_x=enu_x;
+		pos_pt-> local_enu_y=enu_y;
+	
+	return 0;
+}
+
+
