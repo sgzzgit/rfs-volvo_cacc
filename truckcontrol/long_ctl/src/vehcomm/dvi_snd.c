@@ -309,8 +309,18 @@ printf("bytes_sent2 %d\n", bytes_sent);
 			db_list_done(pclt, db_vars_list, NUM_DB_VARS, db_trig_list,  NUM_TRIG_VARS);		
 		else
 			db_list_done(pclt, NULL, 0, NULL, 0);		
-		if(sd > 0)
+		if(sd > 0){
+			memset(&dvi_out, 0, sizeof(dvi_out));
+	                bytes_sent = sendto(sd, &dvi_out, sizeof(dvi_out),
+				 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr));
 			close(sd);
+		}
+		if(sd2 > 0){
+			memset(&egodata, 0, sizeof(egodata));
+                	bytes_sent = sendto(sd2, &egodata, sizeof(egodata),
+				 0, (struct sockaddr *) &dst_addr2, sizeof(dst_addr2));
+			close(sd2);
+		}
 		exit(EXIT_SUCCESS);
 	} else
 		sig_ign(sig_list, sig_hand);
