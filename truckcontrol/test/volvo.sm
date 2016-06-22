@@ -82,7 +82,7 @@ shell 'Start everything but longitudinal control and file writing'
 	if [[ $? -eq 0 ]]
 	then
 	        ITRIADDR=172.16.1.74
-	        GALAXYWIRELESS=172.16.5.74
+	        GALAXYWIRELESS=172.16.0.174
 	        TRUCK=Gold
 	fi
 
@@ -90,7 +90,7 @@ shell 'Start everything but longitudinal control and file writing'
 	if [[ $? -eq 0 ]]
 	then
 	        ITRIADDR=172.16.1.75
-	        GALAXYWIRELESS=172.16.5.75
+	        GALAXYWIRELESS=172.16.0.175
 	        TRUCK=Blue
 	fi
 
@@ -98,7 +98,7 @@ shell 'Start everything but longitudinal control and file writing'
 	if [[ $? -eq 0 ]]
 	then
 	        ITRIADDR=172.16.1.76
-	        GALAXYWIRELESS=172.16.5.76
+	        GALAXYWIRELESS=172.16.0.176
 	        TRUCK=Silvr
 	fi
 
@@ -106,7 +106,7 @@ shell 'Start everything but longitudinal control and file writing'
 	if [[ $? -eq 0 ]]
 	then
 	        ITRIADDR=172.16.1.77
-	        GALAXYWIRELESS=172.16.5.77
+	        GALAXYWIRELESS=172.16.0.177
 	        TRUCK=Blue
 	fi
 
@@ -137,7 +137,7 @@ shell 'Start everything but longitudinal control and file writing'
 	sleep 1
 	$TEST_DIR/veh_rcv -f $CONFIG_FILE -v -A $IPADDR -a $ITRIADDR -u 15042 -t $TRUCK >/big/data/veh_rcv_$DATESTR.dbg &
 	sleep 1
-	$TEST_DIR/dvi_snd -c 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR >/big/data/dvi_snd_$DATESTR.dbg &
+	$TEST_DIR/dvi_snd -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR >/big/data/dvi_snd_$DATESTR.dbg &
 
 %)
 ;
