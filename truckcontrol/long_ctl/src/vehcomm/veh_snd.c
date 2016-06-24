@@ -15,7 +15,7 @@
 #include <sys_ini.h>
 #include "path_gps_lib.h"
 #include "long_comm.h"
-#include "/home/truckcontrol/long_ctl/src/avcs/clt_vars.h"
+#include "../avcs/clt_vars.h"
 #include "udp_utils.h"
 #include "veh_lib.h"
 
