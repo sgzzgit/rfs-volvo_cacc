@@ -15,16 +15,11 @@
 #include <db_clt.h>
 #include <db_utils.h>
 #include <timestamp.h>
-#include "path_gps_lib.h"
-#include "long_comm.h"
 #include <local.h>
 #include <sys_rt.h>
 #include <sys_ini.h>
 #include <udp_utils.h>
-
-#include "asn_application.h"
-#include "asn_internal.h"       /* for _ASN_DEFAULT_STACK_MAX */
-#include "veh_lib.h"
+#include "dvi.h"
 
 static int sig_list[]=
 {
@@ -45,6 +40,10 @@ static void sig_hand(int code)
                 longjmp(exit_env, code);
 }
 
+static db_id_t db_vars_list[] = {
+        {DB_DVI_RCV_VAR, sizeof(char)},
+};
+
 int main( int argc, char *argv[] )
 {
 	int ch;		
@@ -56,11 +55,11 @@ int main( int argc, char *argv[] )
         char *remote_ipaddr = "172.16.0.1";       /// address of UDP destination
         char *local_ipaddr = "172.16.0.75";       /// address of UDP destination
         struct sockaddr_in dst_addr;
+	int create_db_vars = 0;
 
 	int sd;				/// socket descriptor
 	int udp_port = 8003;
 
-	veh_comm_packet_t comm_pkt;
         char buf;
 
         int bytes_received;     // received from a call to recv
@@ -68,12 +67,14 @@ int main( int argc, char *argv[] )
 	short msg_count = 0;
 	int socklen = sizeof(src_addr);
 
-        while ((ch = getopt(argc, argv, "A:a:u:v")) != EOF) {
+        while ((ch = getopt(argc, argv, "A:a:cu:v")) != EOF) {
                 switch (ch) {
                 case 'A': local_ipaddr = strdup(optarg);
                           break;
                 case 'a': remote_ipaddr= strdup(optarg);
                           break;
+		case 'c': create_db_vars = 1; 
+			  break;
 		case 'u': udp_port = atoi(optarg); 
 			  break;
 		case 'v': verbose = 1; 
@@ -85,10 +86,17 @@ int main( int argc, char *argv[] )
         }
         get_local_name(hostname, MAXHOSTNAMELEN);
 
-	pclt = db_list_init(argv[0], hostname, domain, xport, NULL, 0, NULL, 0); 
+        if(create_db_vars)
+                pclt = db_list_init(argv[0], hostname, domain, xport, db_vars_list, 1, NULL,  0); 
+        else
+                pclt = db_list_init(argv[0], hostname, domain, xport, NULL, 0, NULL, 0); 
+
 	if( setjmp( exit_env ) != 0 ) {
 		printf("Received %d messages\n", msg_count);
-		db_list_done(pclt, NULL, 0, NULL, 0);		
+		if(create_db_vars)
+			db_list_done(pclt, db_vars_list, 1, NULL, 0);		
+		else
+			db_list_done(pclt, NULL, 0, NULL, 0);		
 		exit( EXIT_SUCCESS );
 	} else
 		sig_ign( sig_list, sig_hand );
@@ -107,10 +115,11 @@ int main( int argc, char *argv[] )
                         break;
                 }
 
-		printf("Byte received %hhu\n", buf);
-		get_current_timestamp(&comm_pkt.ts);
- 
+		db_clt_write(pclt, DB_DVI_RCV_VAR, sizeof(char), &buf);
+		if(buf != 0) 
+		{
+			printf("Byte received %hhu\n", buf);
+		}
 	}
-		
 	longjmp(exit_env,1);	/* go to exit code when loop terminates */
 }
