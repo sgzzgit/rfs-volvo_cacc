@@ -17,62 +17,7 @@
 #include "path_gps_lib.h"
 #include "long_comm.h"
 #include "veh_lib.h"
-//#include "dvi.h"
-
-#define quint8 unsigned char
-#define quint32 unsigned int
-#define qint8 char
-
-
-//Vehicle -> DVI - port 10007 (string data and popups)
-struct VehicleStruct {
-  quint8 type; // 0=nothing 1=truck 2=truck with communication error
-  quint8 hasIntruder; //0:false, 1:truck, 2:car, 3:MC (PATH: The graphical indication is the same for all intruders)
-  quint8 isBraking; //0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
-};
-
- 
-
-struct SeretUdpStruct{
-    quint8 platooningState; //0=standby, 1=joining, 2=platooning, 3=leaving, 4=dissolve (PATH: I guess only 0 and 2 is used?)
-    qint8 position; //-1:nothing (follower with no platoon), 0:leader, >0 Follower (Ego position of vehicle)
-    quint8 TBD; //Not used for the moment
-    quint8 popup;//0:no popup, 1:Platoon found - join? (PATH: Not currently used)
-    quint32 exitDistance; //value/10.0 km (PATH: Not currently used)
-    struct VehicleStruct vehicles[3];
-//} IS_PACKED;
-};
-
- 
-
-//Vehicle -> DVI - port 10005 (ACC/CACC information)
-struct ExtraDataCACCStruct{
-    quint8 CACCState; //0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
-    quint8 CACCTargetActive; //0:false, 1:true (also used for target in ACC)
-    quint8 CACCDegraded;//0: false, 1:Overheated brakes (I guess you don't need this one)
-    quint8 CACCActiveConnectionToTarget;//0:no connection 1:connection (if this or ...fromFollower equals 1 the WIFI icon will appear)
-    quint8 CACCActiveConnectionFromFollower;//0:no connection, 1:connection
-    quint8 CACCTimeGap;//0-4
-    quint8 ACCTimeGap;//0-4
-    quint8 CACCEvents;//0:"No popup", 1:"FCW",2:"Brake Capacity",3:"LC Left",4:"LC Right",5:"Obstacle ahead",6:"Connection lost"
-    quint8 platooningState;//0:"Platooning",1:"Joining",2:"Leaving",3:"Left",4:"Dissolving",5:"Dissolved" (NOT CURRENTLY USED!)
-    quint8 counter;//Counter for dissolving, not implemented for the moment
-};
- 
-
-//DVI -> Vehicle - port 8003 (button pressed). Is being sent with an interval of 50ms. Triggers when a button is released and is kept high for 200ms.
-struct PathButtonStruct{
-    quint8 buttonPressed;
-    //0: no button pressed
-    //1: joinpopup_JOIN
-    //2: joinpopup_IGONORE
-    //3: LEAVE
-    //4: DISSOLVE
-    //5: ACC_BUTTON
-    //6: CACC_BUTTON
-    //7: TIMEGAP_MINUS
-    //8: TIMEGAP_PLUS
-};
+#include "dvi.h"
 
 static int sig_list[]=
 {
@@ -106,7 +51,8 @@ int db_trig_list[] = {
 	DB_COMM_LEAD_TRK_VAR,
 	DB_COMM_SECOND_TRK_VAR,
 	DB_COMM_THIRD_TRK_VAR,
-	DB_COMM_TX_VAR
+	DB_COMM_TX_VAR,
+	DB_DVI_RCV_VAR,
 };
 
 #define NUM_TRIG_VARS     sizeof(db_trig_list)/sizeof(int)
@@ -140,6 +86,8 @@ int main(int argc, char *argv[])
 	int sd2;				/// socket descriptor
 	struct SeretUdpStruct dvi_out;
 	struct ExtraDataCACCStruct egodata;
+	char db_dvi_rcv = -1;
+	char dvi_rcv_sav = -1;
 	veh_comm_packet_t comm_pkt1;
 	veh_comm_packet_t comm_pkt2;
 	veh_comm_packet_t comm_pkt3;
@@ -334,6 +282,37 @@ printf("bytes_sent2 %d\n", bytes_sent);
 
 		char drive_mode_2_CACCState[] = {0, 0, 4, 2};
 
+		if(DB_TRIG_VAR(&trig_info) == DB_DVI_RCV_VAR) {
+	                db_clt_read(pclt, DB_DVI_RCV_VAR, sizeof(char), &db_dvi_rcv);
+			switch(db_dvi_rcv) {
+				case ACC_BUTTON:
+					printf("ACC button pressed\n");
+					break;
+				case CACC_BUTTON:
+					printf("CACC button pressed\n");
+					break;
+				case TIMEGAP_PLUS:
+					if(dvi_rcv_sav != TIMEGAP_PLUS) {
+						printf("TIMEGAP_PLUS button pressed\n");
+						if(egodata.ACCTimeGap++ >= 4)
+							egodata.ACCTimeGap = 0;
+						if(egodata.CACCTimeGap++ >= 4)
+							egodata.CACCTimeGap = 0;
+					}
+					break;
+				case TIMEGAP_MINUS:
+					if(dvi_rcv_sav != TIMEGAP_MINUS) {
+						printf("TIMEGAP_MINUS button pressed\n");
+						if(egodata.ACCTimeGap-- <= 0)
+							egodata.ACCTimeGap = 4;
+						if(egodata.CACCTimeGap-- <= 0)
+							egodata.CACCTimeGap = 4;
+					}
+					break;
+			}
+			dvi_rcv_sav = db_dvi_rcv;
+		}
+
 		if(DB_TRIG_VAR(&trig_info) == DB_COMM_TX_VAR) {
 
 	                db_clt_read(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), &self_comm_pkt);
@@ -341,34 +320,70 @@ printf("bytes_sent2 %d\n", bytes_sent);
 			egodata.CACCState = drive_mode_2_CACCState[self_comm_pkt.user_ushort_2]; // comm_pkt: 0-stay, 1-manual,  2-ACC,  3-CACC 
 								 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
 			dvi_out.platooningState = 2; //0=standby, 2=platooning NOTE:Must be set to 2 to get rid of "Please switch VEC stalk to ON"
-			dvi_out.position = self_comm_pkt.my_pip;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
-			printf("Got self_pkt! CACCState %d my_pip %d\n",
+			dvi_out.position = self_comm_pkt.my_pip - 1;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
+			printf("Got self_pkt! CACCState %d my_pip %d db_dvi_rcv %hhu\n",
 				egodata.CACCState, 
-				dvi_out.position
+				dvi_out.position,
+				db_dvi_rcv
 			);
+			if(self_comm_pkt.my_pip == 1) {
+				dvi_out.vehicles[0].type = 1;	// 0=nothing 1=truck 2=truck with communication error
+				if ( (self_comm_pkt.user_bit_3 == 1) || (self_comm_pkt.user_float > 0.1) )
+					dvi_out.vehicles[0].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
+				else
+					dvi_out.vehicles[0].isBraking = 0;
+				dvi_out.vehicles[0].hasIntruder = self_comm_pkt.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+
+				if( (dvi_out.vehicles[1].type == 1) || (dvi_out.vehicles[2].type == 1))
+					egodata.CACCActiveConnectionFromFollower = 1;
+				else
+					egodata.CACCActiveConnectionFromFollower = 0;
+
+				egodata.CACCActiveConnectionToTarget = 0;
+			}
+			if(self_comm_pkt.my_pip == 2) {
+				dvi_out.vehicles[1].type = 1;	// 0=nothing 1=truck 2=truck with communication error
+				if ( (self_comm_pkt.user_bit_3 == 1) || (self_comm_pkt.user_float > 0.1) )
+					dvi_out.vehicles[1].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
+				else
+					dvi_out.vehicles[1].isBraking = 0;
+				dvi_out.vehicles[1].hasIntruder = self_comm_pkt.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+
+				if(dvi_out.vehicles[0].type == 1)
+					egodata.CACCActiveConnectionToTarget = 1;
+				else
+					egodata.CACCActiveConnectionToTarget = 0;
+				if(dvi_out.vehicles[2].type == 1)
+					egodata.CACCActiveConnectionFromFollower = 1;
+				else
+					egodata.CACCActiveConnectionFromFollower = 0;
+			}
+			if(self_comm_pkt.my_pip == 3) {
+				dvi_out.vehicles[2].type = 1;	// 0=nothing 1=truck 2=truck with communication error
+				if ( (self_comm_pkt.user_bit_3 == 1) || (self_comm_pkt.user_float > 0.1) )
+					dvi_out.vehicles[2].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
+				else
+					dvi_out.vehicles[2].isBraking = 0;
+				dvi_out.vehicles[2].hasIntruder = self_comm_pkt.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+
+				if( (dvi_out.vehicles[0].type == 1) || (dvi_out.vehicles[1].type == 1))
+					egodata.CACCActiveConnectionToTarget = 1;
+				else
+					egodata.CACCActiveConnectionToTarget = 0;
+
+				egodata.CACCActiveConnectionFromFollower = 0;
+			}
 		}
 
 		if(DB_TRIG_VAR(&trig_info) == DB_COMM_LEAD_TRK_VAR) {
 
 			db_clt_read(pclt, DB_COMM_LEAD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt1);
 
-			printf("comm_pkt1.ts before: ");
-			print_timestamp(stdout, &comm_pkt1.ts);
-			printf("comm_pkt1_ts_sav before: ");
-			print_timestamp(stdout, &comm_pkt1_ts_sav);
-			printf("\n");
-			
 			if( ts2_is_later_than_ts1(&comm_pkt1_ts_sav, &comm_pkt1.ts) )
 				dvi_out.vehicles[0].type = 1;	// 0=nothing 1=truck 2=truck with communication error
 			else
 				dvi_out.vehicles[0].type = 2;	// 0=nothing 1=truck 2=truck with communication error
 			comm_pkt1_ts_sav = comm_pkt1.ts;
-
-			printf("comm_pkt1.ts after: ");
-			print_timestamp(stdout, &comm_pkt1.ts);
-			printf("comm_pkt1_ts_sav after: ");
-			print_timestamp(stdout, &comm_pkt1_ts_sav);
-			printf("dvi_out.vehicles[0].type: %d\n", dvi_out.vehicles[0].type);
 
 			if(dvi_out.vehicles[0].type == 1) {
 				if ( (comm_pkt1.user_bit_3 == 1) || (comm_pkt1.user_float > 0.1) )
@@ -376,93 +391,46 @@ printf("bytes_sent2 %d\n", bytes_sent);
 				else
 					dvi_out.vehicles[0].isBraking = 0;
 				dvi_out.vehicles[0].hasIntruder = comm_pkt1.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-				printf("Got comm_pkt1! type %d hasIntruder %d isBraking %d\n",
-					dvi_out.vehicles[0].type,
-					dvi_out.vehicles[0].hasIntruder,
-					dvi_out.vehicles[0].isBraking
-				);
 			}
 		}
-//		else
-//			memset(&dvi_out.vehicles[0], 0, sizeof(struct VehicleStruct));
-
 
 		if(DB_TRIG_VAR(&trig_info) == DB_COMM_SECOND_TRK_VAR) {
 
 			db_clt_read(pclt, DB_COMM_SECOND_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt2);
 
-			printf("comm_pkt2.ts before: ");
-			print_timestamp(stdout, &comm_pkt2.ts);
-			printf("comm_pkt2_ts_sav before: ");
-			print_timestamp(stdout, &comm_pkt2_ts_sav);
-			printf("\n");
-			
 			if( ts2_is_later_than_ts1(&comm_pkt2_ts_sav, &comm_pkt2.ts) )
 				dvi_out.vehicles[1].type = 1;	// 0=nothing 1=truck 2=truck with communication error
 			else
 				dvi_out.vehicles[1].type = 2;	// 0=nothing 1=truck 2=truck with communication error
 			comm_pkt2_ts_sav = comm_pkt2.ts;
 
-			printf("comm_pkt2.ts after: ");
-			print_timestamp(stdout, &comm_pkt2.ts);
-			printf("comm_pkt2_ts_sav after: ");
-			print_timestamp(stdout, &comm_pkt2_ts_sav);
-			printf("dvi_out.vehicles[1].type: %d\n", dvi_out.vehicles[1].type);
-			
 			if(dvi_out.vehicles[1].type == 1) {
 				if ( (comm_pkt2.user_bit_3 == 1) || (comm_pkt2. user_float > 0.1) )
 					dvi_out.vehicles[1].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
 				else
 					dvi_out.vehicles[1].isBraking = 0;
 				dvi_out.vehicles[1].hasIntruder = comm_pkt2.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-				printf("Got comm_pkt2! type %d hasIntruder %d isBraking %d\n",
-					dvi_out.vehicles[1].type,
-					dvi_out.vehicles[1].hasIntruder,
-					dvi_out.vehicles[1].isBraking
-					);
 			}
 		}
-//		else
-//			memset(&dvi_out.vehicles[1], 0, sizeof(struct VehicleStruct));
 
-
-		if(( DB_TRIG_VAR(&trig_info) == DB_COMM_THIRD_TRK_VAR)  && (dvi_out.vehicles[2].type == 1)) {
+		if(DB_TRIG_VAR(&trig_info) == DB_COMM_THIRD_TRK_VAR) {
 
 			db_clt_read(pclt, DB_COMM_THIRD_TRK_VAR, sizeof(veh_comm_packet_t), &comm_pkt3);
 
-			printf("comm_pkt3.ts before: ");
-			print_timestamp(stdout, &comm_pkt3.ts);
-			printf("comm_pkt3_ts_sav before: ");
-			print_timestamp(stdout, &comm_pkt3_ts_sav);
-			printf("\n");
-			
 			if( ts2_is_later_than_ts1(&comm_pkt3_ts_sav, &comm_pkt3.ts) )
 				dvi_out.vehicles[2].type = 1;	// 0=nothing 1=truck 2=truck with communication error
 			else
 				dvi_out.vehicles[2].type = 2;	// 0=nothing 1=truck 2=truck with communication error
 			comm_pkt3_ts_sav = comm_pkt3.ts;
 
-			printf("comm_pkt3.ts after: ");
-			print_timestamp(stdout, &comm_pkt3.ts);
-			printf("comm_pkt3_ts_sav after: ");
-			print_timestamp(stdout, &comm_pkt3_ts_sav);
-			printf("dvi_out.vehicles[2].type: %d\n", dvi_out.vehicles[2].type);
-			
 			if(dvi_out.vehicles[2].type == 1) {
 				if ( (comm_pkt3.user_bit_3 == 1) || (comm_pkt3. user_float > 0.1) )
 					dvi_out.vehicles[2].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
 				else
 					dvi_out.vehicles[2].isBraking = 0;
 				dvi_out.vehicles[2].hasIntruder = comm_pkt3.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
-				printf("Got comm_pkt3! type %d hasIntruder %d isBraking %d\n",
-					dvi_out.vehicles[2].type,
-					dvi_out.vehicles[2].hasIntruder,
-					dvi_out.vehicles[2].isBraking
-				);
 			}
 		}
-//		else
-//			memset(&dvi_out.vehicles[2], 0, sizeof(struct VehicleStruct));
 
 		if(debug) {
 				egodata.CACCState = 1; 
@@ -476,16 +444,21 @@ printf("bytes_sent2 %d\n", bytes_sent);
 		}
 
 		if(verbose)
-printf("Got to 2 CACCState1 %d Braking1 %d CutIn1 %d Braking2 %d CutIn2 %d Braking3 %d CutIn3 %d EgoVehiclePosition %d\n",
-			egodata.CACCState, 
-			dvi_out.vehicles[0].isBraking, 
-			dvi_out.vehicles[0].hasIntruder, 
-			dvi_out.vehicles[1].isBraking, 
-			dvi_out.vehicles[1].hasIntruder, 
-			dvi_out.vehicles[2].isBraking, 
-			dvi_out.vehicles[2].hasIntruder, 
-			dvi_out.position
-		);
+			printf("EgoPlatooningState %d EgoVehiclePosition %d EgoCACCState1 %d Type1 %d Braking1 %d CutIn1 %d Type2 %d Braking2 %d CutIn2 %d Type3 %d Braking3 %d CutIn3 %d db_dvi_rcv %hhu\n",
+						dvi_out.platooningState, 
+						dvi_out.position,
+						egodata.CACCState, 
+						dvi_out.vehicles[0].type, 
+						dvi_out.vehicles[0].isBraking, 
+						dvi_out.vehicles[0].hasIntruder, 
+						dvi_out.vehicles[1].type, 
+						dvi_out.vehicles[1].isBraking, 
+						dvi_out.vehicles[1].hasIntruder, 
+						dvi_out.vehicles[2].type, 
+						dvi_out.vehicles[2].isBraking, 
+						dvi_out.vehicles[2].hasIntruder,
+						db_dvi_rcv
+			);
 
                 bytes_sent = sendto(sd, &dvi_out, sizeof(dvi_out),
 			 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr));
