@@ -95,7 +95,7 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 {
 	cbuff_typ *pbuff = &pctrl->buff;
 	buffer_item *pdata = (buffer_item *) pbuff->data_array;
-	int i, j;
+	int i;
 	int current_index;
 
 	if ((pdata == NULL) || (pbuff->data_count == 0))
@@ -365,20 +365,20 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 
 		// Platoon communication; add remaining fields later
 		fprintf(fp, "%.3f ", pcomm_tx->global_time);
-		fprintf(fp, "%hd ", pcomm_tx->user_ushort_1);		//190		
-		fprintf(fp, "%hd ", pcomm_tx->user_ushort_2);
+		fprintf(fp, "%hu ", pcomm_tx->user_ushort_1);		//190		
+		fprintf(fp, "%hu ", pcomm_tx->user_ushort_2);
 		fprintf(fp, "%.3f ", pcomm_tx->user_float);	
 		fprintf(fp, "%.3f ", pv->lead_trk.global_time);	
-		fprintf(fp, "%hd ", pv->lead_trk.user_ushort_1);
-		fprintf(fp, "%hd ", pv->lead_trk.user_ushort_2);	//195
+		fprintf(fp, "%hu ", pv->lead_trk.user_ushort_1);
+		fprintf(fp, "%hu ", pv->lead_trk.user_ushort_2);	//195
 		fprintf(fp, "%.3f ", pv->lead_trk.user_float);
 		fprintf(fp, "%.3f ", pv->second_trk.global_time);
-		fprintf(fp, "%hd ", pv->second_trk.user_ushort_1);
-		fprintf(fp, "%hd ", pv->second_trk.user_ushort_2);
+		fprintf(fp, "%hu ", pv->second_trk.user_ushort_1);
+		fprintf(fp, "%hu ", pv->second_trk.user_ushort_2);
 		fprintf(fp, "%.3f ", pv->second_trk.user_float);	//200
 		fprintf(fp, "%.3f ", pv->third_trk.global_time);
-		fprintf(fp, "%hd ", pv->third_trk.user_ushort_1);
-		fprintf(fp, "%hd ", pv->third_trk.user_ushort_2);
+		fprintf(fp, "%hu ", pv->third_trk.user_ushort_1);
+		fprintf(fp, "%hu ", pv->third_trk.user_ushort_2);
 		fprintf(fp, "%.3f ", pv->third_trk.user_float);	
 		fprintf(fp, "%.3f ", pv->Volvo_TargetDist);		//205
 		fprintf(fp, "%.3f ", pv->Volvo_TargetVel);
@@ -386,7 +386,7 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 		fprintf(fp, "%.3f ", pv->Volvo_TargetAvailable);
 		fprintf(fp, "%.3f ", pv->Volvo_EgoVel);
 		fprintf(fp, "%.3f ", pv->Volvo_EgoAcc);			//210
-		fprintf(fp, "%.3f ", pv->Volvo_EgoRoadGrade);			//210
+		fprintf(fp, "%.3f ", pv->Volvo_EgoRoadGrade);
 		fprintf(fp, "%.3f ", pv->VBRK_BrkAppPressure);
 		fprintf(fp, "%.3f ", pv->VBRK_BrkPrimaryPressure);
 		fprintf(fp, "%.3f ", pv->VBRK_BrkSecondaryPressure);	
@@ -401,6 +401,11 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
                 fprintf(fp, "%d ", pv->VP15_EcoRollActiveStatus);
                 fprintf(fp, "%d ", pv->VP15_AutomaticHSARequest);
                 fprintf(fp, "%d ", pv->VP15_EngineShutdownRequest);	//225
+		fprintf(fp, "%hhu ", pcomm_tx->maneuver_des_2);
+		fprintf(fp, "%hhu ", pcomm_tx->my_pip);
+		fprintf(fp, "%hhu ", pv->lead_trk.maneuver_des_2);
+		fprintf(fp, "%hhu ", pv->second_trk.maneuver_des_2);
+		fprintf(fp, "%hhu ", pv->third_trk.maneuver_des_2);	//230
 
                 fprintf(fp, "\n");
 
