@@ -30,12 +30,9 @@
 **	Returns: 0 on success, or a positive bit-mapped integer containing 
 **	the identit(ies) of the offending truck(s).
 */
-int cacc_comm(float local_t, float *pglobal_time, float delta_t, 
-	control_state_typ *con_st_pt, vehicle_info_typ *veh_info_pt,
-	comm_info_typ *comm_info_pt, fault_index_typ *f_ind_pt,
-	//unsigned short *pcomm_err_bound,
-	veh_comm_packet_t *comm_receive_pt,
-	veh_comm_packet_t *comm_send_pt, pltn_info_typ* pltn_inf_pt) 
+int cacc_comm(float local_t, float *pglobal_time, float delta_t, control_state_typ *con_st_pt, vehicle_info_typ *veh_info_pt,
+	comm_info_typ *comm_info_pt, fault_index_typ *f_ind_pt, veh_comm_packet_t *comm_receive_pt, 
+	veh_comm_packet_t *comm_send_pt, pltn_info_typ* pltn_inf_pt, control_config_typ *cnfg_pt) 
 {
 
 	static int comm_counter[MAX_TRUCK]={0,0,0,0,0};
@@ -43,14 +40,14 @@ int cacc_comm(float local_t, float *pglobal_time, float delta_t,
 	static int comm_f_counter[MAX_TRUCK]={0,0,0,0,0};
 	static float comm_time_old[MAX_TRUCK]={0.0,0.0,0.0,0.0,0.0};
 	unsigned short handshake_start = OFF;                    // for passing out info
-	//static unsigned short handshake_start_arr[MAX_TRUCK] = {0,0,0,0,0};    // local only; indicating link with one in the platoon with ID=pip
+	static unsigned short handshake_start_arr[MAX_TRUCK] = {0,0,0,0,0};    // local only; indicating link with one in the platoon with ID=pip
 	float global_time = *pglobal_time;                                     // globl time of the latoon
 	int error = 0;
 	int pip;
 	static int first_time=1;
     static unsigned short g_t_init_count=0;
 	static unsigned short N_veh_comm=0; // number of veh in comm range and taking to each other
-	static unsigned short comm_prt_sw=ON, comm_prt1_sw = ON;
+	//static unsigned short comm_prt_sw=ON, comm_prt1_sw = ON;
 	static unsigned short synchrn_sw = 1,  global_t_sw=OFF; 
 
 
@@ -77,45 +74,43 @@ int cacc_comm(float local_t, float *pglobal_time, float delta_t,
 	     // see whether a received message's global time has changed.
 	     
 	    N_veh_comm=0;
-	    for(pip = 1; pip <= pltn_inf_pt->pltn_size; pip++) // Logic deal with subject vehicle with each individual veh in platoon
+	    for (pip = 1; pip <= pltn_inf_pt->pltn_size; pip++) // Logic deal with subject vehicle with each individual veh in platoon
 	    {		  
-		   if(pip != veh_info_pt-> veh_id)                                        // IF LOOP 1
+		   if (pip != veh_info_pt-> veh_id)     
 		   {              
               if (comm_receive_pt[pip]. global_time != comm_time_old[pip])
               {
                  comm_counter[pip]++; 
                  if (comm_counter[pip] > 100) 
-                    comm_counter[pip] = 0;                                                               
-                 comm_time_old[pip] = comm_receive_pt[pip].global_time;   				 
+                    comm_counter[pip] = 0;                                                                                				 
 				 comm_f_counter[pip] = 0;
 				 veh_info_pt-> comm_p[pip-1]=0;
-                 N_veh_comm++;          
+                // N_veh_comm++;       // should not be here     
               }
               else   // IF LOOP 2
               {
                  comm_f_counter[pip]++;
-                 //if ((comm_f_counter[pip] > COMM_ERR_BOUND) && (comm_prt1_sw == ON) && (handshake_start_arr[pip] == ON))
-				 if ((comm_f_counter[pip] > COMM_ERR_BOUND) && (comm_prt1_sw == ON) )   // changed on 03/18/16
+				 if (comm_f_counter[pip] > COMM_ERR_BOUND)   // changed on 07/02/16
                  {
-                   // handshake_start_arr[pip] = OFF;
-                    comm_prt1_sw = OFF;
-                    comm_prt_sw = ON;					
-                    fprintf(stderr, "Communication Error with truck no. %d!\n", pip );                     
+                    handshake_start_arr[pip] = OFF;
+					veh_info_pt-> comm_p[pip-1]=1;                           
 				 	error |= 0x01 << pip;
                  }
-              }                                         
-
-		  	  if (comm_f_counter[pip] > COMM_ERR_BOUND)				
-			  {
-               	  veh_info_pt-> comm_p[pip-1]=1;
-			  }
-			  if (veh_info_pt-> comm_p[1] ==1)  //lead veh only
+              } 
+			  comm_time_old[pip] = comm_receive_pt[pip].global_time;  
+	  	
+			  if (veh_info_pt-> comm_p[0] ==1)  //lead veh only
                	  f_ind_pt-> comm=1;
 			  else
-				  f_ind_pt-> comm=0;
-				
-           }  // IF LOOP end 
+				  f_ind_pt-> comm=0;				
+           }  
+		   else   // self
+		   {
+				comm_f_counter[pip]=0;
+				veh_info_pt-> comm_p[pip-1]= 0;
+		   }  // IF LOOP end 
 	    }     // for loop end
+		
 		
 		if (veh_info_pt-> comm_p[0] == 0)  // comm with leader; for CACC only
 		{		
@@ -144,12 +139,12 @@ int cacc_comm(float local_t, float *pglobal_time, float delta_t,
 #endif
 
 		
-	if ((comm_prt_sw == ON) && (handshake_start == ON))
+	/*if ((comm_prt_sw == ON) && (handshake_start == ON))  // removed on 07_02_16
 		{
 			comm_prt_sw = OFF;
 //			comm_prt1_sw = ON;
 			fprintf(stderr, "Handshaking with all ON!\n");
-		}
+		}*/
 
 
 
@@ -179,7 +174,6 @@ int cacc_comm(float local_t, float *pglobal_time, float delta_t,
 
     if (f_ind_pt-> comm == 0)
         {
-
              if (veh_info_pt-> veh_id > 1)			  
                 {                   
 				   if ( local_t <= 0.2 )  // To avoid comm remainder problem
@@ -192,8 +186,10 @@ int cacc_comm(float local_t, float *pglobal_time, float delta_t,
                      }
                    else
                      {
-						con_st_pt-> pre_v = comm_receive_pt[veh_info_pt-> veh_id - 1].vel_traj;        //velocity; 
-						con_st_pt-> pre_a = comm_receive_pt[veh_info_pt-> veh_id - 1].acc_traj;        //accel;
+						//con_st_pt-> pre_v = comm_receive_pt[veh_info_pt-> veh_id - 1].vel_traj;     //velocity; changed on 07_04_16
+						//con_st_pt-> pre_a = comm_receive_pt[veh_info_pt-> veh_id - 1].acc_traj;     //accel;
+						con_st_pt-> pre_v = comm_receive_pt[cnfg_pt-> MyPltnPos - 1].vel_traj;        //velocity;  changed on 07_04_16
+						con_st_pt-> pre_a = comm_receive_pt[cnfg_pt-> MyPltnPos - 1].acc_traj;        //accel;
 						con_st_pt-> lead_v = comm_receive_pt[1].vel_traj;
 						con_st_pt-> lead_a = comm_receive_pt[1].acc_traj;
 //                     con_st_pt-> pre_mag_counter = comm_receive_pt1-> marker_counter;    // Should come from communication.
@@ -366,25 +362,11 @@ int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_pa
 	 		Road Grade			
 	 ***************************/
 
-	 //jbus_rd_pt->  grade = pv_can-> Volvo_EgoRoadGrade;		    // added on 05_28_16
-	 //jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;
-
 	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) < -1.5)
 		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-4.5;  //3.55
 	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) > 1.5)
 		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;  //3.55
-
-	   // jbus_rd_pt->  grade=-3.5;
-
-	 /*if ( pv_can-> self_gps.heading < 200.0 )
-	 {
-		 if ( (pv_can-> self_gps.latitude > 37.925079 && pv_can-> self_gps.latitude < 37.927062) ||
-			  (pv_can-> self_gps.longitude > -122.368604 && pv_can-> self_gps.longitude < -122.362663) )
-		 jbus_rd_pt->  grade=-6.0;
-	 }*/
-	
 	 
-
 	 sens_rd_pt->ego_a=pv_can-> Volvo_EgoAcc;
 	 sens_rd_pt->ego_v=pv_can-> Volvo_EgoVel*0.2778;  // from [km/hr] ==> [m/s]
 	 sens_rd_pt->target_a=pv_can->Volvo_TargetAcc; 
@@ -404,33 +386,29 @@ int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_pa
 				veh_info_pt-> cut_out=ON;
 				veh_info_pt-> cut_in=OFF;
 			}
-			else if (((int)pv_can-> Volvo_TargetAvailable == 1) && (pv_can-> Volvo_TargetDist < target_d_buff-20.0*delta_t))
+			if (((int)pv_can-> Volvo_TargetAvailable == 1) && (pv_can-> Volvo_TargetDist < target_d_buff-20.0*delta_t))
 			{
 				veh_info_pt-> cut_in=ON;
 				veh_info_pt-> cut_out=OFF;
 			}
-			else
-			{
-				veh_info_pt-> cut_in=OFF;
-				veh_info_pt-> cut_out=OFF;
-			}
-			if ((int)pv_can-> Volvo_TargetAvailable == 1)
-				target_d_buff=pv_can-> Volvo_TargetDist;
-		
 
 		 if (pv_can-> Volvo_TargetDist > target_d_buff+0.04)
 			sens_rd_pt->target_d=target_d_buff+0.04;
-		 else if (pv_can-> Volvo_TargetDist > target_d_buff-0.04)
+		 else if (pv_can-> Volvo_TargetDist < target_d_buff-0.04)
 			sens_rd_pt->target_d=target_d_buff-0.04;
 		 else
 			sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
-		 target_d_buff=sens_rd_pt->target_d;
+		 
+		 if ((int)pv_can-> Volvo_TargetAvailable == 1)
+		     target_d_buff=sens_rd_pt->target_d;
 		 veh_info_pt-> weight = pv_can-> VP15_VehicleWeightVP15;
 
 	 }
 	 
-	
-	 //sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+	 if (veh_info_pt-> cut_in ==ON)
+		veh_info_pt-> cut_in_t += delta_t;
+	 else
+		veh_info_pt-> cut_in_t = 0.0;
 
 	 sens_rd_pt->target_avail=(int)pv_can-> Volvo_TargetAvailable;
 
@@ -504,18 +482,12 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 		  pcmd->brake_command_mode = TSC_OVERRIDE_DISABLED; 
 		  pcmd->ebs_deceleration = 0.0;
 
-		  //if (sw_pt-> gshift_sw == 0)			      
+		  	      
 		  pcmd->engine_priority=TSC_MEDIUM;     /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3  */
-		  //else
-		  //	pcmd->engine_priority=TSC_LOW;
-
+		  
           eng_tq_tmp = (con_out_pt-> y1)/ENGINE_REF_TORQUE;
-
-          //if (eng_tq_tmp < (MIN_TORQUE/ENGINE_REF_TORQUE) )  // removed on 06_09_16
-          //   eng_tq_tmp = (MIN_TORQUE/ENGINE_REF_TORQUE);
-
 		
-	if (cnfg_pt-> MyPltnPos == 1)
+	if (veh_info_pt-> veh_id == 1)
 	{
 		if (con_st_pt-> max_spd < 26.0*mph2mps)
 		{
@@ -544,22 +516,6 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 		  }
 		  else
 			  pcmd->engine_torque=eng_tq_tmp;
-
-		  /*if (mng_cmd_pt-> man_trans_mode == 0)
-		  {			  
-			  eng_tq_buff=pcmd->engine_torque;
-			  trans_t=0.0;
-		  }
-		  if (mng_cmd_pt-> man_trans_mode == 1) // except manual to auto		  
-		  {
-			  trans_t += delta_t;
-			  pcmd->engine_torque=eng_tq_buff*(1.0-trans_t/TRANS_T) + (trans_t/TRANS_T)*eng_tq_tmp;			  
-		  }
-		  else
-			  pcmd->engine_torque=eng_tq_tmp;*/
-
-
-
 
 			// added on 04_14_16
 		   if (eng_tq_ini==1 && mng_cmd_pt-> drive_mode > 1)
@@ -737,12 +693,12 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 		 pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; //Use this if possible   		   
          pcmd->engine_torque = 0.0;
          
-		 if (con_out_pt-> y11 < 0.0)                             // using usyn 03_01_16              
+		/* if (con_out_pt-> y11 < 0.0)                             // using usyn 03_01_16              
 			pcmd->ebs_deceleration = con_out_pt-> y14;     // changed on 11_03_15
          if (pcmd->ebs_deceleration > - 1.2)
 			 pcmd->ebs_deceleration = - 1.2;          
 		 if (pcmd->ebs_deceleration < - 2.5)
-			 pcmd->ebs_deceleration = - 2.5;          
+			 pcmd->ebs_deceleration = - 2.5; */         
 
           
 
@@ -767,46 +723,4 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
                                                                                                                                                                                                                         
         return 0;                                                  
 }                                                                  
-
-/*******************************************************************************
-
-    other functions
-
-********************************************************************************/
-
-int max_i(int a, int b)
-{
-    if (a >= b)
-        return a;
-    else
-        return b; 
-    
-}
-
-int min_i(int a, int b)
-{
-    if (a >= b)
-        return b;
-    else
-        return a; 
-    
-}
-
-float max_f(float a, float b)
-{
-    if (a >= b)
-        return a;
-    else
-        return b; 
-    
-}
-
-float min_f(float a, float b)
-{
-    if (a >= b)
-        return b;
-    else
-        return a; 
-    
-}
 

@@ -29,11 +29,9 @@ extern float svg31(float);
 extern float trq_to_acc_voltage(long_ctrl *, float);
 extern void ref_ini(control_config_typ*, float *, float *, float *);
 extern int cacc_comm(float, float *, float, control_state_typ*, vehicle_info_typ*, comm_info_typ*, fault_index_typ*, 
-				veh_comm_packet_t*, veh_comm_packet_t*, pltn_info_typ*);
+				veh_comm_packet_t*, veh_comm_packet_t*, pltn_info_typ*, control_config_typ *);
 extern int read_sw(long_vehicle_state *, switch_typ*);
 extern int read_jbus(float, float,long_vehicle_state *,long_params *,jbus_read_typ *, sens_read_typ*, switch_typ *, vehicle_info_typ*);
-//extern int read_sens();
-//extern int veh_pos(control_config_typ*, comm_info_typ*, vehicle_info_typ*, pltn_info_typ*);
 extern int config_sw(int *pread_sw, int *pmanu_auto_sw,
         unsigned short *phandshake_start, int *pread_sw_old, switch_typ *sw_pt,
         long_vehicle_state *pv, vehicle_info_typ* vehicle_info_pt,
@@ -45,14 +43,15 @@ extern int config_sw(int *pread_sw, int *pmanu_auto_sw,
 //extern int set_time_sync(float *, float *,float *, vehicle_info_typ*, pltn_info_typ*);
 extern int actuate(float, long_output_typ*, con_output_typ*, control_state_typ*, long_params*, long_output_typ*, 
 				          manager_cmd_typ*, switch_typ*, jbus_read_typ*, control_config_typ*, fault_index_typ*, vehicle_info_typ *);
-extern int veh_pos(path_gps_point_t , path_gps_point_t , path_gps_point_t , local_pos_typ *);
+extern int veh_pos(path_gps_point_t , path_gps_point_t , path_gps_point_t , local_pos_typ *, pltn_info_typ *);
 
 extern int tq_we(float, float*);
 extern int max_i(int , int);
 extern int min_i(int , int);
 extern float max_f(float , float);
 extern float min_f(float , float);
-
+extern double max_d(double , double);
+extern double min_d(double , double);
 
 
 #endif

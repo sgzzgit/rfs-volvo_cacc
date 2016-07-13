@@ -44,6 +44,7 @@ typedef struct      // To be sent from each vehicle to coordination manager
 	//int handshake;        // 0: no handshake; 1: with hand shake with proper vehicles in the same lane; added on 04/19/15
 	int cut_in;			  // front cut-in; 0: no cut-in
 	int cut_out;		  // from cut_out; 0: no cut-out
+	float cut_in_t;		  // cumulative cut-in time
     float spd;  
     float man_t_limit;   
 	float run_dist;

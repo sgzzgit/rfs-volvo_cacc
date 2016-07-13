@@ -75,6 +75,9 @@
 #define JK_REF_TORQUE		1543.0  // N.m for Volvo truck
 #define COUPLE_COEFF		2.0		// coupling distance coeff w.r.t. front vehicle
 #define ACC_DIST			2.0
+#define PLTN_SIZE			3
+#define CUT_IN_T			30.0
+
 
 /*        
 #define SPLIT_DIST                               2.0                 // 6.0 for NVD
@@ -531,12 +534,19 @@ typedef struct {
 	float heading;		// course made good, true north
 } local_gps_typ;
 
-typedef struct {
+/*typedef struct {
 	int local_pos;	
 	double local_enu_x;	
 	double local_enu_y;
 	float ave_heading;
-} local_pos_typ;
+} local_pos_typ;*/
 
+typedef struct {
+	int local_pos[PLTN_SIZE];	
+	double local_enu_x[PLTN_SIZE];	
+	double local_enu_y[PLTN_SIZE];
+	float gps_dist_pre;
+	float ave_heading;
+} local_pos_typ;
 
 #endif /* VEH_LONG_H */
