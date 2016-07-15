@@ -406,6 +406,7 @@ static void print_data(FILE *fp, long_ctrl *pctrl)
 		fprintf(fp, "%hhu ", pv->lead_trk.maneuver_des_2);
 		fprintf(fp, "%hhu ", pv->second_trk.maneuver_des_2);
 		fprintf(fp, "%hhu ", pv->third_trk.maneuver_des_2);	//230
+		fprintf(fp, "%hhu ", pcomm_tx->user_bit_3);
 
                 fprintf(fp, "\n");
 

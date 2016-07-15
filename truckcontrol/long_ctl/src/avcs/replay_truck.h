@@ -8,5 +8,8 @@ extern int num_file_columns;
 
 extern db_var_spec_t db_vars_ac_rm[];
 extern int num_ac_rm_vars;
+extern long_vehicle_state my_pv;
+extern veh_comm_packet_t pcomm_tx;
+extern unsigned char comm_tx_user_bit_3;
 
 extern timestamp_t timestamp;

@@ -33,7 +33,7 @@ db_id_t db_vars_list[] =  {
 };
 int num_db_vars = sizeof(db_vars_list)/sizeof(db_id_t);
 
-const char *usage = "-d <Database number (Modulo 4!)> -f <filename> -i (loop interval) -v (verbose)\n"; 
+const char *usage = "-d (use database) -f <filename> -i <loop interval> -v (verbose)\n"; 
 
 int main(int argc, char *argv[]) {
 	char strbuf[5000];
@@ -50,16 +50,16 @@ int main(int argc, char *argv[]) {
         int xport = COMM_OS_XPORT;      // set correct for OS in sys_os.h
         int verbose = 0;
         int pv_var = 0;
-        extern long_vehicle_state pv;
-	veh_comm_packet_t *pcomm_pkt1 = &pv.lead_trk;
-	veh_comm_packet_t *pcomm_pkt2 = &pv.second_trk;
-	veh_comm_packet_t *pcomm_pkt3 = &pv.third_trk;
-	veh_comm_packet_t *pself_comm_pkt;
+	veh_comm_packet_t *pcomm_pkt1 = &my_pv.lead_trk;
+	veh_comm_packet_t *pcomm_pkt2 = &my_pv.second_trk;
+	veh_comm_packet_t *pcomm_pkt3 = &my_pv.third_trk;
 
-        while ((option = getopt(argc, argv, "d:i:f:v")) != EOF) {
+	memset(&my_pv, 0, sizeof(long_vehicle_state));
+	memset(&pcomm_tx, 0, sizeof(veh_comm_packet_t));
+
+        while ((option = getopt(argc, argv, "di:f:v")) != EOF) {
                 switch(option) {
                 case 'd':
-//                        pv_var = atoi(optarg);
 			use_db = 1;
                         break;
                 case 'i':
@@ -105,14 +105,14 @@ printf("Got to 1\n");
 		sig_ign(sig_list, sig_hand);
 
 printf("Got to 2\n");
-	memset(strbuf, 0, 1000);
+	memset(strbuf, 0, 5000);
 	filestream = fopen(filename, "r");
 printf("Got to 3\n");
-	while(fgets(strbuf, 1000, filestream) != NULL) {
+	while(fgets(strbuf, 5000, filestream) != NULL) {
 		get_data_log_line(strbuf, file_spec, num_file_columns);
 printf("Got to 4\n");
 		if(use_db) {
-//			db_clt_write(pclt, pv_var, sizeof(long_vehicle_state), &pv);
+//			db_clt_write(pclt, pv_var, sizeof(long_vehicle_state), &my_pv);
 //			long_read_vehicle_state(pclt, &control_state);
 //			db_clt_write(pclt, DB_LONG_OUTPUT_VAR, sizeof(long_output_typ), &long_out);
 //			db_clt_write(pclt, DB_LONG_DIG_OUT_VAR, sizeof(long_dig_out_typ), &dig_out);
@@ -120,8 +120,8 @@ printf("Got to 4\n");
 			db_clt_write(pclt, DB_COMM_LEAD_TRK_VAR, sizeof(veh_comm_packet_t), pcomm_pkt1);
 			db_clt_write(pclt, DB_COMM_SECOND_TRK_VAR, sizeof(veh_comm_packet_t), pcomm_pkt2);
 			db_clt_write(pclt, DB_COMM_THIRD_TRK_VAR, sizeof(veh_comm_packet_t), pcomm_pkt3);
-			db_clt_write(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), pself_comm_pkt);
-
+			pcomm_tx.user_bit_3 = comm_tx_user_bit_3 & 0x1;
+			db_clt_write(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), &pcomm_tx);
 
 			printf("strbuf %s\n", strbuf);
 		}
