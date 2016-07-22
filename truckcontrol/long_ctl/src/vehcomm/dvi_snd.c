@@ -332,7 +332,7 @@ printf("bytes_sent2 %d\n", bytes_sent);
 					dvi_out.vehicles[0].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
 				else
 					dvi_out.vehicles[0].isBraking = 0;
-				dvi_out.vehicles[0].hasIntruder = self_comm_pkt.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+				dvi_out.vehicles[0].hasIntruder = ((self_comm_pkt.maneuver_des_2 & 0x03) == 1) ? 1 : 0;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
 
 				if( (dvi_out.vehicles[1].type == 1) || (dvi_out.vehicles[2].type == 1))
 					egodata.CACCActiveConnectionFromFollower = 1;
@@ -347,7 +347,7 @@ printf("bytes_sent2 %d\n", bytes_sent);
 					dvi_out.vehicles[1].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
 				else
 					dvi_out.vehicles[1].isBraking = 0;
-				dvi_out.vehicles[1].hasIntruder = self_comm_pkt.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+				dvi_out.vehicles[1].hasIntruder = ((self_comm_pkt.maneuver_des_2 & 0x03) == 1) ? 1 : 0;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
 
 				if(dvi_out.vehicles[0].type == 1)
 					egodata.CACCActiveConnectionToTarget = 1;
@@ -364,7 +364,7 @@ printf("bytes_sent2 %d\n", bytes_sent);
 					dvi_out.vehicles[2].isBraking = 1;  // 0:false, 1:braking, 2:hard braking (PATH: same red indication for both 1 & 2)
 				else
 					dvi_out.vehicles[2].isBraking = 0;
-				dvi_out.vehicles[2].hasIntruder = self_comm_pkt.maneuver_des_2 & 0x03;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
+				dvi_out.vehicles[2].hasIntruder = ((self_comm_pkt.maneuver_des_2 & 0x03) == 1) ? 1 : 0;	// 0-2: 0=Not available 1=Cut-in 2=Cut-out
 
 				if( (dvi_out.vehicles[0].type == 1) || (dvi_out.vehicles[1].type == 1))
 					egodata.CACCActiveConnectionToTarget = 1;
