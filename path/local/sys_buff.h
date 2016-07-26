@@ -23,6 +23,8 @@
  *
  */
 
+#pragma once 
+
 #include <stdio.h>
 
 /** Buffer type used with dynamically malloced string saving */
