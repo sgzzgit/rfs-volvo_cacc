@@ -317,14 +317,17 @@ printf("bytes_sent2 %d\n", bytes_sent);
 
 	                db_clt_read(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), &self_comm_pkt);
 
-			egodata.CACCState = drive_mode_2_CACCState[self_comm_pkt.user_ushort_2]; // comm_pkt: 0-stay, 1-manual,  2-ACC,  3-CACC 
-								 // CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
+			char drive_mode_2_CACCState[] = {0, 0, 4, 4, 2}; //DVI CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
+									//comm_pkt drive_mode (aka user_ushort_2): 0:stay, 1:manual, 2:CC, 3:ACC, 4:CACC
+			egodata.CACCState = drive_mode_2_CACCState[self_comm_pkt.user_ushort_2];
+
 			dvi_out.platooningState = 2; //0=standby, 2=platooning NOTE:Must be set to 2 to get rid of "Please switch VEC stalk to ON"
 			dvi_out.position = self_comm_pkt.my_pip - 1;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
-			printf("Got self_pkt! CACCState %d my_pip %d db_dvi_rcv %hhu\n",
+			printf("Got self_pkt! CACCState %d my_pip %d db_dvi_rcv %hhu user_ushort_2 %d\n",
 				egodata.CACCState, 
 				dvi_out.position,
-				db_dvi_rcv
+				db_dvi_rcv,
+				self_comm_pkt.user_ushort_2
 			);
 			if(self_comm_pkt.my_pip == 1) {
 				dvi_out.vehicles[0].type = 1;	// 0=nothing 1=truck 2=truck with communication error
