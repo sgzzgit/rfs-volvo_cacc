@@ -23,16 +23,19 @@ PATH_LDFLAGS += -L$(COMMON_DIR) -L$(J1939_LIB_DIR) -L$(CAN_CLIENT_LIB_DIR)
 
 PATH_LIBS = $(LONG_LIBS) $(PATH_CORE_LIBS) -lcapath_can 
 
+PATH_OBJS += $(OBJDIR)/trk_table.o
+
 EXEC =  $(OBJDIR)/trk_wr \
 	$(OBJDIR)/trk_cr \
 	$(OBJDIR)/rdswitches\
+	$(OBJDIR)/replay_truck\
 	$(OBJDIR)/setLEDs\
 	$(OBJDIR)/set_fault\
 	$(OBJDIR)/jbussend\
 	$(OBJDIR)/jbussendGPS\
 	$(OBJDIR)/fake_switches
 
-all: $(OBJDIR) $(EXEC)
+all: $(OBJDIR) $(PATH_OBJS) $(EXEC)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
