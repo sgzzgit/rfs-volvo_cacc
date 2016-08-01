@@ -55,6 +55,7 @@ $(LONG_CTL_OBJS): $(COMMON_DIR)/long_ctl.h track.h long_trk.h
 
 install:  all
 	cp -f $(TARGET) $(TRUCKDIR)/test
+	cp realtime.ini $(TRUCKDIR)/test
 
 clean:
 	/bin/rm -f *.o \
