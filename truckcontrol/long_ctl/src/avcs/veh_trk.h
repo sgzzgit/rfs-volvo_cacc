@@ -89,6 +89,7 @@ typedef struct
         float rb_control;                   /* Rear brake control (bus only) */
         int fan_override;                   /* Engine fan override */
         int fan_control;                    /* Engine fan ON/OFF */
+	unsigned char selected_gap_level;   // Gap level sent to DVI
 } IS_PACKED long_output_typ;
 
 #endif /* VEH_TRK_H */
