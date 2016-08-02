@@ -67,15 +67,15 @@ then
 fi
 OBJDIR=qnx
 echo "Turning on startup screen"
-../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "3 0 0 1 0 0 0 0 0 0" -P "0 1 0 0 0 1 0 0 1 1 1 0 0 0 "
+../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "2 0 0 1 0 0 0 0 0 0" -P "0 1 0 0 0 1 0 0 1 1 1 0 0 0 "
+sleep 1
+echo "Turning on ACC screen"
+../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "2 0 0 1 0 0 0 0 0 0" -P "2 1 0 0 0 1 0 0 1 1 1 0 0 0 "
+sleep 1
+echo "Turning on CACC screen"
+../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "4 0 0 1 0 0 0 0 0 0" -P "2 1 0 0 0 1 0 0 1 0 0 0 0 0 "
 sleep 1
 echo "Turning on startup screen"
-../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 0 0 1 0 0 1 1 1 0 0 0 "
-sleep 1
-echo "Turning on platoon found screen"
-../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "3 0 0 1 0 0 0 0 0 0" -P "2 1 0 1 0 1 0 0 1 1 1 0 0 0 "
-sleep 2
-echo "Turning on startup screen"
-../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "3 0 0 1 0 0 0 0 0 0" -P "0 1 0 0 0 1 0 0 1 1 1 0 0 0 "
+../vehcomm/$OBJDIR/dvi_snd -c -C 20 -r 10007 -R 10005 -a $GALAXYWIRELESS -A $IPADDR -E "2 0 0 1 0 0 0 0 0 0" -P "0 1 0 0 0 1 0 0 1 1 1 0 0 0 "
 slay trk_cr
 slay db_slv
