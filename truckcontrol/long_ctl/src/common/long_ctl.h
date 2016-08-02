@@ -32,6 +32,7 @@
 #include "path_gps_lib.h"
 #include "long_comm.h"
 #include "veh_trk.h"
+#include "dvi.h"
 
 // defined in long_ctl.c, used by tasks to control how much to print
 extern int long_ctl_verbose;
@@ -307,6 +308,8 @@ typedef struct {
   float trans_retarder_mode;
   float coolant_load_increase;
   unsigned char trans_retarder_source;
+  unsigned char acc_cacc_request; // ACC/CACC control signal from DVI; No request=0, ACC=1, CACC=2
+  unsigned char gap_request; // No request=0, else gap levels 1-5;
   evt300_radar_typ evt300;
   long_lidarA_typ lidarA;
   long_lidarB_typ lidarB;
