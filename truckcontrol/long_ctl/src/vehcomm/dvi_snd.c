@@ -17,6 +17,8 @@
 #include "path_gps_lib.h"
 #include "long_comm.h"
 #include "veh_lib.h"
+#include "../avcs/veh_trk.h"
+#include "../avcs/clt_vars.h"
 #include "dvi.h"
 
 static int sig_list[]=
@@ -87,7 +89,6 @@ int main(int argc, char *argv[])
 	struct SeretUdpStruct dvi_out;
 	struct ExtraDataCACCStruct egodata;
 	char db_dvi_rcv = -1;
-	char dvi_rcv_sav = -1;
 	veh_comm_packet_t comm_pkt1;
 	veh_comm_packet_t comm_pkt2;
 	veh_comm_packet_t comm_pkt3;
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
 	char *send_test_str2;
 	int no_send2 = 1;
 	int create_db_vars = 0;
+	long_output_typ long_output;
 
 	memset(&dvi_out, 0, sizeof(struct SeretUdpStruct));
 	memset(&egodata, 0, sizeof(struct ExtraDataCACCStruct));
@@ -280,46 +282,20 @@ printf("bytes_sent2 %d\n", bytes_sent);
 	while (1) {
 		recv_type= clt_ipc_receive(pclt, &trig_info, sizeof(trig_info));
 
-		char drive_mode_2_CACCState[] = {0, 0, 4, 2};
-
-		if(DB_TRIG_VAR(&trig_info) == DB_DVI_RCV_VAR) {
-	                db_clt_read(pclt, DB_DVI_RCV_VAR, sizeof(char), &db_dvi_rcv);
-			switch(db_dvi_rcv) {
-				case ACC_BUTTON:
-					printf("ACC button pressed\n");
-					break;
-				case CACC_BUTTON:
-					printf("CACC button pressed\n");
-					break;
-				case TIMEGAP_PLUS:
-					if(dvi_rcv_sav != TIMEGAP_PLUS) {
-						printf("TIMEGAP_PLUS button pressed\n");
-						if(egodata.ACCTimeGap++ >= 4)
-							egodata.ACCTimeGap = 0;
-						if(egodata.CACCTimeGap++ >= 4)
-							egodata.CACCTimeGap = 0;
-					}
-					break;
-				case TIMEGAP_MINUS:
-					if(dvi_rcv_sav != TIMEGAP_MINUS) {
-						printf("TIMEGAP_MINUS button pressed\n");
-						if(egodata.ACCTimeGap-- <= 0)
-							egodata.ACCTimeGap = 4;
-						if(egodata.CACCTimeGap-- <= 0)
-							egodata.CACCTimeGap = 4;
-					}
-					break;
-			}
-			dvi_rcv_sav = db_dvi_rcv;
-		}
-
 		if(DB_TRIG_VAR(&trig_info) == DB_COMM_TX_VAR) {
-
 	                db_clt_read(pclt, DB_COMM_TX_VAR, sizeof(veh_comm_packet_t), &self_comm_pkt);
+			db_clt_read(pclt, DB_LONG_OUTPUT_VAR, sizeof(long_output_typ), &long_output);
 
 			char drive_mode_2_CACCState[] = {0, 0, 4, 4, 2}; //DVI CACCState: 0:nothing, 1:CACC Enabled, 2:CACC Active, 3: ACC enabled, 4:ACC active
 									//comm_pkt drive_mode (aka user_ushort_2): 0:stay, 1:manual, 2:CC, 3:ACC, 4:CACC
 			egodata.CACCState = drive_mode_2_CACCState[self_comm_pkt.user_ushort_2];
+			if( (long_output.selected_gap_level > 0) && (long_output.selected_gap_level <= 5) ) 
+				long_output.selected_gap_level--;
+			else
+				long_output.selected_gap_level = 4;
+    			egodata.CACCTimeGap = long_output.selected_gap_level;//0-4
+    			egodata.ACCTimeGap = long_output.selected_gap_level;//0-4
+
 
 			dvi_out.platooningState = 2; //0=standby, 2=platooning NOTE:Must be set to 2 to get rid of "Please switch VEC stalk to ON"
 			dvi_out.position = self_comm_pkt.my_pip - 1;       // 1-3: 0=Not available 1=First position 2=Second position 3=Third position
