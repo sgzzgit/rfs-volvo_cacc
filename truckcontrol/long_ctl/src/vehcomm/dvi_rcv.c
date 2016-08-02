@@ -1,4 +1,4 @@
-/**\file
+/**\fil
  *	veh_rcv.c 
  *		Receives a message from another vehicle and
  *		writes it to the appropriate database variable,
@@ -52,10 +52,15 @@ int main( int argc, char *argv[] )
         char hostname[MAXHOSTNAMELEN+1];
         int xport = COMM_OS_XPORT;
         struct sockaddr_in src_addr;
-        char *remote_ipaddr = "172.16.0.1";       /// address of UDP destination
-        char *local_ipaddr = "172.16.0.75";       /// address of UDP destination
+        char *remote_ipaddr = "172.16.0.177";       /// address of UDP destination
+        char *local_ipaddr = "172.16.0.77";       /// address of UDP destination
         struct sockaddr_in dst_addr;
 	int create_db_vars = 0;
+	int use_db = 1;
+	dvi_out_t dvi_out;
+	float ts = 0;
+	float ts_sav = 0;
+	char gap_level = 5;
 
 	int sd;				/// socket descriptor
 	int udp_port = 8003;
@@ -67,7 +72,7 @@ int main( int argc, char *argv[] )
 	short msg_count = 0;
 	int socklen = sizeof(src_addr);
 
-        while ((ch = getopt(argc, argv, "A:a:cu:v")) != EOF) {
+        while ((ch = getopt(argc, argv, "A:a:cdu:v")) != EOF) {
                 switch (ch) {
                 case 'A': local_ipaddr = strdup(optarg);
                           break;
@@ -75,21 +80,25 @@ int main( int argc, char *argv[] )
                           break;
 		case 'c': create_db_vars = 1; 
 			  break;
+		case 'd': use_db = 0; 
+			  break;
 		case 'u': udp_port = atoi(optarg); 
 			  break;
 		case 'v': verbose = 1; 
 			  break;
-                default:  printf( "Usage: %s -v (verbose) -A <local ip, def. 172.16.0.75> -a <remote ip, def. 172.16.0.1> -u <UDP port, def. 8003> ", argv[0]);
+                default:  printf( "Usage: %s -v (verbose) -A <local ip, def. 172.16.0.77> -a <remote ip, def. 172.16.0.177> -u <UDP port, def. 8003> -d (Do NOT use database)", argv[0]);
 			  exit(EXIT_FAILURE);
                           break;
                 }
         }
         get_local_name(hostname, MAXHOSTNAMELEN);
 
-        if(create_db_vars)
-                pclt = db_list_init(argv[0], hostname, domain, xport, db_vars_list, 1, NULL,  0); 
-        else
-                pclt = db_list_init(argv[0], hostname, domain, xport, NULL, 0, NULL, 0); 
+	if(use_db != 0) {
+		if(create_db_vars)
+			pclt = db_list_init(argv[0], hostname, domain, xport, db_vars_list, 1, NULL,  0); 
+		else
+			pclt = db_list_init(argv[0], hostname, domain, xport, NULL, 0, NULL, 0); 
+	}
 
 	if( setjmp( exit_env ) != 0 ) {
 		printf("Received %d messages\n", msg_count);
@@ -114,11 +123,43 @@ int main( int argc, char *argv[] )
                         perror("recvfrom failed\n");
                         break;
                 }
-
-		db_clt_write(pclt, DB_DVI_RCV_VAR, sizeof(char), &buf);
+#define	ACC_REQUESTED		5
+#define	CACC_REQUESTED		6
+#define	GAP_DECREASE_REQUESTED	7
+#define	GAP_INCREASE_REQUESTED	8
+		ts = sec_past_midnight_float();
+		if(use_db != 0) {
+			switch(buf){
+				case ACC_REQUESTED:
+					dvi_out.acc_cacc_request = 1;
+					dvi_out.gap_request = 0;
+					break;
+				case CACC_REQUESTED:
+					dvi_out.acc_cacc_request = 2;
+					dvi_out.gap_request = 0;
+					break;
+				case GAP_DECREASE_REQUESTED:
+					if( (ts - ts_sav) > 0.2)
+						if( (gap_level--) < 0)
+							gap_level = 0;
+					ts_sav = ts;
+					dvi_out.acc_cacc_request = 0;
+					dvi_out.gap_request = gap_level;
+					break;
+				case GAP_INCREASE_REQUESTED:
+					if( (ts - ts_sav) > 0.2)
+						if( (gap_level++) > 5)
+							gap_level = 5;
+					ts_sav = ts;
+					dvi_out.acc_cacc_request = 0;
+					dvi_out.gap_request = gap_level;
+					break;
+			}
+			db_clt_write(pclt, DB_DVI_OUT_VAR, sizeof(dvi_out_t), &dvi_out);
+		}
 		if(buf != 0) 
 		{
-			printf("Byte received %hhu\n", buf);
+			printf("Byte received: %hhu at %f sec\n", buf, ts);
 		}
 	}
 	longjmp(exit_env,1);	/* go to exit code when loop terminates */
