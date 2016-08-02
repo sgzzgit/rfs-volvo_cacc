@@ -60,7 +60,7 @@ int main( int argc, char *argv[] )
 	dvi_out_t dvi_out;
 	float ts = 0;
 	float ts_sav = 0;
-	char gap_level = 5;
+	char gap_level = 0;
 
 	int sd;				/// socket descriptor
 	int udp_port = 8003;
