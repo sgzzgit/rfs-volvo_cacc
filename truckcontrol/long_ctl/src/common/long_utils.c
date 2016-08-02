@@ -276,7 +276,8 @@ static db_id_t trk_in_dbv_list[] = {
         {DB_EVT300_RADAR1_VAR, sizeof( evt300_radar_typ)},
         {DB_LONG_LIDARA_VAR, sizeof( long_lidarA_typ)},
         {DB_LONG_LIDARB_VAR, sizeof( long_lidarB_typ)},
-        {DB_MDL_LIDAR_VAR, sizeof( mdl_lidar_typ)}
+        {DB_MDL_LIDAR_VAR, sizeof( mdl_lidar_typ)},
+        {DB_DVI_OUT_VAR, sizeof(dvi_out_t)}
 };
 
 static int trk_in_dbv_list_size = sizeof(trk_in_dbv_list)/sizeof(db_id_t);
@@ -460,7 +461,6 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
         j1939_ccvs_typ *pccvs;
         j1939_etc1_typ *petc1;
 	j1939_etc2_typ *petc2;
-	j1939_tsc1_typ *ptsc1;
 	j1939_tsc1_typ *ptsc1_e_t;
 	j1939_tsc1_typ *ptsc1_e_a;
 	j1939_tsc1_typ *ptsc1_e_v;
@@ -480,10 +480,9 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
 	j1939_volvo_ego_typ *pvolvo_ego;
 	j1939_volvo_xbr_typ *pvolvo_xbr;
 	j1939_volvo_xbr_warn_typ *pvolvo_xbr_warn;
-	j1939_can2_typ *pcan2;
-	j1587_engc_typ *pengc;
 	long_input_typ *plong_in;
 	evt300_radar_typ *pevt300;
+	dvi_out_t *pdvi_out;
 	long_lidarA_typ *plidarA;	
 	long_lidarB_typ *plidarB;	
 	mdl_lidar_typ *pmdl_lidar;	
@@ -816,6 +815,11 @@ void long_update_fields_from_dbv(int db_num, long_vehicle_state *pstate,
         case DB_EVT300_RADAR1_VAR:
                 pevt300 = (evt300_radar_typ *) pdata_val;
                 pstate->evt300 = *pevt300;
+		break;
+        case DB_DVI_OUT_VAR:
+                pdvi_out = (dvi_out_t *) pdata_val;
+                pstate->acc_cacc_request = pdvi_out->acc_cacc_request;
+                pstate->gap_request = pdvi_out->gap_request;
 		break;
         case DB_SELF_GPS_POINT_VAR:
                 pself_gps = (path_gps_point_t *) pdata_val;
