@@ -99,6 +99,7 @@
 #include "veh_trk.h"
 #include "long_trk_func.h"
 #include <time.h>
+#include <data_log.h>
 
 #define OPEN_LOOP_TQ  20.0
 
@@ -106,6 +107,8 @@
 //#define COMM_DATA
 //#define TASK_CONTROL
 //#define TEST_BRK
+#define DVI
+//#define Veh_ID_ReConfig
 
 static float track_length=260.0;
 static float stop_period=0.0;
@@ -183,6 +186,22 @@ static local_pos_typ *str_pos_pt;
 
 
 FILE* pout;                              // 04_04_03
+FILE *first_file = NULL;
+char *first_file_str;
+double start_time;
+int old_fileday = 99;   /// originally set to bad value to force search
+char serialnum[80];
+char monthday[80];
+char serialnum[80];
+char tripstr[80];
+buff_typ *pfirst_buff;
+buff_typ *pbuff_long_trk;
+char id_string[80];
+char ac_rm_pre[200];
+int file_time = 15;     /// Number of minutes to record to a file
+int serial_num;         /// set in open_data_log
+char tripdir[80] = "/big/data/";
+char *controller_str = "test"; 
 
 // For veh_long.h
 static fault_index_typ f_index;
@@ -292,13 +311,38 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
        pbuff1 = &pctrl->buff;
 
        pcparams = &cmd_private.cmd_params;
+printf("long_trk: Got to 1\n");
+       /* Open a set of files for recording data. Set up value of "firstfile"
+         * that will be used to handle timestamp and name set-up handling on
+         * reopens
+         */
+                strcpy(ac_rm_pre, tripdir);
+                strcat(ac_rm_pre, "/");
+                strcat(ac_rm_pre, controller_str);
+                strcat(ac_rm_pre, "_");
+                if (first_file == NULL) {
+                        open_data_log_infix(&pout, ac_rm_pre, ".dat",
+                         &start_time, &old_fileday, &serial_num, monthday, serialnum, tripstr);
+                        first_file = pout;
+                        first_file_str = ac_rm_pre;
+                        pfirst_buff = pbuff_long_trk;
+                        sprintf(id_string, "%s%s%s", monthday, tripstr, serialnum);
+                } else {
+                        open_another_file(&pout, ac_rm_pre,
+                                  id_string, ".dat");
+                }
+                printf("controller_str %s ac_rm_pre %s\n",
+                        controller_str,
+                        ac_rm_pre
+                );
 
-       pout=fopen("/big/data/test.dat","w");                  // 04_16_03, working now
-          if (pout == NULL)
-          {
-             printf("Open output file for writing fails!");
-             fflush(stdout);
-          }
+printf("long_trk: Got to 2\n");
+//       pout=fopen("/big/data/test.dat","w");                  // 04_16_03, working now
+//          if (pout == NULL)
+//          {
+//             printf("Open output file for writing fails!");
+//             fflush(stdout);
+//          }
  
 #ifdef __QNX4__
     sprintf( hostname, "%lu", getnid() );
@@ -627,13 +671,13 @@ if(config.use_comm == TRUE)
 
 	
 
-	config_pt->max_spd=50.0*mph2mps;  	
-	if (config_pt->max_spd > 50.0*mph2mps) 
-		config_pt-> max_spd=50.0*mph2mps;
+	config_pt->max_spd=55.0*mph2mps;  	
+	if (config_pt->max_spd > 55.0*mph2mps) 
+		config_pt-> max_spd=55.0*mph2mps;
 
-	manager_cmd_pt-> set_v=50.0*mph2mps;
-	if (manager_cmd_pt-> set_v > 50.0*mph2mps)      
-		manager_cmd_pt-> set_v=50.0*mph2mps;  
+	manager_cmd_pt-> set_v=55.0*mph2mps;
+	if (manager_cmd_pt-> set_v > 55.0*mph2mps)      
+		manager_cmd_pt-> set_v=55.0*mph2mps;  
 
 	//con_state_pt-> max_spd=manager_cmd_pt-> set_v;
 	con_state_pt-> max_spd=config_pt-> max_spd;
@@ -749,16 +793,87 @@ if ( (30.0< ego_gps.latitude && ego_gps.latitude < 45.0) &&
 		 config_pt->truck_ACC=TRUE;
 		 config_pt-> truck_CACC=FALSE;	
 		 config_pt-> ACC_tGap=1.6;
+#ifdef DVI
+		 if (pv-> gap_request == 1)		
+			config_pt-> CACC_tGap=1.1;		 
+		 else if (pv-> gap_request == 2)		 
+				config_pt-> CACC_tGap=1.3;		 
+		 else if (pv-> gap_request == 3)		 			
+				config_pt-> CACC_tGap=1.5;		 
+		 else if (pv-> gap_request == 4)
+			config_pt-> CACC_tGap=1.7;
+		 else if (pv-> gap_request == 5)
+			config_pt-> CACC_tGap=1.9;
+		 else		
+			config_pt-> CACC_tGap=1.6;	
+#endif		
 	}
-	else
+	else   // veh_id > 1
 	{
+#ifdef DVI
+		if (pv-> acc_cacc_request == 1)
+		{
+			config_pt->truck_CACC=FALSE;		 
+			config_pt->truck_ACC=TRUE;
+		}
+		else if (pv-> acc_cacc_request == 2)
+		{
+			config_pt->truck_CACC=TRUE;
+			config_pt->truck_ACC=FALSE;
+		}
+		else
+		{
+			config_pt->truck_CACC=TRUE;		 
+			config_pt->truck_ACC=FALSE;
+		}
+#endif
+
+#ifndef DVI
 		 config_pt->truck_CACC=TRUE;
 		 config_pt->truck_ACC=FALSE;
 		 if ((vehicle_info_pt-> cut_in) != 1)   // changed on 06_30_16
-			config_pt-> CACC_tGap=1.25;   // 1.1
+			config_pt-> CACC_tGap=1.0;          // 1.1 //1.25
 		 else
 			config_pt-> CACC_tGap=1.4;	
+#endif
+
+#ifdef DVI
+		 if (pv-> gap_request == 1)
+		 {
+			if ((vehicle_info_pt-> cut_in) != 1)
+				config_pt-> CACC_tGap=0.6; 
+			else
+				config_pt-> CACC_tGap=1.4;
+		 }
+		 else if (pv-> gap_request == 2)
+		 {
+			if ((vehicle_info_pt-> cut_in) != 1)
+				config_pt-> CACC_tGap=0.9; 
+			else
+				config_pt-> CACC_tGap=1.4;
+		 }
+		 else if (pv-> gap_request == 3)
+		 {
+			if ((vehicle_info_pt-> cut_in) != 1)
+				config_pt-> CACC_tGap=1.2; 
+			else
+				config_pt-> CACC_tGap=1.4;
+		 }
+		 else if (pv-> gap_request == 4)
+			config_pt-> CACC_tGap=1.5;
+		 else if (pv-> gap_request == 5)
+			config_pt-> CACC_tGap=1.8;
+		 else
+		 {
+			if ((vehicle_info_pt-> cut_in) != 1)   // changed on 06_30_16
+				config_pt-> CACC_tGap=1.2;          // 1.1 //1.25
+			else
+				config_pt-> CACC_tGap=1.4;	
+		 }
+#endif
 	}
+	
+	
 	if (max_spd_ini==1)
 	{		
 		if (config_pt->truck_ACC == TRUE)			
@@ -801,6 +916,8 @@ if(config.use_comm == TRUE)
        /*----  String Configuration  ----*/
        /**********************************/		
 
+#ifdef Veh_ID_ReConfig
+
 		if (config_pt-> MyPltnPos == 2)   // put on 07_01_16
 		{
 			/*if (vehicle_info_pt-> comm_p[0] == 1) 			
@@ -836,7 +953,7 @@ if(config.use_comm == TRUE)
 			}*/
 					
 		}
-		
+#endif		
 
           /**************************************/
           /*  Read in sensor measurement        */ 
@@ -844,7 +961,7 @@ if(config.use_comm == TRUE)
           /*                                    */
           /**************************************/
 
-read_jbus(dt, time_filter, pv, pparams, jbus_read_pt, sens_read_pt, sw_read_pt, vehicle_info_pt);
+read_jbus(dt, time_filter, pv, pparams, jbus_read_pt, sens_read_pt, sw_read_pt, vehicle_info_pt, config_pt);
 
 read_sw(pv, sw_read_pt);
 
@@ -1099,7 +1216,8 @@ if( (config.handle_faults == TRUE) && (manager_cmd_pt-> drive_mode > 1))
 	/*                           */
 	/*****************************/
 
-actuate(dt, pcmd, con_output_pt, con_state_pt, pparams, &inactive_ctrl, manager_cmd_pt, sw_read_pt, jbus_read_pt, config_pt, f_index_pt, vehicle_info_pt);
+actuate(dt, pcmd, con_output_pt, con_state_pt, pparams, &inactive_ctrl, manager_cmd_pt, sw_read_pt, jbus_read_pt, config_pt, 
+		f_index_pt, vehicle_info_pt, sens_read_pt);
 
 if( (jbus_read_pt-> accel_pedal_pos1) > 5.0)
 	pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; // indicating driver taking over
@@ -1222,6 +1340,7 @@ else
 	pcmd->brake_command_mode = XBR_NOT_ACTIVE;          
 }
 
+	pcmd-> selected_gap_level = pv-> gap_request;
 
 	/************************************/
 	/*                                  */
@@ -1242,8 +1361,8 @@ if(config.use_comm == TRUE)
 		  comm_send_pt.vel_traj = con_state_pt-> ref_v;   // composite	 
 		  comm_send_pt.acc_traj = con_state_pt-> ref_a;    // composite   
 	  }*/
-       comm_send_pt.vel_traj = sens_read_pt->ego_v;   // composite	             // changed on 06_10_16 
-	comm_send_pt.acc_traj = sens_read_pt->ego_a;    // composite  
+      comm_send_pt.vel_traj = sens_read_pt->ego_v;   // composite	             // changed on 06_10_16 
+	  comm_send_pt.acc_traj = sens_read_pt->ego_a;    // composite  
 
       comm_send_pt.velocity = sens_read_pt->ego_v; //con_state_pt-> spd;     // measured
       comm_send_pt.accel = sens_read_pt->ego_a;    //con_state_pt-> acc;        // measured
@@ -1307,6 +1426,15 @@ if(config.use_comm == TRUE)
         /*******************************/
 
 if( (config.save_data == TRUE) && ((data_log_count++ % config.data_log) == 0) ) {
+
+	if (reopen_data_log_infix(&first_file, file_time, first_file_str,
+	    ".dat", &start_time, &old_fileday, &serial_num,
+	    monthday, serialnum, tripstr, pfirst_buff))  
+	{
+		// done for first file in reopen_data_log
+		sprintf(id_string, "%s%s%s", monthday, tripstr, serialnum);
+		reopen_another_file(&pout, ac_rm_pre, id_string, ".dat", pbuff_long_trk);
+	}
 
 #ifdef COMM_DATA
 	if ( vehicle_info_pt-> veh_id == 1)
@@ -1588,7 +1716,7 @@ if( config.run_data == TRUE ) {
 		  sens_read_pt->target_a,				//72
 		  sens_read_pt->target_v,				//73
 		  sens_read_pt->target_d,				//74
-		  sens_read_pt->target_avail,			//75
+		  sens_read_pt->target_avail,			//75		  
 		  jbus_read_pt-> steer_angle);			//76
 	  fprintf(pout, "%4.8lf %4.8lf %4.3f %4.8lf %4.8lf %4.3f %4.8lf %4.8lf %4.3f ", 
              gps_point[0]. latitude,             //77
@@ -1615,8 +1743,10 @@ if( config.run_data == TRUE ) {
 			pv-> Volvo_EgoRoadGrade);			//95
 	  fprintf(pout, "%3i %3i %3i %4.3f %4.3f",
 		    str_pos_pt->local_pos[0],			//96
-			str_pos_pt->local_pos[1],			//97
-			str_pos_pt->local_pos[2],			//98
+			//str_pos_pt->local_pos[1],			//97
+			//str_pos_pt->local_pos[2],			//98
+		    pv-> acc_cacc_request,
+			pv-> gap_request,
 		    str_pos_pt->ave_heading,			//99
 			str_pos_pt->gps_dist_pre);			//100
 

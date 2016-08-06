@@ -13,9 +13,8 @@
  *	directory by Sue Dickey.
  *
  */
-#include <sys_os.h>
+#include "sys_os.h"
 #include "sys_list.h"
-#include "sys_buff.h"
 #include "data_log.h"
 #include "timestamp.h"
 
@@ -333,4 +332,202 @@ int get_data_log_line(char *linebuf, data_log_column_spec_t *ptable, int size)
 	}	
 	return i;
 }		
+
+/** This function is identical to open_data_log except that it has
+ *	an additional 'infix' string between MMDD and SSS.
+ *	open_data_log not rewritten for backward compatibility.
+ *	'monthday' and 'serialnum' are returned separately as
+ *	strings to allow the opening of other files with the 'infix' between.
+ */
+int open_data_log_infix(FILE ** pf_data, /// pass in file pointer to be set
+		 char* prefix, 	   /// e.g., "a" or "e"
+		 char* suffix,	   /// e.g., ".dat"
+		 double *pstart_time,	/// will be set by open_data_log
+		 int *pold_fileday,     /// initialize bad day value, e.g. 99
+		 int *pcounter, 	/// will be set to serial number 
+		 char *monthday,	/// if not NULL, "MMDD" will fill this
+		 char *serialnum,       /// if not NULL, "SSS"  will fill this 
+		 char *infix	// inserted betwee MMDD and SSS
+		)
+{
+	int old_fileday = *pold_fileday; /// set illegal value on first call
+	int file_serialno = *pcounter;	/// will be set or incremented
+	int status;
+	struct timespec now;
+	struct timeb timeptr_raw;
+	struct tm time_converted;
+	char filename[80];
+	char temp1[80];
+	char temp2[80];
+	bool_typ file_exists = TRUE;
+
+	/* Get date information. */
+	ftime (&timeptr_raw);
+	//_localtime (&timeptr_raw.time, &time_converted);
+	localtime_r (&timeptr_raw.time, &time_converted);
+
+	/* If old_fileday is not the same as time_converted.tm_mday, reset
+	 * the serial number to zero.  This will happen first time through, or
+	 * if we run through midnight. */
+	if (old_fileday != time_converted.tm_mday)
+		file_serialno = 0;
+	old_fileday = time_converted.tm_mday;
+
+	while(file_exists == TRUE) {
+		snprintf(temp1, 80, "%2.2d%2.2d",
+			time_converted.tm_mon+1, time_converted.tm_mday);
+		snprintf(temp2, 80, "%3.3d", file_serialno);
+		snprintf(filename, 80, "%s%s%s%s%s", 
+				prefix, temp1, infix, temp2, suffix);
+
+		*pf_data = fopen(filename, "r");
+		if (*pf_data == NULL)
+			file_exists = FALSE;
+		else {
+			fclose(*pf_data);
+			file_serialno++;
+		}
+	}
+
+	/* We've found a valid serial number (and filename for radar file is
+	 * still stored in the variable filename).  Now open all the necessary
+	 * files. */
+	*pf_data = fopen(filename, "w");
+	if (*pf_data == NULL) {
+		perror("open_data_log_infix");
+		return 0;
+	}
+
+	/* Set start_time on successful open */
+
+	status = clock_gettime( CLOCK_REALTIME, &now );
+	*pstart_time = now.tv_sec + ((double) now.tv_nsec/ 1000000000L);
+	file_serialno++;
+
+	*pcounter = file_serialno;	
+
+	if (monthday != NULL)
+		strncpy(monthday, temp1, 80);
+	if (serialnum != NULL)
+		strncpy(serialnum, temp2, 80);
+
+	return 1;
+}
+    
+/** Determine the time since files were opened. 
+ *  If the current time is more than the allotted time for file
+ *  collection, close the current set of files and open a new file.
+ *  pstart_time should originally be set by the first call to open_data_log. 
+ *  The return value can be used to open a set of files with open
+ *  and close synchronized to the first.
+ */
+
+int reopen_data_log_infix(FILE ** pf_data, int file_time, 
+			char *prefix, char *suffix,
+			double *pstart_time, 
+			int *pold_fileday, int *pcounter,
+			char *monthday, char* serialnum, char *infix,
+				 buff_typ *pbuf)
+{
+	struct timespec now;
+	double curr_time;
+	int status;
+	status = clock_gettime( CLOCK_REALTIME, &now );
+	curr_time = now.tv_sec +
+                        ((double) now.tv_nsec/1000000000L) - *pstart_time;
+
+	if (curr_time >= file_time * 60.0) {
+		if (pbuf != NULL)
+			buff_done(pbuf);
+                fclose(*pf_data);
+		open_data_log_infix(pf_data, prefix, suffix, pstart_time,
+			pold_fileday, pcounter, monthday, serialnum, infix);
+		return 1;
+	}
+	return 0;
+}
+
+/** This function is identical to open_data_log except that it has
+ *	an additional 'infix' string between MMDD and SSS.
+ *	open_data_log not rewritten for backward compatibility.
+ *	'monthday' and 'serialnum' are returned separately as
+ *	strings to allow the opening of other files with the 'infix' between.
+ */
+int open_data_log_infix_force_fileno(FILE ** pf_data, /// pass in file pointer to be set
+		 char* prefix, 	   /// e.g., "a" or "e"
+		 char* suffix,	   /// e.g., ".dat"
+		 double *pstart_time,	/// will be set by open_data_log
+		 int *pold_fileday,     /// initialize bad day value, e.g. 99
+		 int *pcounter, 	/// will be set to serial number 
+		 char *monthday,	/// if not NULL, "MMDD" will fill this
+		 char *serialnum,       /// if not NULL, "SSS"  will fill this 
+		 char *infix	// inserted betwee MMDD and SSS
+		)
+{
+	int old_fileday = *pold_fileday; /// set illegal value on first call
+	int file_serialno = *pcounter;	/// will be set or incremented
+	int status;
+	struct timespec now;
+	struct timeb timeptr_raw;
+	struct tm time_converted;
+	char filename[80];
+	char temp1[80];
+	char temp2[80];
+	bool_typ file_exists = TRUE;
+
+	/* Get date information. */
+	ftime (&timeptr_raw);
+	//_localtime (&timeptr_raw.time, &time_converted);
+	localtime_r (&timeptr_raw.time, &time_converted);
+
+	/* If old_fileday is not the same as time_converted.tm_mday, reset
+	 * the serial number to zero.  This will happen first time through, or
+	 * if we run through midnight. */
+	if (old_fileday != time_converted.tm_mday)
+		file_serialno = 0;
+	old_fileday = time_converted.tm_mday;
+
+	snprintf(temp1, 80, "%2.2d%2.2d",
+		time_converted.tm_mon+1, time_converted.tm_mday);
+	snprintf(temp2, 80, "%3.3d", file_serialno);
+	snprintf(filename, 80, "%s%s%s%s%s", 
+			prefix, temp1, infix, temp2, suffix);
+
+	*pf_data = fopen(filename, "a");
+	if (*pf_data == NULL) {
+		perror("open_data_log_infix");
+		return 0;
+	}
+
+	/* Set start_time on successful open */
+
+	status = clock_gettime( CLOCK_REALTIME, &now );
+	*pstart_time = now.tv_sec + ((double) now.tv_nsec/ 1000000000L);
+
+	*pcounter = file_serialno;	
+
+	if (monthday != NULL)
+		strncpy(monthday, temp1, 80);
+	if (serialnum != NULL)
+		strncpy(serialnum, temp2, 80);
+
+	return 1;
+}
+
+void save_to_spec (FILE *fout, timestamp_t timestamp,
+                        int use_memory, buff_typ *pbuff,
+                        int num_columns, data_log_column_spec_t *spec)
+{
+        int i;
+        int cnt = 0;
+        char char_buf[MAX_LOG_LINE_LEN];
+        for (i = 0; i < num_columns; i++)
+                cnt += (sprint_data_log_column_entry(
+                                char_buf + cnt, &spec[i]));
+        cnt += (sprintf(char_buf + cnt, "\n"));
+        if (use_memory)
+                buff_add(pbuff, char_buf, cnt);
+        else
+                fprintf(fout, "%s", char_buf);
+}
 

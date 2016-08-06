@@ -16,6 +16,9 @@
 #ifndef DATA_LOG_H 
 #define DATA_LOG_H
 
+#include <timestamp.h>
+#include <sys_buff.h>
+
 typedef struct {
 	int db_id_num;
 	int size;
@@ -62,6 +65,16 @@ extern int reopen_data_log(FILE ** pf_data, int file_time, char *prefix,
 			char *suffix, double *pstart_time, int *pold_fileday,
 			int *pcounter, char *monthdayserialnum,
 			buff_typ *pbuf);
+extern int open_data_log_infix(FILE ** pf_data, char* prefix, char *suffix,
+			double *pstart_time, int *pold_fileday, 
+			int *pcounter, char *monthday, char * serialnum,
+			char *infix);
+extern int reopen_data_log_infix(FILE ** pf_data, int file_time, char *prefix, 
+			char *suffix, double *pstart_time, int *pold_fileday,
+			int *pcounter, char *monthday, char *serialnum,
+			char *infix, buff_typ *pbuf);
+extern int sprint_data_log_column_entry(char *strbuf, data_log_column_spec_t *pentry);
+
 extern int sprint_data_log_column_entry(char *strbuf, data_log_column_spec_t *pentry);
 
 extern int sscan_data_log_column_entry(char *strbuf, data_log_column_spec_t *pentry);
@@ -90,6 +103,9 @@ static inline void reopen_another_file(FILE **pf_data, char *prefix,
         *pf_data = fopen(filename, "w");
 }
 
+void save_to_spec (FILE *fout, timestamp_t timestamp,
+	int use_memory, buff_typ *pbuff,
+	int num_columns, data_log_column_spec_t *spec);
 
 
 #endif
