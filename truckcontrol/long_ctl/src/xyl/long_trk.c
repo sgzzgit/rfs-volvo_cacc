@@ -311,7 +311,6 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
        pbuff1 = &pctrl->buff;
 
        pcparams = &cmd_private.cmd_params;
-printf("long_trk: Got to 1\n");
        /* Open a set of files for recording data. Set up value of "firstfile"
          * that will be used to handle timestamp and name set-up handling on
          * reopens
@@ -336,7 +335,6 @@ printf("long_trk: Got to 1\n");
                         ac_rm_pre
                 );
 
-printf("long_trk: Got to 2\n");
 //       pout=fopen("/big/data/test.dat","w");                  // 04_16_03, working now
 //          if (pout == NULL)
 //          {
