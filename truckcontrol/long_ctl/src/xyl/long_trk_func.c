@@ -268,12 +268,12 @@ int read_sw(long_vehicle_state *pv_can, switch_typ* sw_rd_pt)
 } // read_sw end
 
 // read other JBus info
-int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_params *pparams, jbus_read_typ* jbus_rd_pt, sens_read_typ* sens_rd_pt, 
-			  switch_typ* sw_rd_pt, vehicle_info_typ* veh_info_pt)
+int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_params *pparams, jbus_read_typ* jbus_rd_pt, 
+			  sens_read_typ* sens_rd_pt, switch_typ* sw_rd_pt, vehicle_info_typ* veh_info_pt, control_config_typ* cnfg_pt)
 {
-	static float we_old=0.0, target_d_buff=0.0;
-	float we=0.0;
-
+	static float we_old=0.0, target_d_buff=0.0, tgt_avail_t=0.0;
+	float we=0.0, grd_offset=0.0;
+	static int Trgt_Avail_buff=0;
     /************* read JBus info *****************/
 
   	 jbus_rd_pt->  we= pv_can-> EEC1_EngineSpeed;
@@ -362,52 +362,86 @@ int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_pa
 	 		Road Grade			
 	 ***************************/
 
+	 /*
 	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) < -1.5)
 		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-4.5;  //3.55
-	 if ( (pv_can-> VP15_RoadInclinationVP15-3.55) > 1.5)
+	 //if ( (pv_can-> VP15_RoadInclinationVP15-3.55) > 1.5)
+	 else
 		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-3.55;  //3.55
+	 */
+	 
+	 if ( (pv_can-> VP15_VehicleWeightVP15)/8000.0 < 1.5)
+		 grd_offset=3.55;
+	 else
+		 grd_offset=2.0;
+
+	 if ( (pv_can-> VP15_RoadInclinationVP15-grd_offset) < -1.0)
+		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-(grd_offset+1.0);  //3.55	
+	 else
+		jbus_rd_pt->  grade = pv_can-> VP15_RoadInclinationVP15-(grd_offset);      //3.55
 	 
 	 sens_rd_pt->ego_a=pv_can-> Volvo_EgoAcc;
 	 sens_rd_pt->ego_v=pv_can-> Volvo_EgoVel*0.2778;  // from [km/hr] ==> [m/s]
 	 sens_rd_pt->target_a=pv_can->Volvo_TargetAcc; 
 	 sens_rd_pt->target_v=pv_can-> Volvo_TargetVel;   // [m/s]
+	 sens_rd_pt->target_d_raw=pv_can-> Volvo_TargetDist;
 
-	 
-	 if (t_filter < 1.0)
-	 {
-		target_d_buff=pv_can-> Volvo_TargetDist;
-		sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+	 veh_info_pt-> weight = pv_can-> VP15_VehicleWeightVP15;
+
+	 if ((int)pv_can-> Volvo_TargetAvailable == 1)
+	 {			
+		if (tgt_avail_t < 0.5)
+		{
+			tgt_avail_t+=delta_t;
+			target_d_buff=pv_can-> Volvo_TargetDist;
+			sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+		}
+		if ( (pv_can-> Volvo_TargetDist > target_d_buff+20.0*delta_t) || ((int)pv_can-> Volvo_TargetAvailable == 0) )
+		{                                               //20.0
+			veh_info_pt-> cut_out=ON;
+			veh_info_pt-> cut_in=OFF;
+		}
+		//if ( (pv_can-> Volvo_TargetDist < target_d_buff-20.0*delta_t) || 
+		//	 ((Trgt_Avail_buff==0) && ((int)pv_can-> Volvo_TargetAvailable==1) && (pv_can-> Volvo_TargetDist < 30.0) )   )
+		if (pv_can-> Volvo_TargetDist < target_d_buff-20.0*delta_t) 
+			 //((Trgt_Avail_buff==0) && ((int)pv_can-> Volvo_TargetAvailable==1) && (pv_can-> Volvo_TargetDist < 30.0) )   )
+		{                                               
+			veh_info_pt-> cut_in=ON;
+			veh_info_pt-> cut_out=OFF;
+		}	
+		Trgt_Avail_buff=(int)pv_can-> Volvo_TargetAvailable;
+
+		if (veh_info_pt-> veh_id == 1)
+		{
+			if (pv_can-> Volvo_TargetDist > target_d_buff+0.15)
+				sens_rd_pt->target_d=target_d_buff+0.15;
+			else if (pv_can-> Volvo_TargetDist < target_d_buff-0.5) //20.0   or  4.0
+				sens_rd_pt->target_d=target_d_buff-0.5;
+			else
+				sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+		}
+		else
+		{
+			if (pv_can-> Volvo_TargetDist > target_d_buff+0.15)
+			sens_rd_pt->target_d=target_d_buff+0.15;
+			else if (pv_can-> Volvo_TargetDist < target_d_buff-0.5) //20.0   or  4.0
+			sens_rd_pt->target_d=target_d_buff-0.5;
+			else
+			sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
+		}
+		 //target_d_buff=pv_can-> Volvo_TargetDist;
+		 target_d_buff=sens_rd_pt->target_d;
 	 }
 	 else
-	 {		 
-			if ( (((int)pv_can-> Volvo_TargetAvailable == 1) && (pv_can-> Volvo_TargetDist > target_d_buff+20.0*delta_t)) ||
-				 ((int)pv_can-> Volvo_TargetAvailable == 0) )
-			{
-				veh_info_pt-> cut_out=ON;
-				veh_info_pt-> cut_in=OFF;
-			}
-			if (((int)pv_can-> Volvo_TargetAvailable == 1) && (pv_can-> Volvo_TargetDist < target_d_buff-20.0*delta_t))
-			{
-				veh_info_pt-> cut_in=ON;
-				veh_info_pt-> cut_out=OFF;
-			}
-
-		 if (pv_can-> Volvo_TargetDist > target_d_buff+0.04)
-			sens_rd_pt->target_d=target_d_buff+0.04;
-		 else if (pv_can-> Volvo_TargetDist < target_d_buff-0.04)
-			sens_rd_pt->target_d=target_d_buff-0.04;
-		 else
-			sens_rd_pt->target_d=pv_can-> Volvo_TargetDist;
-		 
-		 if ((int)pv_can-> Volvo_TargetAvailable == 1)
-		     target_d_buff=sens_rd_pt->target_d;
-		 veh_info_pt-> weight = pv_can-> VP15_VehicleWeightVP15;
-
+	 {
+	 	sens_rd_pt->target_d=200.0;   // added on 07_14_16
+		tgt_avail_t=0.0;
 	 }
-	 
+
+
 	 if (veh_info_pt-> cut_in ==ON)
 		veh_info_pt-> cut_in_t += delta_t;
-	 else
+	 else	
 		veh_info_pt-> cut_in_t = 0.0;
 
 	 sens_rd_pt->target_avail=(int)pv_can-> Volvo_TargetAvailable;
@@ -454,12 +488,13 @@ int read_jbus(float delta_t, float t_filter, long_vehicle_state *pv_can, long_pa
 ******************************************************************************/
 int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, control_state_typ* con_st_pt,
 	long_params *pparams, long_output_typ *inactive_ctrl, manager_cmd_typ * mng_cmd_pt, 
-	switch_typ *sw_pt, jbus_read_typ* jbus_rd_pt, control_config_typ* cnfg_pt, fault_index_typ* f_ind_pt, vehicle_info_typ *veh_info_pt) 
+	switch_typ *sw_pt, jbus_read_typ* jbus_rd_pt, control_config_typ* cnfg_pt, fault_index_typ* f_ind_pt, 
+	vehicle_info_typ *veh_info_pt, sens_read_typ* sens_rd_pt) 
 {       
   float max_tq_we, tmp_rate;
   static float eng_tq_tmp=0.0, eng_tq_buff=0.0, eng_torq_buff=0.0, eng_retard_buff=0.0;
   static int eng_tq_ini=1, eng_retard_ini=1;
-  static float trans_t=0.0, tq_f_t=0.0, jk_f_t=0.0, we_buff=600.0;
+  static float trans_t=0.0, tq_f_t=0.0, jk_f_t=0.0, we_buff=600.0, JK_cut_in_t=0.0;
   static int cmd_count=0;
 
 	cmd_count++;
@@ -681,6 +716,26 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
       }   // jk cmd end                                                     
         
 	 
+	  /********************************************
+	     for special short distance cut-in handling
+	  *********************************************/
+
+	  //if ((veh_info_pt-> cut_in==ON) && (JK_cut_in_t < 3.0) && (sens_rd_pt-> target_d < CUT_IN_THRESHOLD))
+	  //if ((veh_info_pt-> cut_in==ON) && (JK_cut_in_t < 3.0) && (sens_rd_pt-> target_d_raw < CUT_IN_THRESHOLD))
+	  if ((JK_cut_in_t < 3.0) && (sens_rd_pt-> target_d_raw < CUT_IN_THRESHOLD))
+	  {
+		 JK_cut_in_t += delta_t;
+		 pcmd->engine_command_mode = XBR_NOT_ACTIVE; 
+		 pcmd->engine_torque =0.0;		 
+		 pcmd->engine_retarder_command_mode = XBR_ACTIVE;		 
+		 pcmd->engine_retarder_priority=TSC_HIGHEST;  /*TSC_HIGHEST :0; TSC_HIGH: 1; TSC_MEDIUM: 2; TSC_LOW: 3*/ 	
+		 pcmd->engine_retarder_torque = -20.0*(con_st_pt-> wt_factor);
+	  }
+	  else
+		JK_cut_in_t=0.0;
+
+
+
 	  /*******************************************
 
 	    Service brake
@@ -693,8 +748,8 @@ int actuate(float delta_t, long_output_typ *pcmd, con_output_typ* con_out_pt, co
 		 pcmd->engine_command_mode = TSC_OVERRIDE_DISABLED; //Use this if possible   		   
          pcmd->engine_torque = 0.0;
          
-		/* if (con_out_pt-> y11 < 0.0)                             // using usyn 03_01_16              
-			pcmd->ebs_deceleration = con_out_pt-> y14;     // changed on 11_03_15
+		/* if (con_out_pt-> y11 < 0.0)                          // using usyn 03_01_16              
+			pcmd->ebs_deceleration = con_out_pt-> y14;          // changed on 11_03_15
          if (pcmd->ebs_deceleration > - 1.2)
 			 pcmd->ebs_deceleration = - 1.2;          
 		 if (pcmd->ebs_deceleration < - 2.5)

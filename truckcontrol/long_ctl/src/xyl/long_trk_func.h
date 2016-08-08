@@ -31,7 +31,7 @@ extern void ref_ini(control_config_typ*, float *, float *, float *);
 extern int cacc_comm(float, float *, float, control_state_typ*, vehicle_info_typ*, comm_info_typ*, fault_index_typ*, 
 				veh_comm_packet_t*, veh_comm_packet_t*, pltn_info_typ*, control_config_typ *);
 extern int read_sw(long_vehicle_state *, switch_typ*);
-extern int read_jbus(float, float,long_vehicle_state *,long_params *,jbus_read_typ *, sens_read_typ*, switch_typ *, vehicle_info_typ*);
+extern int read_jbus(float, float,long_vehicle_state *,long_params *,jbus_read_typ *, sens_read_typ*, switch_typ *, vehicle_info_typ*, control_config_typ*);
 extern int config_sw(int *pread_sw, int *pmanu_auto_sw,
         unsigned short *phandshake_start, int *pread_sw_old, switch_typ *sw_pt,
         long_vehicle_state *pv, vehicle_info_typ* vehicle_info_pt,
@@ -41,8 +41,9 @@ extern int config_sw(int *pread_sw, int *pmanu_auto_sw,
 //        switch_typ*, vehicle_info_typ*,veh_comm_packet_t*, control_state_typ*,manager_cmd_typ*, pltn_info_typ*);
 
 //extern int set_time_sync(float *, float *,float *, vehicle_info_typ*, pltn_info_typ*);
-extern int actuate(float, long_output_typ*, con_output_typ*, control_state_typ*, long_params*, long_output_typ*, 
-				          manager_cmd_typ*, switch_typ*, jbus_read_typ*, control_config_typ*, fault_index_typ*, vehicle_info_typ *);
+extern int actuate(float, long_output_typ*, con_output_typ*, control_state_typ*, long_params*, long_output_typ*,  manager_cmd_typ*, 
+				         switch_typ*, jbus_read_typ*, control_config_typ*, fault_index_typ*, vehicle_info_typ *, sens_read_typ*);
+
 extern int veh_pos(path_gps_point_t , path_gps_point_t , path_gps_point_t , local_pos_typ *, pltn_info_typ *);
 
 extern int tq_we(float, float*);

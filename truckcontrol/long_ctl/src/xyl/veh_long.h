@@ -77,7 +77,7 @@
 #define ACC_DIST			2.0
 #define PLTN_SIZE			3
 #define CUT_IN_T			30.0
-
+#define CUT_IN_THRESHOLD	10.0
 
 /*        
 #define SPLIT_DIST                               2.0                 // 6.0 for NVD
@@ -352,6 +352,7 @@ typedef struct
         float radar_rt;			// Fused radar rt and relative v		       
 		float max_tq_we;
 		float max_jk_we;
+		float wt_factor;
         //float mdl_rg;        
 } control_state_typ;
 
@@ -467,7 +468,8 @@ typedef struct                          // added on 03_18_09
 	int target_avail;			// from Volvo X-PC
 	float target_a;				// from Volvo X-PC
 	float target_v;				// from Volvo X-PC
-	float target_d;				// from Volvo X-PC  
+	float target_d;				// from Volvo X-PC 
+	float target_d_raw;
 	float vrd_range;
     float vrd_range_rate;
     float lidar_range;
