@@ -99,6 +99,7 @@
 #include "veh_trk.h"
 #include "long_trk_func.h"
 #include <time.h>
+#include <data_log.h>
 
 #define OPEN_LOOP_TQ  20.0
 
@@ -185,6 +186,22 @@ static local_pos_typ *str_pos_pt;
 
 
 FILE* pout;                              // 04_04_03
+FILE *first_file = NULL;
+char *first_file_str;
+double start_time;
+int old_fileday = 99;   /// originally set to bad value to force search
+char serialnum[80];
+char monthday[80];
+char serialnum[80];
+char tripstr[80];
+buff_typ *pfirst_buff;
+buff_typ *pbuff_long_trk;
+char id_string[80];
+char ac_rm_pre[200];
+int file_time = 15;     /// Number of minutes to record to a file
+int serial_num;         /// set in open_data_log
+char tripdir[80] = "/big/data/";
+char *controller_str = "test"; 
 
 // For veh_long.h
 static fault_index_typ f_index;
@@ -294,13 +311,36 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
        pbuff1 = &pctrl->buff;
 
        pcparams = &cmd_private.cmd_params;
+       /* Open a set of files for recording data. Set up value of "firstfile"
+         * that will be used to handle timestamp and name set-up handling on
+         * reopens
+         */
+                strcpy(ac_rm_pre, tripdir);
+                strcat(ac_rm_pre, "/");
+                strcat(ac_rm_pre, controller_str);
+                strcat(ac_rm_pre, "_");
+                if (first_file == NULL) {
+                        open_data_log_infix(&pout, ac_rm_pre, ".dat",
+                         &start_time, &old_fileday, &serial_num, monthday, serialnum, tripstr);
+                        first_file = pout;
+                        first_file_str = ac_rm_pre;
+                        pfirst_buff = pbuff_long_trk;
+                        sprintf(id_string, "%s%s%s", monthday, tripstr, serialnum);
+                } else {
+                        open_another_file(&pout, ac_rm_pre,
+                                  id_string, ".dat");
+                }
+                printf("controller_str %s ac_rm_pre %s\n",
+                        controller_str,
+                        ac_rm_pre
+                );
 
-       pout=fopen("/big/data/test.dat","w");                  // 04_16_03, working now
-          if (pout == NULL)
-          {
-             printf("Open output file for writing fails!");
-             fflush(stdout);
-          }
+//       pout=fopen("/big/data/test.dat","w");                  // 04_16_03, working now
+//          if (pout == NULL)
+//          {
+//             printf("Open output file for writing fails!");
+//             fflush(stdout);
+//          }
  
 #ifdef __QNX4__
     sprintf( hostname, "%lu", getnid() );
@@ -1384,6 +1424,15 @@ if(config.use_comm == TRUE)
         /*******************************/
 
 if( (config.save_data == TRUE) && ((data_log_count++ % config.data_log) == 0) ) {
+
+	if (reopen_data_log_infix(&first_file, file_time, first_file_str,
+	    ".dat", &start_time, &old_fileday, &serial_num,
+	    monthday, serialnum, tripstr, pfirst_buff))  
+	{
+		// done for first file in reopen_data_log
+		sprintf(id_string, "%s%s%s", monthday, tripstr, serialnum);
+		reopen_another_file(&pout, ac_rm_pre, id_string, ".dat", pbuff_long_trk);
+	}
 
 #ifdef COMM_DATA
 	if ( vehicle_info_pt-> veh_id == 1)
