@@ -118,9 +118,9 @@ shell 'Start everything but longitudinal control and file writing'
 	sleep 1
 	nice --2 $CAN_DRIVER_DIR/can_man -n /dev/can2 -s 500 -i 7 -p 0xda200 -e 1 >/big/data/can2$DATESTR.log &
 	sleep 1
-	nice --1 $CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can1 >/big/data/rdj1939_can1_$DATESTR.txt &
+	nice --1 $CAN_CLIENT_DIR/rdj1939 -c -f /dev/can1 >/big/data/rdj1939_can1_$DATESTR.txt &
 	sleep 1
-	nice --1 $CAN_CLIENT_DIR/rdj1939 -v -c -f /dev/can2 >/big/data/rdj1939_can2_$DATESTR.txt &
+	nice --1 $CAN_CLIENT_DIR/rdj1939 -c -f /dev/can2 >/big/data/rdj1939_can2_$DATESTR.txt &
 	sleep 1
 	# To start jbussend with debugging ON, add -d flag
 	nice --2 $TEST_DIR/jbussend -d -c -e /dev/can1 -b /dev/can1 >/big/data/jbussend_$DATESTR.dbg &
