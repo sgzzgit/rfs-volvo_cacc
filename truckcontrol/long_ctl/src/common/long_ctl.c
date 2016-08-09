@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 		
 		printf("%s\n", fname);
 		fflush(stdout);
-		fstream = fopen(fname, "w");
+		fstream = fopen(fname, "w+");
                 avcs_print_timing(fstream, &tmg);
 		fclose(fstream);
 		printf("%s exiting, %d exit code\n", argv[0], exit_code); 

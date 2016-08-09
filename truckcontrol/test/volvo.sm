@@ -167,20 +167,12 @@ skip ;
 shell 'Run longitudinal control'
 %(
 	slay  -f -Q -s TERM $LONGITUDINAL
-	nice --2 /home/truckcontrol/test/long_trk -v long_trk -f /home/truckcontrol/test/realtime.ini -o /big/data/realtime -r 1 >/big/data/long_trk.log 2>/big/data/long_trk.err &
+	nice --2 /home/truckcontrol/test/long_trk -v long_trk -f /home/truckcontrol/test/realtime.ini -o test_`cat /big/data/last_start_timestamp.txt` -r 1 >/big/data/long_trk.log 2>/big/data/long_trk.err &
 %)
 ;
 shell 'Stop longitudinal control'
 %(
 	slay  -f -Q -s TERM long_trk
-	if [ -e /big/data/last_start_timestamp.txt ]
-	then
-	        if [ -e /big/data/test.dat ]
-	        then
-	                mv /big/data/test.dat /big/data/test`cat /big/data/last_start_timestamp.txt`.txt
-	        fi
-	fi
-
 %)
 ;
 skip ;

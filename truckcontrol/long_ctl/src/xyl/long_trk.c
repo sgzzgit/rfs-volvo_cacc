@@ -201,7 +201,6 @@ char ac_rm_pre[200];
 int file_time = 15;     /// Number of minutes to record to a file
 int serial_num;         /// set in open_data_log
 char tripdir[80] = "/big/data/";
-char *controller_str = "test"; 
 
 // For veh_long.h
 static fault_index_typ f_index;
@@ -317,7 +316,7 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
          */
                 strcpy(ac_rm_pre, tripdir);
                 strcat(ac_rm_pre, "/");
-                strcat(ac_rm_pre, controller_str);
+                strcat(ac_rm_pre, pparams->data_file);
                 strcat(ac_rm_pre, "_");
                 if (first_file == NULL) {
                         open_data_log_infix(&pout, ac_rm_pre, ".dat",
@@ -330,17 +329,6 @@ int init_tasks(db_clt_typ *pclt, long_ctrl *pctrl, long_output_typ *pcmd)
                         open_another_file(&pout, ac_rm_pre,
                                   id_string, ".dat");
                 }
-                printf("controller_str %s ac_rm_pre %s\n",
-                        controller_str,
-                        ac_rm_pre
-                );
-
-//       pout=fopen("/big/data/test.dat","w");                  // 04_16_03, working now
-//          if (pout == NULL)
-//          {
-//             printf("Open output file for writing fails!");
-//             fflush(stdout);
-//          }
  
 #ifdef __QNX4__
     sprintf( hostname, "%lu", getnid() );
